@@ -1,0 +1,38 @@
+{
+	"name": "AthosTraining",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Shared": {
+				"$className": "Folder",
+				"GameConfig":  { "$path": "src/shared/GameConfig.luau" },
+				"RemoteNames": { "$path": "src/shared/RemoteNames.luau" }
+			}
+		},
+		"ServerScriptService": {
+			"$className": "ServerScriptService",
+			"RemoteSetup": { "$path": "src/server/RemoteSetup.server.luau" },
+			"Main":        { "$path": "src/server/Main.server.luau" },
+			"Services": {
+				"$className": "Folder",
+				"SpawnService":    { "$path": "src/server/Services/SpawnService.luau" },
+				"MapService":      { "$path": "src/server/Services/MapService.luau" },
+				"TrainingService": { "$path": "src/server/Services/TrainingService.luau" }
+			}
+		},
+		"StarterPlayer": {
+			"$className": "StarterPlayer",
+			"StarterPlayerScripts": {
+				"$className": "StarterPlayerScripts",
+				"Main": { "$path": "src/client/Main.client.luau" },
+				"Controllers": {
+					"$className": "Folder",
+					"CharacterController": { "$path": "src/client/Controllers/CharacterController.luau" },
+					"HUDController":       { "$path": "src/client/Controllers/HUDController.luau" },
+					"CombatController":    { "$path": "src/client/Controllers/CombatController.luau" }
+				}
+			}
+		}
+	}
+}
