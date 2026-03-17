@@ -1,5 +1,5 @@
 {
-	"name": "AthosTraining",
+	"name": "AthosHub",
 	"tree": {
 		"$className": "DataModel",
 		"ReplicatedStorage": {
@@ -16,9 +16,13 @@
 			"Main":        { "$path": "src/server/Main.server.luau" },
 			"Services": {
 				"$className": "Folder",
-				"SpawnService":    { "$path": "src/server/Services/SpawnService.luau" },
+				"FolderService":   { "$path": "src/server/Services/FolderService.luau" },
+				"LightingService": { "$path": "src/server/Services/LightingService.luau" },
+				"AnimationService": { "$path": "src/server/Services/AnimationService.luau" },
 				"MapService":      { "$path": "src/server/Services/MapService.luau" },
-				"TrainingService": { "$path": "src/server/Services/TrainingService.luau" }
+				"SpawnService":    { "$path": "src/server/Services/SpawnService.luau" },
+				"SoundService":    { "$path": "src/server/Services/SoundService.luau" },
+				"WheelService":    { "$path": "src/server/Services/WheelService.luau" }
 			}
 		},
 		"StarterPlayer": {
@@ -28,9 +32,9 @@
 				"Main": { "$path": "src/client/Main.client.luau" },
 				"Controllers": {
 					"$className": "Folder",
-					"CharacterController": { "$path": "src/client/Controllers/CharacterController.luau" },
-					"HUDController":       { "$path": "src/client/Controllers/HUDController.luau" },
-					"CombatController":    { "$path": "src/client/Controllers/CombatController.luau" }
+					"CharacterController":    { "$path": "src/client/Controllers/CharacterController.luau" },
+					"CinematicController":    { "$path": "src/client/Controllers/CinematicController.luau" },
+					"NotificationController": { "$path": "src/client/Controllers/NotificationController.luau" }
 				}
 			}
 		}

@@ -2,14 +2,12 @@
 
 local Controllers = script.Parent:WaitForChild("Controllers")
 
-local CharacterController = require(Controllers:WaitForChild("CharacterController"))
-local HUDController       = require(Controllers:WaitForChild("HUDController"))
-local CombatController    = require(Controllers:WaitForChild("CombatController"))
-local IntroController     = require(Controllers:WaitForChild("IntroController"))
+local CharacterController    = require(Controllers:WaitForChild("CharacterController"))
+local CinematicController    = require(Controllers:WaitForChild("CinematicController"))
+local NotificationController = require(Controllers:WaitForChild("NotificationController"))
 
 CharacterController.init()
-HUDController.init()
-CombatController.init()
-IntroController.init()
+CinematicController.init()      -- Módulo 6: câmera cinematográfica ao nascer
+NotificationController.init()   -- Módulo 6: popup de recompensa do Wheel Spin
 
 print("[Client] Pronto.")
