@@ -1,5 +1,14 @@
 # CLAUDE.md — Contexto do Projeto Athos Hub (Roblox)
 
+## Publicação
+
+- **PlaceId:** `79528061984127`
+- **URL do jogo:** https://www.roblox.com/pt/games/79528061984127/Athos-Preview
+- **Experiência:** Athos Preview (Privado por padrão — tornar Público para testes do cliente)
+- **GitHub:** https://github.com/Maycon-MB/athos_roblox
+
+---
+
 ## Objetivo do Projeto
 
 Hub world profissional para o criador de conteúdo **Athos** no Roblox.
