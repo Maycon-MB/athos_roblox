@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Athos Hub — Apresentação do Projeto</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0d0d0f;
+    color: #e8e6e0;
+    line-height: 1.7;
+  }
+
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 48px;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 1px solid #2a2820;
+    padding-bottom: 40px;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .logo-box {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #f5c518, #d4a017);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #0d0d0f;
+    flex-shrink: 0;
+  }
+
+  .header-text h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+  }
+
+  .header-text p {
+    font-size: 14px;
+    color: #7a7670;
+    margin-top: 4px;
+  }
+
+  .badge {
+    display: inline-block;
+    background: #1a1a0f;
+    border: 1px solid #f5c518;
+    color: #f5c518;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 44px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #f5c518;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 15px;
+    color: #b0ada6;
+  }
+
+  /* Experience list */
+  .exp-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .exp-list li {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .exp-num {
+    width: 24px;
+    height: 24px;
+    background: #1e1c14;
+    border: 1px solid #3a3620;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #f5c518;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .exp-list li p {
+    font-size: 14px;
+    color: #c8c5be;
+  }
+
+  .exp-list li strong {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+  }
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #5a5750;
+    padding: 10px 14px;
+    border-bottom: 1px solid #1e1c18;
+  }
+
+  td {
+    font-size: 14px;
+    color: #b0ada6;
+    padding: 12px 14px;
+    border-bottom: 1px solid #161410;
+  }
+
+  td:first-child {
+    color: #e0ddd6;
+    font-weight: 500;
+    width: 38%;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Highlight box */
+  .highlight {
+    background: #0f0e0a;
+    border: 1px solid #2a2820;
+    border-left: 3px solid #f5c518;
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-top: 8px;
+  }
+
+  .highlight p {
+    font-size: 14px;
+    color: #b0ada6;
+  }
+
+  /* Next steps */
+  .next-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .next-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #b0ada6;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    background: #f5c518;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid #1e1c18;
+    margin: 40px 0;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid #1e1c18;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer p {
+    font-size: 12px;
+    color: #3a3830;
+  }
+
+  .footer .version {
+    font-size: 11px;
+    font-weight: 600;
+    color: #f5c518;
+    opacity: 0.5;
+  }
+
+  /* Print / PDF */
+  @media print {
+    body {
+      background: #ffffff !important;
+      color: #1a1a1a !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .page { padding: 32px 40px; }
+    h1, h2 { color: #111111 !important; }
+    p, td, li { color: #333333 !important; }
+    th { color: #666666 !important; }
+    .section-label { color: #b8940a !important; }
+    .badge {
+      background: #fffbe6 !important;
+      border-color: #e0b800 !important;
+      color: #7a6000 !important;
+    }
+    .logo-box { background: linear-gradient(135deg, #f5c518, #d4a017) !important; color: #000 !important; }
+    .exp-num { background: #fffbe6 !important; border-color: #e0b800 !important; color: #7a6000 !important; }
+    .dot { background: #c8a000 !important; }
+    .highlight {
+      background: #fffdf0 !important;
+      border-color: #e0d080 !important;
+      border-left-color: #c8a000 !important;
+    }
+    .header { border-bottom-color: #e0e0e0 !important; }
+    .divider { border-top-color: #e0e0e0 !important; }
+    .footer { border-top-color: #e0e0e0 !important; }
+    .footer p { color: #999 !important; }
+    .footer .version { color: #b8940a !important; opacity: 1 !important; }
+    th { border-bottom-color: #e0e0e0 !important; }
+    td { border-bottom-color: #f0f0f0 !important; }
+    td:first-child { color: #111 !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-box">A</div>
+    <div class="header-text">
+      <h1>Athos Hub</h1>
+      <p>Hub World Profissional — Roblox</p>
+      <span class="badge">Preview v3 — Março 2026</span>
+    </div>
+  </div>
+
+  <!-- O que é -->
+  <div class="section">
+    <div class="section-label">Visão Geral</div>
+    <h2>O que foi construído</h2>
+    <p>
+      Um hub world completo para o seu servidor Roblox, desenvolvido do zero com arquitetura de código profissional.
+      O foco foi criar uma experiência visualmente impactante desde o primeiro segundo de jogo, com sistemas
+      interativos funcionais e estrutura preparada para crescer conforme suas necessidades.
+    </p>
+  </div>
+
+  <!-- Experiência do jogador -->
+  <div class="section">
+    <div class="section-label">Experiência</div>
+    <h2>O que o jogador vive ao entrar</h2>
+    <ul class="exp-list">
+      <li>
+        <div class="exp-num">1</div>
+        <p><strong>Câmera cinematográfica</strong> — varredura panorâmica de 4 segundos revelando o mapa antes de devolver o controle. Impacto imediato.</p>
+      </li>
+      <li>
+        <div class="exp-num">2</div>
+        <p><strong>Gateway de entrada</strong> — arco com a placa "ATHOS HUB" em neon dourado na diagonal do spawn.</p>
+      </li>
+      <li>
+        <div class="exp-num">3</div>
+        <p><strong>Hub central com fonte</strong> — plataforma de 3 camadas com trim dourado neon, fonte de 27 studs, flores, bancos e pilares iluminados.</p>
+      </li>
+      <li>
+        <div class="exp-num">4</div>
+        <p><strong>Portais temáticos</strong> — 3 portais (Floresta, Oceano, Deserto) com efeito vórtice e partículas. Portal VIP exclusivo separado.</p>
+      </li>
+      <li>
+        <div class="exp-num">5</div>
+        <p><strong>Wheel Spin</strong> — o jogador se aproxima e pressiona para girar. Recompensa aparece como popup animado na tela. Cooldown de 30s.</p>
+      </li>
+      <li>
+        <div class="exp-num">6</div>
+        <p><strong>Sons ambientes</strong> — água na fonte, hum eletrônico nos portais, música de fundo no hub.</p>
+      </li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Funcionalidades -->
+  <div class="section">
+    <div class="section-label">Funcionalidades</div>
+    <h2>Sistemas incluídos</h2>
+    <table>
+      <tr>
+        <th>Recurso</th>
+        <th>Detalhe</th>
+      </tr>
+      <tr>
+        <td>Leaderboard (Coins)</td>
+        <td>Visível no tab de jogadores. Atualiza em tempo real ao ganhar recompensas.</td>
+      </tr>
+      <tr>
+        <td>Wheel Spin</td>
+        <td>Probabilidades: 50 Coins (40%), 100 Coins (30%), 200 Coins (18%), Rare Egg (8%), Epic Pet (4%)</td>
+      </tr>
+      <tr>
+        <td>Popup de recompensa</td>
+        <td>Animação slide-in + fade-out com cores por tipo de prêmio</td>
+      </tr>
+      <tr>
+        <td>Câmera cinematográfica</td>
+        <td>3 fases em 4.2s com easing suave ao nascer</td>
+      </tr>
+      <tr>
+        <td>Personagem temático</td>
+        <td>Visual preto com efeito de fogo nos braços</td>
+      </tr>
+      <tr>
+        <td>Áudio espacial</td>
+        <td>Sons por área — fonte, portais e VIP com volume proporcional à distância</td>
+      </tr>
+      <tr>
+        <td>Segurança</td>
+        <td>Validação de distância no servidor antes de qualquer ação interativa</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Arquitetura -->
+  <div class="section">
+    <div class="section-label">Técnico</div>
+    <h2>Arquitetura do código</h2>
+    <div class="highlight">
+      <p>
+        O projeto segue um framework de <strong style="color:#e0ddd6">6 módulos profissionais</strong>: gestão de ciclo de vida, segurança zero-trust,
+        layout estratégico, estética, monetização e performance. Todo o código usa
+        <strong style="color:#e0ddd6">Luau strict mode</strong>, padrão singleton via ModuleScripts e organização por pastas
+        (Environment, Structures, Borders, Gameplay). Fácil de manter, expandir e adaptar para qualquer demanda.
+      </p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Próximos passos -->
+  <div class="section">
+    <div class="section-label">Roadmap</div>
+    <h2>Próximas entregas (sob demanda)</h2>
+    <ul class="next-list">
+      <li><div class="dot"></div>ProfileService — Coins salvos entre sessões (nuvem Roblox)</li>
+      <li><div class="dot"></div>Loja funcional — itens compráveis com Coins ou Robux</li>
+      <li><div class="dot"></div>Sistema de pets — exibição e interação no hub</li>
+      <li><div class="dot"></div>Mapas nos portais — cada portal leva a uma experiência diferente</li>
+      <li><div class="dot"></div>Eventos sazonais — decorações e recompensas por data</li>
+      <li><div class="dot"></div>Telemetria — heatmap de onde os jogadores passam mais tempo</li>
+    </ul>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>Desenvolvido para Athos — Hub World Roblox 2026</p>
+    <span class="version">v3.0</span>
+  </div>
+
+</div>
+</body>
+</html>
