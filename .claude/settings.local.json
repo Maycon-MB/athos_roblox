@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"c:/Users/MayconBruno/Documents/Github/athos_roblox/entregas/2026-03-18_escape-tsunami_pulo-youtubers/src/server/Services\")",
+      "Bash(mkdir -p \"c:/Users/MayconBruno/Documents/Github/athos_roblox/entregas/2026-03-18_escape-tsunami_pulo-youtubers/src/client/Controllers\")",
+      "Bash(curl -s https://create.roblox.com/docs/projects/managing-files)",
+      "Bash(curl -s \"https://devforum.roblox.com/search.json?q=allow+copying+game+place&order=latest\")",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); [print\\(r[''''id''''], r[''''title''''], r.get\\(''''url'''',''''''''\\)\\) for r in data.get\\(''''results'''',[][:10]\\)]\")",
+      "WebSearch",
+      "WebFetch(domain:devforum.roblox.com)",
+      "WebFetch(domain:create.roblox.com)",
+      "Bash(python processor/processor.py)",
+      "Read(//c/Users/MayconBruno/**)",
+      "Bash(python processor/processor.py 'entregas/2026-03-30_escape-tsunami/roteiros_originais/[AT-RB-L1352-260325] ROTEIRO - Escape do Tsunami Mas Posso Comprar PULO de YOUTUBERS!.pdf' models_to_process/mapa_base.rbxm models_to_process/vfx_brainrot.rbxm)",
+      "Bash(pip install:*)",
+      "Bash(python -c ':*)",
+      "Bash(c:/Users/MayconBruno/Documents/Github/athos_roblox/rojo.exe build:*)",
+      "Bash(sed -n 200,215p c:/Users/MayconBruno/Documents/Github/athos_roblox/entregas/2026-04-02_escape-tsunami/src/server/Engine/WaveSystem.lua)",
+      "Bash(sed -n 143,155p c:/Users/MayconBruno/Documents/Github/athos_roblox/entregas/2026-04-02_escape-tsunami/src/server/Engine/BrainrotSystem.lua)",
+      "Bash(sed -n 19,24p c:/Users/MayconBruno/Documents/Github/athos_roblox/entregas/2026-04-02_escape-tsunami/src/server/Engine/PlayerData.lua)",
+      "Bash(c:/Users/MayconBruno/Documents/Github/athos_roblox/rojo.exe --help)",
+      "Bash(git add:*)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\MayconBruno\\Documents\\Github\\athos_roblox\\.claude"
+    ]
+  }
+}

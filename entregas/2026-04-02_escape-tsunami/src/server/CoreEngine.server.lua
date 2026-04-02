@@ -24,6 +24,18 @@ if env then
 end
 
 local S = require(RS.Shared.Settings)
+
+-- ── Diagnóstico: mostra o que veio do Settings.lua ───────────────────
+do
+	local keys = {}
+	for k in S do table.insert(keys, k) end
+	if #keys == 0 then
+		warn("[CoreEngine] Settings.lua retornou tabela VAZIA — verifique o arquivo.")
+	else
+		print("[CoreEngine] Settings carregado. Chaves: " .. table.concat(keys, ", "))
+	end
+end
+
 local E = SSS:WaitForChild("Engine")
 
 require(E.MapTagger).init(S.TAG_MAP)
