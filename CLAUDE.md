@@ -38,3 +38,26 @@ entregas/YYYY-MM-DD_nome/
 → `.claude/rules/luau-erros.md`
 → `.claude/rules/sistemas-recorrentes.md`
 → `.claude/rules/engine-contratos.md`
+
+---
+
+## Estado atual (atualizado 2026-04-02)
+
+### Entrega ativa
+`entregas/2026-04-02_escape-tsunami/` — "Escape do Tsunami com Pulos de Youtubers"
+- `game_ready.rbxl` gerado e testável (commit `e8e4a08`)
+- Pipeline automático funcionando: solta PDF + .rbxm → build + git push
+
+### Problema em aberto
+**Settings.lua chega nil nos módulos Engine** (WAVE, BRAINROTS, BASE são nil).
+Os módulos não crasham (guards adicionados), mas o jogo roda sem ondas nem brainrots.
+
+### Diagnóstico em produção
+CoreEngine imprime no Output ao dar Play:
+- `[CoreEngine] Settings.lua retornou tabela VAZIA` → rojo build não está lendo o arquivo
+- `[CoreEngine] Settings carregado. Chaves: TAG_MAP, WAVE, BASE...` → arquivo OK, problema é outro
+
+### Próximo passo
+1. Abrir `entregas/2026-04-02_escape-tsunami/game_ready.rbxl` no Studio (File → Open from File)
+2. Dar Play e ler o Output
+3. Reportar qual das duas mensagens apareceu → decidir o fix
