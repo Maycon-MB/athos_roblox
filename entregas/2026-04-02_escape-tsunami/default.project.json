@@ -1,0 +1,93 @@
+{
+	"name": "AthosEscapeTsunami",
+	"tree": {
+		"$className": "DataModel",
+		"Workspace": {
+			"$className": "Workspace",
+			"Environment_Dirty": {
+				"$className": "Folder",
+				"mapa_base": {
+					"$path": "mapa_base.rbxm"
+				},
+				"vfx_brainrot": {
+					"$path": "vfx_brainrot.rbxm"
+				}
+			}
+		},
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Shared": {
+				"$className": "Folder",
+				"Settings": {
+					"$path": "src/shared/Settings.lua"
+				},
+				"Remotes": {
+					"$path": "src/shared/Remotes.lua"
+				}
+			}
+		},
+		"ServerScriptService": {
+			"$className": "ServerScriptService",
+			"WipeEnvironment": {
+				"$path": "src/server/WipeEnvironment.server.lua"
+			},
+			"CoreEngine": {
+				"$path": "src/server/CoreEngine.server.lua"
+			},
+			"Engine": {
+				"$className": "Folder",
+				"MapTagger": {
+					"$path": "src/server/Engine/MapTagger.lua"
+				},
+				"PlayerData": {
+					"$path": "src/server/Engine/PlayerData.lua"
+				},
+				"WaveSystem": {
+					"$path": "src/server/Engine/WaveSystem.lua"
+				},
+				"BrainrotSystem": {
+					"$path": "src/server/Engine/BrainrotSystem.lua"
+				},
+				"JumpSystem": {
+					"$path": "src/server/Engine/JumpSystem.lua"
+				},
+				"AdminSystem": {
+					"$path": "src/server/Engine/AdminSystem.lua"
+				},
+				"MobSystem": {
+					"$path": "src/server/Engine/MobSystem.lua"
+				}
+			}
+		},
+		"StarterPlayer": {
+			"$className": "StarterPlayer",
+			"StarterPlayerScripts": {
+				"$className": "StarterPlayerScripts",
+				"CoreClient": {
+					"$path": "src/client/CoreClient.client.lua"
+				},
+				"UI": {
+					"$className": "Folder",
+					"StatusBar": {
+						"$path": "src/client/UI/StatusBar.lua"
+					},
+					"JumpShop": {
+						"$path": "src/client/UI/JumpShop.lua"
+					},
+					"WaveAlert": {
+						"$path": "src/client/UI/WaveAlert.lua"
+					},
+					"WaveMachinePanel": {
+						"$path": "src/client/UI/WaveMachinePanel.lua"
+					},
+					"ProgressPanel": {
+						"$path": "src/client/UI/ProgressPanel.lua"
+					},
+					"AdminPanel": {
+						"$path": "src/client/UI/AdminPanel.lua"
+					}
+				}
+			}
+		}
+	}
+}
