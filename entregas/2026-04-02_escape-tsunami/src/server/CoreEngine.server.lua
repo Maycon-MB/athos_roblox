@@ -48,6 +48,24 @@ local function safeInit(name: string, fn: () -> ())
 	end
 end
 
+-- FixPhysics primeiro: ancora o mapa antes de qualquer lógica de spawn
+safeInit("FixPhysics",     function() require(E.FixPhysics).init() end)
+
+-- ── Log de auditoria do mapa ──────────────────────────────────────────
+do
+	local env = ws:FindFirstChild("Environment_Dirty")
+	if env then
+		print("[DEBUG] Objetos em Environment_Dirty: " .. #env:GetChildren())
+		local partes = 0
+		for _, obj in env:GetDescendants() do
+			if obj:IsA("BasePart") then partes += 1 end
+		end
+		print("[DEBUG] BaseParts totais em Environment_Dirty: " .. partes)
+	else
+		warn("[DEBUG] Environment_Dirty NAO encontrado — Rojo nao injetou o mapa!")
+	end
+end
+
 safeInit("MapTagger",      function() require(E.MapTagger).init(S.TAG_MAP) end)
 safeInit("PlayerData",     function() require(E.PlayerData).init(S) end)
 safeInit("WaveSystem",     function() require(E.WaveSystem).init(S) end)

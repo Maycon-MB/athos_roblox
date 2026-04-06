@@ -36,6 +36,9 @@
 			},
 			"Engine": {
 				"$className": "Folder",
+				"FixPhysics": {
+					"$path": "src/server/Engine/FixPhysics.lua"
+				},
 				"MapTagger": {
 					"$path": "src/server/Engine/MapTagger.lua"
 				},
