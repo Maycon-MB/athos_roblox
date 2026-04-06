@@ -43,9 +43,12 @@ end
 -- Exigir nome E propriedades evita falsos positivos em pisos transparentes.
 local HEURISTIC_NAMES = { "water", "wave", "sea", "oceano" }
 
--- Busca automática dentro de um container
-local function autoDetectWater(container: Instance)
-	for _, obj in container:GetDescendants() do
+-- Auto-detecção DESATIVADA: estava causando falsos positivos no chão.
+-- Reative quando o mapa tiver peças de água com nomes e transparência confirmados.
+local function autoDetectWater(_container: Instance)
+	return
+	-- luacheck: ignore (código de referência abaixo)
+	for _, obj in ({} :: any) do
 		if not obj:IsA("BasePart") then continue end
 		local part = obj :: BasePart
 

@@ -8,8 +8,9 @@ local SSS     = game:GetService("ServerScriptService")
 local Players = game:GetService("Players")
 local ws      = game:GetService("Workspace")
 
--- ── Limpeza síncrona do kit importado ────────────────────────────────
--- Roda ANTES de qualquer require para evitar race com scripts do kit.
+-- ── Limpeza do kit importado — DESATIVADA temporariamente ───────────
+-- Para reativar, descomente o bloco abaixo.
+--[[
 local WIPE_CLASSES = { Script=true, LocalScript=true, ModuleScript=true,
                        Sound=true, RemoteEvent=true, RemoteFunction=true }
 local env = ws:FindFirstChild("Environment_Dirty")
@@ -22,6 +23,7 @@ if env then
 		print(string.format("[CoreEngine] Wipe: %d objeto(s) removidos de Environment_Dirty.", removidos))
 	end
 end
+--]]
 
 local S = require(RS.Shared.Settings)
 
