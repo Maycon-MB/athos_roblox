@@ -39,13 +39,17 @@ local function tagWater(part: BasePart, reason: string)
 	print(string.format("[MapTagger] AUTO-WATER '%s' (%s)", part.Name, reason))
 end
 
+-- Palavras obrigatórias no nome para detecção heurística de água.
+-- Exigir nome E propriedades evita falsos positivos em pisos transparentes.
+local HEURISTIC_NAMES = { "water", "wave", "sea", "oceano" }
+
 -- Busca automática dentro de um container
 local function autoDetectWater(container: Instance)
 	for _, obj in container:GetDescendants() do
 		if not obj:IsA("BasePart") then continue end
 		local part = obj :: BasePart
 
-		-- 1) Nome comum
+		-- 1) Nome comum (lista ampla) → tagueia independente de propriedades
 		local nameLower = part.Name:lower()
 		for _, wname in WATER_NAMES do
 			if nameLower:find(wname, 1, true) then
@@ -54,14 +58,19 @@ local function autoDetectWater(container: Instance)
 			end
 		end
 
-		-- 2) Propriedades (só corre se ainda não tagueado)
+		-- 2) Heurística por propriedades — EXIGE nome com palavra de água
+		-- (evita taguear pisos grandes/transparentes como chão de mapa)
 		if not CollectionService:HasTag(part, "Tsunami") and looksLikeWater(part) then
-			tagWater(part, string.format(
-				"prop: size=%.0fx%.0f cor=(%.2f,%.2f,%.2f) transp=%.2f",
-				part.Size.X, part.Size.Z,
-				part.Color.R, part.Color.G, part.Color.B,
-				part.Transparency
-			))
+			local hasWaterName = false
+			for _, wname in HEURISTIC_NAMES do
+				if nameLower:find(wname, 1, true) then hasWaterName = true; break end
+			end
+			if hasWaterName then
+				tagWater(part, string.format(
+					"prop+nome: size=%.0fx%.0f transp=%.2f",
+					part.Size.X, part.Size.Z, part.Transparency
+				))
+			end
 		end
 	end
 end

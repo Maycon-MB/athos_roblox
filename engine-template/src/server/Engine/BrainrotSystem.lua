@@ -68,7 +68,7 @@ local function makeBrainrot(br: any, origin: CFrame): (Model, BasePart)
 	local rar = _cfg.RARITIES[br.rarity] or _cfg.RARITIES[1]
 
 	-- Body + head
-	local body = pt(m, Vector3.new(2.5, 3, 1.5), origin * CFrame.new(0, 1.5, 0), br.color)
+	local body = pt(m, Vector3.new(2.5, 3, 1.5), origin * CFrame.new(0, 1.5, 0), br.color or rar.color or Color3.new(1,1,1))
 	body.Name  = "Body"
 	local head = pt(m, Vector3.new(2.5, 2.5, 2.5), origin * CFrame.new(0, 4.25, 0),
 	                Color3.fromRGB(255, 213, 170))

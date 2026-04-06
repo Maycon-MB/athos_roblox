@@ -38,13 +38,21 @@ end
 
 local E = SSS:WaitForChild("Engine")
 
-require(E.MapTagger).init(S.TAG_MAP)
-require(E.PlayerData).init(S)
-require(E.WaveSystem).init(S)
-require(E.BrainrotSystem).init(S)
-require(E.JumpSystem).init(S)
-require(E.AdminSystem).init(S)
-require(E.MobSystem).init(S)
+-- Protege o boot: falha num módulo não impede os demais de carregar.
+local function safeInit(name: string, fn: () -> ())
+	local ok, err = pcall(fn)
+	if not ok then
+		warn(string.format("[CoreEngine] %s.init() falhou: %s", name, tostring(err)))
+	end
+end
+
+safeInit("MapTagger",      function() require(E.MapTagger).init(S.TAG_MAP) end)
+safeInit("PlayerData",     function() require(E.PlayerData).init(S) end)
+safeInit("WaveSystem",     function() require(E.WaveSystem).init(S) end)
+safeInit("BrainrotSystem", function() require(E.BrainrotSystem).init(S) end)
+safeInit("JumpSystem",     function() require(E.JumpSystem).init(S) end)
+safeInit("AdminSystem",    function() require(E.AdminSystem).init(S) end)
+safeInit("MobSystem",      function() require(E.MobSystem).init(S) end)
 
 -- ── Spawn position ────────────────────────────────────────────────────
 -- Prioridade 1: peça tagueada "GameSpawn" (coloque um bloco chamado "Spawn" no mapa)

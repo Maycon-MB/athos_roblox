@@ -131,6 +131,6 @@ S.BASE = { SLOTS_DEFAULT = 4, SLOTS_MAX = 12 }
 -- ── SPAWN ─────────────────────────────────────────────────────────────
 -- XZ = coordenada na pista onde o raycast de spawn deve descer.
 -- Y é ignorado no raycast (sempre parte de Y=1000 para baixo).
-S.SPAWN = { POSITION = Vector3.new(0, 1000, -150) }
+S.SPAWN = { POSITION = Vector3.new(-246.26, 20, -575.64) }
 
 return S
