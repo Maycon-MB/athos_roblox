@@ -6,8 +6,8 @@
 			"$className": "Workspace",
 			"Environment_Dirty": {
 				"$className": "Folder",
-				"mapa_base": {
-					"$path": "mapa_base.rbxm"
+				"mapa_referencia": {
+					"$path": "mapa_referencia.rbxm"
 				},
 				"vfx_brainrot": {
 					"$path": "vfx_brainrot.rbxm"
