@@ -75,6 +75,30 @@ function PlayerData.hasJump(p: Player, id: string): boolean
 	return false
 end
 
+-- Remove N brainrots do inventário (qualquer tipo, FIFO).
+-- Retorna true se havia saldo suficiente e o consumo foi feito.
+-- Retorna false sem alterar o inventário caso contrário.
+function PlayerData.consumeAnyBrainrots(p: Player, qty: number): boolean
+	local d = _data[p]; if not d then return false end
+	local total = 0; for _, e in d.brainrots do total += e.qty end
+	if total < qty then return false end
+	local remaining = qty
+	local i = 1
+	while i <= #d.brainrots and remaining > 0 do
+		local e = d.brainrots[i]
+		if e.qty <= remaining then
+			remaining -= e.qty
+			table.remove(d.brainrots, i)
+		else
+			e.qty -= remaining
+			remaining = 0
+			i += 1
+		end
+	end
+	PlayerData.sync(p)
+	return true
+end
+
 function PlayerData.init(cfg: any)
 	_cfg = cfg
 	local R = require(RS.Shared.Remotes)

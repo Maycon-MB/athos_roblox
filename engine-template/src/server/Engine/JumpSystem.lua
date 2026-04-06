@@ -53,8 +53,12 @@ local function handleBuy(pl: Player, jumpId: string)
 	elseif ct == "money"          then if d.money         < cfg.cost_value then return end; d.money -= cfg.cost_value
 	elseif ct == "survive_waves"  then if d.wavesSurvived < cfg.cost_value then return end
 	elseif ct == "kill_noobs"     then if d.noobsKilled   < cfg.cost_value then return end
-	elseif ct == "sell_brainrots" then if d.brainrotsSold < cfg.cost_value then return end
-	elseif ct == "fuse_brainrots" then if d.brainrotsFused< cfg.cost_value then return end
+	elseif ct == "sell_brainrots" then
+		-- Transacional: verifica E consome N brainrots do inventário agora.
+		if not PD.consumeAnyBrainrots(pl, cfg.cost_value) then return end
+	elseif ct == "fuse_brainrots" then
+		-- Transacional: verifica E consome N brainrots do inventário agora (fusão).
+		if not PD.consumeAnyBrainrots(pl, cfg.cost_value) then return end
 	else return
 	end
 
