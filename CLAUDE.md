@@ -18,16 +18,17 @@ processor/                        ← watch.py + processor.py (automação)
 ```
 
 ## Mandatos Técnicos
-1. **Plan Mode obrigatório** — mudança em Engine/* ou refactor exige plano aprovado
-2. **Lei de Hyrum** — lógica volátil em Settings.lua; Engine nunca hardcodeia roteiro
-3. **DAMP** — variáveis nomeadas por domínio; sem comentários redundantes
-4. **Regra de Beyoncé** — bugs exigem plano de teste aprovado antes de código
+1. **Plan Mode obrigatório** — mudanças arquiteturais em Engine/* ou CoreEngine exigem plano aprovado
+2. **Lei de Hyrum** — lógica volátil em Settings.lua; Engine nunca hardcodeia dados do roteiro
+3. **Regra de Beyoncé** — testes apenas para persistência de dados e transações críticas (PlayerData, handleBuy); sem testes para lógica visual ou UI
+4. **Sem leitura de PDF** — use sempre o ROTEIRO.md já gerado na pasta da entrega
 5. `--!strict` em todo Luau · `task.wait()` nunca `wait()`
 
 ## Workflow
 - Hub World: `rojo serve` → Studio Connect → Play → testar
 - Fábrica: PDF + .rbxm → `processor/watch.py` → build + git push
 - Engine/* nunca recebe lógica de roteiro — só Settings.lua muda
+- Para dados do roteiro: ler `entregas/.../ROTEIRO.md` (nunca o PDF original)
 
 ## Regras de domínio (sob demanda)
 → `.claude/rules/luau-erros.md`

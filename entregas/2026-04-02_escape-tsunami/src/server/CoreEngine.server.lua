@@ -85,14 +85,18 @@ local function findSpawnPosition(): Vector3
 	for _, obj in CollectionService:GetTagged("Tsunami")      do table.insert(waterParts, obj) end
 	params.FilterDescendantsInstances = waterParts
 
-	local hit = ws:Raycast(Vector3.new(cx, 1000, cz), Vector3.new(0, -2000, 0), params)
+	-- Usa XZ do Settings.SPAWN se definido; caso contrário, centro geométrico
+	local px = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION.X else cx
+	local pz = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION.Z else cz
+
+	local hit = ws:Raycast(Vector3.new(px, 1000, pz), Vector3.new(0, -2000, 0), params)
 	if hit then
 		local pos = hit.Position + Vector3.new(0, 5, 0)
 		print(string.format("[CoreEngine] Spawn via raycast: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z))
 		return pos
 	end
 
-	-- P3: fallback manual (ou Vector3.zero se Settings ainda for stub)
+	-- P3: fallback — usa XZ do SPAWN mas Y seguro para cair na pista
 	local fallback = S.SPAWN and S.SPAWN.POSITION or Vector3.new(0, 5, 0)
 	warn("[CoreEngine] Raycast falhou — usando fallback " .. tostring(fallback))
 	return fallback

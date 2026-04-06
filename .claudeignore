@@ -1,0 +1,6 @@
+*.rbxl
+*.rbxm
+*.pdf
+.git/
+rojo.exe
+**/roteiros_originais/

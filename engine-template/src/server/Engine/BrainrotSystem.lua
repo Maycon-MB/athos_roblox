@@ -1,12 +1,41 @@
 --!strict
-local Players = game:GetService("Players")
-local RS      = game:GetService("ReplicatedStorage")
+local Players           = game:GetService("Players")
+local RS                = game:GetService("ReplicatedStorage")
+local CollectionService = game:GetService("CollectionService")
 local BrainrotSystem = {}
 
-local _cfg:   any
-local active: { Model } = {}
+local _cfg:      any
+local active:    { Model } = {}
+local carrying:  { [Player]: any } = {}
 local sellRemote: RemoteEvent
 local fuseRemote: RemoteEvent
+
+-- Solda brainrot acima da cabeça do jogador via WeldConstraint
+local function attachToPlayer(pl: Player, model: Model, body: BasePart)
+	local char = pl.Character; if not char then return end
+	local hrp  = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not hrp then return end
+
+	-- Sinaliza a animação de flutuar para parar
+	local flag = Instance.new("BoolValue"); flag.Name = "_carried"; flag.Parent = model
+
+	-- Solda partes secundárias no body para que sigam juntas
+	for _, obj in model:GetDescendants() do
+		if obj:IsA("BasePart") and obj ~= body then
+			obj.Anchored = false
+			local wc = Instance.new("WeldConstraint")
+			wc.Part0 = obj; wc.Part1 = body; wc.Parent = model
+		end
+	end
+
+	-- Posiciona acima da cabeça e solda no HumanoidRootPart
+	body.CFrame   = hrp.CFrame * CFrame.new(0, 6, 0)
+	body.Anchored = false
+	local wc2 = Instance.new("WeldConstraint")
+	wc2.Part0 = body; wc2.Part1 = hrp; wc2.Parent = model
+
+	carrying[pl] = model
+end
 
 -- Helpers ─────────────────────────────────────────────────────────────
 local function pt(parent: Instance, sz: Vector3, cf: CFrame, col: Color3): Part
@@ -74,7 +103,7 @@ local function makeBrainrot(br: any, origin: CFrame): (Model, BasePart)
 	sel.Adornee = body; sel.Color3 = rar.color
 	sel.LineThickness = 0.06; sel.Parent = m
 
-	-- Float animation
+	-- Float animation — para quando _carried for adicionado ao model
 	task.spawn(function()
 		local t    = math.random() * math.pi * 2
 		local parts: { BasePart } = {}
@@ -85,7 +114,7 @@ local function makeBrainrot(br: any, origin: CFrame): (Model, BasePart)
 				table.insert(baseY, obj.Position.Y)
 			end
 		end
-		while m.Parent do
+		while m.Parent and not m:FindFirstChild("_carried") do
 			t += task.wait(0.03)
 			local dy = math.sin(t) * 0.3
 			for i, p2 in parts do
@@ -126,17 +155,25 @@ local function spawnOne()
 	idVal.Value       = br.id
 	idVal.Parent      = model
 
-	touch.Touched:Connect(function(hit)
-		local char = hit.Parent; if not char then return end
-		local pl   = Players:GetPlayerFromCharacter(char); if not pl then return end
-		local PD   = require(script.Parent.PlayerData)
-		local d    = PD.get(pl); if not d then return end
-		if PD.countBrainrots(pl) >= d.baseSlots then return end
-		model:Destroy()
+	-- ProximityPrompt: tecla E para carregar o brainrot acima da cabeça
+	local pp = Instance.new("ProximityPrompt")
+	pp.ActionText          = "Coletar"
+	pp.ObjectText          = br.name
+	pp.KeyboardKeyCode     = Enum.KeyCode.E
+	pp.MaxActivationDistance = 8
+	pp.HoldDuration        = 0
+	pp.Parent              = touch
+
+	pp.Triggered:Connect(function(pl: Player)
+		local PD = require(script.Parent.PlayerData)
+		local d  = PD.get(pl); if not d then return end
+		if carrying[pl] then return end                          -- já carregando algo
+		if PD.countBrainrots(pl) >= d.baseSlots then return end -- sem slot na base
+		pp:Destroy()
 		for i, m2 in active do
 			if m2 == model then table.remove(active, i); break end
 		end
-		PD.addBrainrot(pl, br.id)
+		attachToPlayer(pl, model, touch)
 	end)
 end
 
@@ -188,6 +225,46 @@ function BrainrotSystem.init(cfg: any)
 			local d = PD.get(pl)
 			if d then d.brainrotsFused += 1; PD.sync(pl) end
 		end
+	end)
+
+	-- Limpeza: ao sair ou morrer, destrói brainrot carregado
+	Players.PlayerRemoving:Connect(function(pl)
+		local m = carrying[pl]; if m then m:Destroy() end
+		carrying[pl] = nil :: any
+	end)
+	Players.PlayerAdded:Connect(function(pl)
+		pl.CharacterAdded:Connect(function()
+			local m = carrying[pl]; if m then m:Destroy(); carrying[pl] = nil :: any end
+		end)
+	end)
+
+	-- SafeZone delivery: ao tocar SafeZone carregando → credita no inventário
+	task.spawn(function()
+		task.wait(3)   -- aguarda MapTagger terminar
+		local function connectSafeZone(part: Instance)
+			if not part:IsA("BasePart") then return end
+			local inZone: { [Player]: boolean } = {}
+			;(part :: BasePart).Touched:Connect(function(hit)
+				local char = hit.Parent; if not char then return end
+				local pl   = Players:GetPlayerFromCharacter(char); if not pl then return end
+				if inZone[pl] then return end
+				local m = carrying[pl]; if not m then return end
+				inZone[pl] = true
+				local idVal = m:FindFirstChild("BrainrotId") :: StringValue?
+				if idVal then
+					local PD = require(script.Parent.PlayerData)
+					local d  = PD.get(pl)
+					if d and PD.countBrainrots(pl) < d.baseSlots then
+						PD.addBrainrot(pl, idVal.Value)
+						print(string.format("[BrainrotSystem] %s entregou %s na SafeZone", pl.Name, idVal.Value))
+					end
+				end
+				m:Destroy(); carrying[pl] = nil :: any
+				task.delay(1, function() inZone[pl] = nil end)
+			end)
+		end
+		for _, p in CollectionService:GetTagged("SafeZone") do connectSafeZone(p) end
+		CollectionService:GetInstanceAddedSignal("SafeZone"):Connect(connectSafeZone)
 	end)
 
 	for _ = 1, 6 do spawnOne() end
