@@ -13,7 +13,7 @@ S.TAG_MAP = {
 	SafeZone    = { "SafeZone", "Shelter", "Cosmic", "Mythical", "Common", "Uncommon", "Rare", "Epic", "Legendary", "Secret" },
 	WaveMachine = { "WaveMachine" },
 	FuseMachine = { "FuseMachine" },
-	CrackWall   = { "CrackWall", "SecretWall" },
+	CrackWall   = { "CrackWall", "SecretWall", "VIPWalls" },
 }
 
 -- ── TSUNAMI ───────────────────────────────────────────────────────────

@@ -41,7 +41,6 @@ function MapLoader.setup(): Model?
 		local isScript    = obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript")
 		local isKitFolder = obj:IsA("Folder") and obj.Name:lower():find("serverscriptservice", 1, true) ~= nil
 		if isScript or isKitFolder then
-			print(string.format("[MapLoader] Removido: '%s' (%s)", obj.Name, obj.ClassName))
 			obj:Destroy()
 			wiped += 1
 		end

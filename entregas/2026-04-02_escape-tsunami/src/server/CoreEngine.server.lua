@@ -151,7 +151,10 @@ local function SetupCollections(map: Model?)
 				if not pl then continue end
 
 				local value = RARITY_VALUE[bp.Name:lower()] or 0
-				if value > 0 then PD.addMoney(pl, value) end
+				if value > 0 then
+					PD.addMoney(pl, value)
+					print(string.format("[DEBUG] Coletou: %s +%d coins (%s)", pl.Name, value, bp.Name))
+				end
 
 				bp.Transparency = 1
 				bp.CanCollide   = false

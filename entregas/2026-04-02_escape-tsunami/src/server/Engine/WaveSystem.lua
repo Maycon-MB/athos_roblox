@@ -6,6 +6,7 @@
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
 local RS = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local WaveSystem = {}
 
 local _cfg: any
@@ -151,34 +152,59 @@ local function startWave(speedOverride: number?, killer: Player?)
 		survived[p] = true
 	end
 
+	local ws = game:GetService("Workspace")
 	local PD = require(script.Parent.PlayerData)
-	local conn = wave.Touched:Connect(function(hit)
-		local char = hit.Parent
-		if not char then
-			return
+
+	-- Spatial Query: detecta players dentro dos bounds da onda (Gold Standard)
+	-- Substitui .Touched — determinístico, sem multi-fire por frame de física.
+	local damageParams = OverlapParams.new()
+	damageParams.FilterType = Enum.RaycastFilterType.Include
+	local function syncDamageFilter()
+		local chars: { Instance } = {}
+		for _, p in Players:GetPlayers() do
+			if p.Character then
+				table.insert(chars, p.Character)
+			end
 		end
-		local pl = Players:GetPlayerFromCharacter(char)
-		if not pl then
-			return
-		end
-		local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
-		if hrp and isInSafeZone(hrp.Position) then
-			return
-		end
-		local d = PD.get(pl)
-		if d and d.hasShield then
-			return
-		end
-		survived[pl] = false
-		local h = char:FindFirstChildOfClass("Humanoid")
-		if h then
-			h.Health = 0
-		end
-		if killer then
-			local kd = PD.get(killer)
-			if kd then
-				kd.noobsKilled += 1
-				PD.sync(killer)
+		damageParams.FilterDescendantsInstances = chars
+	end
+	syncDamageFilter()
+
+	local damaged: { [Player]: boolean } = {}
+	local damageConn: RBXScriptConnection
+	damageConn = RunService.Heartbeat:Connect(function()
+		syncDamageFilter()
+		local hits = ws:GetPartBoundsInBox(wave.CFrame, wave.Size, damageParams)
+		for _, hit in hits do
+			local char = hit.Parent
+			if not char then
+				continue
+			end
+			local pl = Players:GetPlayerFromCharacter(char)
+			if not pl or damaged[pl] then
+				continue
+			end
+			local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if hrp and isInSafeZone(hrp.Position) then
+				continue
+			end
+			local d = PD.get(pl)
+			if d and d.hasShield then
+				continue
+			end
+			damaged[pl] = true
+			survived[pl] = false
+			warn(string.format("[Wave] Player %s atingido pela onda", pl.Name))
+			local h = char:FindFirstChildOfClass("Humanoid")
+			if h then
+				h.Health = 0
+			end
+			if killer then
+				local kd = PD.get(killer)
+				if kd then
+					kd.noobsKilled += 1
+					PD.sync(killer)
+				end
 			end
 		end
 	end)
@@ -195,7 +221,7 @@ local function startWave(speedOverride: number?, killer: Player?)
 		end
 
 		task.wait(cfg.HOLD_TIME)
-		conn:Disconnect()
+		damageConn:Disconnect()
 
 		-- Volta à posição inicial (ou destrói se foi criada por fallback)
 		if wave and wave.Parent then
