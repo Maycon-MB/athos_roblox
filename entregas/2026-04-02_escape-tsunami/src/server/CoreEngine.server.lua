@@ -3,10 +3,10 @@
 -- COREENGINE.SERVER.LUA — Motor Universal. NÃO EDITE ESTE ARQUIVO.
 -- Toda configuração fica em src/shared/Settings.lua.
 ------------------------------------------------------------------------
-local RS = game:GetService("ReplicatedStorage")
-local SSS = game:GetService("ServerScriptService")
+local RS      = game:GetService("ReplicatedStorage")
+local SSS     = game:GetService("ServerScriptService")
 local Players = game:GetService("Players")
-local ws = game:GetService("Workspace")
+local ws      = game:GetService("Workspace")
 
 local S = require(RS.Shared.Settings)
 
@@ -33,102 +33,74 @@ local function safeInit(name: string, fn: () -> ())
 	end
 end
 
--- ── Sequência de boot industrial ─────────────────────────────────────
--- 1. MapLoader — clona e sanitiza o mapa (scripts destruídos, partes ancoradas)
-safeInit("MapLoader", function()
-	require(E.MapLoader).setup()
-end)
-
--- 2. MapTagger — aplica tags CollectionService nas peças do mapa
-safeInit("MapTagger", function()
-	require(E.MapTagger).init(S.TAG_MAP)
-end)
-
--- 3. Sistemas de jogo
-safeInit("PlayerData", function()
-	require(E.PlayerData).init(S)
-end)
-safeInit("WaveSystem", function()
-	require(E.WaveSystem).init(S)
-end)
-safeInit("BrainrotSystem", function()
-	require(E.BrainrotSystem).init(S)
-end)
-safeInit("JumpSystem", function()
-	require(E.JumpSystem).init(S)
-end)
-safeInit("AdminSystem", function()
-	require(E.AdminSystem).init(S)
-end)
-safeInit("MobSystem", function()
-	require(E.MobSystem).init(S)
-end)
-
--- ── Spawn position ────────────────────────────────────────────────────
--- P1: SpawnLocation dentro do GameMap (preservada pelo MapLoader)
--- P2: Settings.SPAWN.POSITION (fallback com Y calibrado)
-local function findSpawnPosition(): Vector3
-	local gameMap = ws:FindFirstChild("GameMap")
-	if gameMap then
-		local sl = gameMap:FindFirstChildOfClass("SpawnLocation")
-		if sl then
-			local pos = sl.Position + Vector3.new(0, 3, 0)
-			print(string.format("[CoreEngine] Spawn via GameMap SpawnLocation: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z))
-			return pos
-		end
+-- ── 1. MapLoader — captura o modelo retornado ─────────────────────────
+local gameMap: Model? = nil
+do
+	local ok, err = pcall(function()
+		gameMap = require(E.MapLoader).setup()
+	end)
+	if not ok then
+		warn("[CoreEngine] MapLoader.setup() falhou: " .. tostring(err))
 	end
-
-	local base = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION else Vector3.new(0, -86.1, 0)
-	local pos = Vector3.new(base.X, -86.1, base.Z)
-	print(string.format("[CoreEngine] Spawn via Settings.SPAWN: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z))
-	return pos
 end
 
--- 4. task.wait(2) para física estabilizar, depois configura spawn
-task.spawn(function()
-	task.wait(2)
-	local spawnPos = findSpawnPosition()
-	local spawnCF = CFrame.new(spawnPos)
+-- ── 2. MapTagger ──────────────────────────────────────────────────────
+safeInit("MapTagger",      function() require(E.MapTagger).init(S.TAG_MAP) end)
 
-	-- Reposiciona ou cria SpawnLocation
-	local sl = ws:FindFirstChildOfClass("SpawnLocation")
-	if sl then
-		sl.CFrame = spawnCF
-	else
-		local newSL = Instance.new("SpawnLocation")
-		newSL.Size = Vector3.new(6, 1, 6)
-		newSL.CFrame = spawnCF - Vector3.new(0, 2, 0)
-		newSL.Anchored = true
-		newSL.Transparency = 1
-		newSL.CanCollide = true
-		newSL.Parent = ws
+-- ── 3. Sistemas de jogo ───────────────────────────────────────────────
+safeInit("PlayerData",     function() require(E.PlayerData).init(S) end)
+safeInit("WaveSystem",     function() require(E.WaveSystem).init(S) end)
+safeInit("BrainrotSystem", function() require(E.BrainrotSystem).init(S) end)
+safeInit("JumpSystem",     function() require(E.JumpSystem).init(S) end)
+safeInit("AdminSystem",    function() require(E.AdminSystem).init(S) end)
+safeInit("MobSystem",      function() require(E.MobSystem).init(S) end)
+
+-- ── 4. Spawn via física nativa do Roblox ─────────────────────────────
+-- Busca a SpawnLocation dentro do GameMap (preservada pelo MapLoader).
+-- Fallback: cria SpawnLocation em Settings.SPAWN.
+-- Usa player.RespawnLocation + LoadCharacter() — física nativa, sem teleporte.
+task.spawn(function()
+	task.wait(1) -- aguarda física estabilizar
+
+	-- Localizar ou criar SpawnLocation
+	local spawnLocation: SpawnLocation
+
+	if gameMap then
+		local sl = gameMap:FindFirstChildOfClass("SpawnLocation") :: SpawnLocation?
+		if sl then
+			sl.Neutral = true -- garante que qualquer player possa usar
+			spawnLocation = sl
+			print(string.format(
+				"[CoreEngine] SpawnLocation do mapa: '%s' (%.1f, %.1f, %.1f)",
+				sl.Name, sl.Position.X, sl.Position.Y, sl.Position.Z
+			))
+		end
 	end
 
-	-- Teleporte de segurança em CharacterAdded
+	if not spawnLocation then
+		warn("[CoreEngine] Sem SpawnLocation no GameMap — criando fallback em Settings.SPAWN.")
+		local base = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION else Vector3.new(0, -86.1, 0)
+		local newSL        = Instance.new("SpawnLocation")
+		newSL.Size         = Vector3.new(6, 1, 6)
+		newSL.CFrame       = CFrame.new(Vector3.new(base.X, -86.1, base.Z))
+		newSL.Anchored     = true
+		newSL.Transparency = 1
+		newSL.CanCollide   = true
+		newSL.Neutral      = true
+		newSL.Parent       = ws
+		spawnLocation = newSL
+		print(string.format("[CoreEngine] SpawnLocation criada em: (%.1f, -86.1, %.1f)", base.X, base.Z))
+	end
+
+	-- Novos players: define RespawnLocation antes do auto-spawn do Roblox
 	Players.PlayerAdded:Connect(function(player)
-		player.CharacterAdded:Connect(function()
-			task.wait(0.2)
-			local char = player.Character
-			if not char then
-				return
-			end
-			local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
-			if hrp then
-				hrp.CFrame = spawnCF
-			end
-		end)
+		player.RespawnLocation = spawnLocation
 	end)
 
-	-- Teleporta players já conectados (teste no Studio)
+	-- Players já conectados (Studio): força respawn imediato no local correto
 	for _, player in Players:GetPlayers() do
-		local char = player.Character
-		if not char then
-			continue
-		end
-		local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
-		if hrp then
-			hrp.CFrame = spawnCF
-		end
+		player.RespawnLocation = spawnLocation
+		player:LoadCharacter()
 	end
 end)
 

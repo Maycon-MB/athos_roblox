@@ -35,6 +35,7 @@ function ProgressPanel.init()
 	lay.Parent = list
 
 	for _, j in S.JUMPS do
+		if not j or not j.id or not j.color then continue end
 		local card = Instance.new("Frame")
 		card.Name  = "Card_"..j.id
 		card.Size  = UDim2.new(1,0,0,60)
