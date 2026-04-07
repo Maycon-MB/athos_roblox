@@ -61,7 +61,7 @@ function ProgressPanel.init()
 		nL.Size  = UDim2.new(1,-4,0,14); nL.Position = UDim2.new(0,2,1,-16)
 		nL.BackgroundTransparency = 1
 		nL.Font  = Enum.Font.Gotham; nL.TextScaled = true
-		nL.TextColor3 = Color3.fromRGB(180,180,200); nL.Text = j.name; nL.Parent = card
+		nL.TextColor3 = Color3.fromRGB(180,180,200); nL.Text = tostring(j.name or "---"); nL.Parent = card
 	end
 
 	local function markUnlocked(jumpId: string)

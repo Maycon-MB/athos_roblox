@@ -19,10 +19,14 @@ function MapLoader.setup(): Model?
 
 	local clone = raw:Clone()
 
-	-- 1) Wipe scripts ANTES de Parent
+	-- 1) Wipe scripts e pastas de kit ANTES de Parent
+	-- Inclui Folders cujo nome delata origem (ex: "ungroup in ServerScriptService")
 	local wiped = 0
 	for _, obj in clone:GetDescendants() do
-		if obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript") then
+		if obj.Parent == nil then continue end -- já destruído por pai
+		local isScript = obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript")
+		local isKitFolder = obj:IsA("Folder") and obj.Name:lower():find("serverscriptservice", 1, true) ~= nil
+		if isScript or isKitFolder then
 			obj:Destroy()
 			wiped += 1
 		end
