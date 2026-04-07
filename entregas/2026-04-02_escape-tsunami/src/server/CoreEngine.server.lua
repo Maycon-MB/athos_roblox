@@ -65,10 +65,21 @@ safeInit("MobSystem", function()
 end)
 
 -- ── Spawn position ────────────────────────────────────────────────────
--- Fonte única de verdade: Settings.SPAWN.POSITION.
--- Peças "Spawn" do kit são descartadas — o mapa não controla o spawn.
+-- P1: SpawnLocation dentro do GameMap (preservada pelo MapLoader)
+-- P2: Settings.SPAWN.POSITION (fallback com Y calibrado)
 local function findSpawnPosition(): Vector3
-	local pos = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION + Vector3.new(0, 5, 0) else Vector3.new(0, 5, 0)
+	local gameMap = ws:FindFirstChild("GameMap")
+	if gameMap then
+		local sl = gameMap:FindFirstChildOfClass("SpawnLocation")
+		if sl then
+			local pos = sl.Position + Vector3.new(0, 3, 0)
+			print(string.format("[CoreEngine] Spawn via GameMap SpawnLocation: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z))
+			return pos
+		end
+	end
+
+	local base = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION else Vector3.new(0, -86.1, 0)
+	local pos = Vector3.new(base.X, -86.1, base.Z)
 	print(string.format("[CoreEngine] Spawn via Settings.SPAWN: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z))
 	return pos
 end

@@ -63,8 +63,8 @@ function MapLoader.setup(): Model?
 		if obj.Parent == nil then continue end
 		local isScript    = obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript")
 		local isKitFolder = obj:IsA("Folder") and obj.Name:lower():find("serverscriptservice", 1, true) ~= nil
-		local isKitSpawn  = obj:IsA("SpawnLocation")
-		if isScript or isKitFolder or isKitSpawn then
+		-- SpawnLocations PRESERVADAS: o CoreEngine as usa para posicionar o spawn.
+		if isScript or isKitFolder then
 			print(string.format("[MapLoader] Removido: '%s' (%s)", obj.Name, obj.ClassName))
 			obj:Destroy()
 			wiped += 1
