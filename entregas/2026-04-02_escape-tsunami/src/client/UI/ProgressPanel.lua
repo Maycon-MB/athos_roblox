@@ -81,6 +81,7 @@ function ProgressPanel.init()
 	local R = require(RS.Shared.Remotes)
 	local sync = RS:WaitForChild(R.SyncData) :: RemoteEvent
 	sync.OnClientEvent:Connect(function(d: any)
+		if not d then return end
 		for _, id in (d.unlockedJumps or {}) do markUnlocked(id) end
 	end)
 	local purchased = RS:WaitForChild(R.JumpPurchased) :: RemoteEvent

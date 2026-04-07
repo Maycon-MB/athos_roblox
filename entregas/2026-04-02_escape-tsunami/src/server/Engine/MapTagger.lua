@@ -68,15 +68,16 @@ function MapTagger.init(tagMap: { [string]: { string } })
 	local ws = game:GetService("Workspace")
 	local resolvedTagMap: { [string]: { string } } = tagMap or {}
 
-	-- ── Passo 1: tag por nome exato (Settings.TAG_MAP) ───────────────────────
-	-- "Spawn" → GameSpawn sempre embutido, independente do Settings.TAG_MAP
+	-- ── Passo 1: tag por nome (contains, case-insensitive) ──────────────────
+	-- "Wave" captura "WaveSlow", "WaveFast"; "Spawn" → GameSpawn sempre.
 	local function tryTag(obj: Instance)
 		if obj.Name == "Spawn" then
 			CollectionService:AddTag(obj, "GameSpawn")
 		end
+		local nameLower = obj.Name:lower()
 		for tag, names in resolvedTagMap do
 			for _, name in names do
-				if obj.Name == name then
+				if nameLower:find(name:lower(), 1, true) then
 					CollectionService:AddTag(obj, tag)
 				end
 			end
