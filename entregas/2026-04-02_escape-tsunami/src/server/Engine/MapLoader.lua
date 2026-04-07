@@ -1,48 +1,26 @@
 --!strict
--- MapLoader — Padrão Sandbox + Collision Groups (padrão industrial).
+-- MapLoader — Padrão Sandbox.
 -- Pipeline:
 --   1) Destrói Script/LocalScript/ModuleScript + SpawnLocations do kit
---   2) Ancora todas as BaseParts
---   3) Peças passáveis → CollisionGroup "MapPassable" (não colide com Default/players)
+--   2) Destrói BaseParts identificadas como barreiras (caminho visualmente limpo)
+--   3) Ancora todas as BaseParts restantes
 -- Nenhum script de kit roda no Workspace.
-local SS            = game:GetService("ServerStorage")
-local ws            = game:GetService("Workspace")
-local PhysicsService = game:GetService("PhysicsService")
-local MapLoader     = {}
+local SS = game:GetService("ServerStorage")
+local ws = game:GetService("Workspace")
+local MapLoader = {}
 
--- Nomes de peças (contains, case-insensitive) que devem ser passáveis.
--- Discovery: 227 partes bloqueantes revelaram estes padrões.
-local PASSABLE_NAMES = {
-	"%.",        -- peças chamadas "."
-	"line",
-	"secret",
-	"bottom",
-	"wall",
-	"fence",
-	"hitbox",
-	"vip",
-	"divider",
-}
+-- Nomes (contains, case-insensitive) de partes a DESTRUIR.
+-- Discovery: '.', 'Line', 'Secret', 'Wall', 'Fence', 'Divider' bloqueavam o caminho.
+local BARRIER_NAMES = { "%.", "line", "secret", "wall", "fence", "divider" }
 
-local function isPassable(bp: BasePart): boolean
+local function isBarrier(bp: BasePart): boolean
 	local nameLower = bp.Name:lower()
-	for _, pat in PASSABLE_NAMES do
+	for _, pat in BARRIER_NAMES do
 		if nameLower:find(pat, 1, true) then
 			return true
 		end
 	end
 	return false
-end
-
--- Garante que o collision group exista e não colide com "Default" (players).
-local function ensureCollisionGroup()
-	local ok = pcall(function()
-		PhysicsService:RegisterCollisionGroup("MapPassable")
-	end)
-	if not ok then
-		-- Já existe — apenas garante a regra de não-colisão.
-	end
-	PhysicsService:CollisionGroupSetCollidable("MapPassable", "Default", false)
 end
 
 function MapLoader.setup(): Model?
@@ -54,16 +32,14 @@ function MapLoader.setup(): Model?
 		return nil
 	end
 
-	ensureCollisionGroup()
 	local clone = raw:Clone()
 
-	-- 1) Wipe: scripts, SpawnLocations e pastas de kit ANTES de Parent = Workspace
+	-- 1) Wipe: scripts, pastas de kit e SpawnLocations do kit
 	local wiped = 0
 	for _, obj in clone:GetDescendants() do
 		if obj.Parent == nil then continue end
 		local isScript    = obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript")
 		local isKitFolder = obj:IsA("Folder") and obj.Name:lower():find("serverscriptservice", 1, true) ~= nil
-		-- SpawnLocations PRESERVADAS: o CoreEngine as usa para posicionar o spawn.
 		if isScript or isKitFolder then
 			print(string.format("[MapLoader] Removido: '%s' (%s)", obj.Name, obj.ClassName))
 			obj:Destroy()
@@ -71,23 +47,24 @@ function MapLoader.setup(): Model?
 		end
 	end
 
-	-- 2) Anchor + 3) CollisionGroup nas peças passáveis
-	local anchored  = 0
-	local passable  = 0
+	-- 2) Destruir barreiras (antes de ancorar — evita iterar partes já destruídas)
+	local destroyed = 0
+	for _, obj in clone:GetDescendants() do
+		if obj.Parent == nil then continue end
+		if not obj:IsA("BasePart") then continue end
+		if isBarrier(obj :: BasePart) then
+			obj:Destroy()
+			destroyed += 1
+		end
+	end
+
+	-- 3) Ancorar todas as BaseParts restantes
+	local anchored = 0
 	for _, obj in clone:GetDescendants() do
 		if not obj:IsA("BasePart") then continue end
-		local bp = obj :: BasePart
+		local bp    = obj :: BasePart
 		bp.Anchored = true
-
-		if isPassable(bp) then
-			-- Collision group: não colide com players (Default) — solução definitiva.
-			bp.CollisionGroup = "MapPassable"
-			bp.CanCollide      = false   -- redundância de segurança
-			passable += 1
-		else
-			bp.CanCollide = true
-		end
-
+		bp.CanCollide = true
 		if bp.Transparency >= 0.95 then
 			bp.Transparency = 0
 		end
@@ -99,8 +76,8 @@ function MapLoader.setup(): Model?
 	clone.Parent = ws
 
 	print(string.format(
-		"[MapLoader] Mapa injetado: %d removidos, %d ancoradas, %d passaveis (MapPassable).",
-		wiped, anchored, passable
+		"[MapLoader] Mapa injetado: %d scripts removidos, %d barreiras destruidas, %d BaseParts ancoradas.",
+		wiped, destroyed, anchored
 	))
 	return clone
 end

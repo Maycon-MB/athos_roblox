@@ -55,6 +55,81 @@ safeInit("JumpSystem",     function() require(E.JumpSystem).init(S) end)
 safeInit("AdminSystem",    function() require(E.AdminSystem).init(S) end)
 safeInit("MobSystem",      function() require(E.MobSystem).init(S) end)
 
+-- ── 3b. Sistema de Coleta — SafeZone-tagged parts ────────────────────
+-- Itens com raridade (Common/Rare/etc.) são consumíveis: concedem moeda e
+-- somem ao toque. Zonas permanentes (Cosmic/Mythical) apenas protegem.
+-- Debounce por player evita spam e vazamento de memória.
+local function SetupCollections(map: Model?)
+	if not map then return end
+
+	-- Valor por raridade (nome da peça → moeda)
+	local RARITY_VALUE: { [string]: number } = {
+		common    = 10,
+		uncommon  = 50,
+		rare      = 200,
+		epic      = 1000,
+		legendary = 5000,
+		secret    = 10000,
+	}
+	-- Zonas permanentes: não são consumíveis
+	local PERMANENT: { [string]: boolean } = {
+		safezone = true,
+		shelter  = true,
+		cosmic   = true,
+		mythical = true,
+	}
+
+	local CS = game:GetService("CollectionService")
+	local PD = require(E.PlayerData)
+	local count = 0
+
+	for _, part in CS:GetTagged("SafeZone") do
+		if not part:IsA("BasePart") then continue end
+		local bp       = part :: BasePart
+		local nameLow  = bp.Name:lower()
+		local value    = RARITY_VALUE[nameLow]
+		local isPerm   = PERMANENT[nameLow] or (value == nil)
+
+		-- Debounce por player: { [Player]: true } — GC automático quando desconectam
+		local debounce: { [Player]: boolean } = {}
+
+		local conn: RBXScriptConnection
+		conn = bp.Touched:Connect(function(hit: BasePart)
+			local char = hit.Parent
+			if not char then return end
+			local pl = Players:GetPlayerFromCharacter(char)
+			if not pl then return end
+			if debounce[pl] then return end
+
+			debounce[pl] = true
+
+			if value and value > 0 then
+				PD.addMoney(pl, value)
+			end
+
+			if not isPerm then
+				-- Consumível: fade + destruição para evitar conexão morta
+				conn:Disconnect()
+				bp.Transparency = 1
+				bp.CanCollide   = false
+				task.delay(0.1, function() bp:Destroy() end)
+			else
+				-- Zona permanente: libera debounce após 1s
+				task.delay(1, function() debounce[pl] = nil end)
+			end
+		end)
+
+		-- Garante limpeza da conexão se a peça for destruída por outro caminho
+		bp.Destroying:Connect(function() conn:Disconnect() end)
+
+		count += 1
+	end
+
+	print(string.format("[Gameplay] Sistema de Coleta ativado para %d itens.", count))
+end
+
+safeInit("Collections", function() SetupCollections(gameMap) end)
+
 -- ── 4. Spawn via física nativa do Roblox ─────────────────────────────
 -- Busca a SpawnLocation dentro do GameMap (preservada pelo MapLoader).
 -- Fallback: cria SpawnLocation em Settings.SPAWN.
