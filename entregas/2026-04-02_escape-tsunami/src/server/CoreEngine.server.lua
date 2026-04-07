@@ -65,18 +65,9 @@ safeInit("MobSystem", function()
 end)
 
 -- ── Spawn position ────────────────────────────────────────────────────
--- Prioridade 1: BasePart chamada "Spawn" no mapa
--- Prioridade 2: Settings.SPAWN.POSITION diretamente (confiar na coordenada)
+-- Fonte única de verdade: Settings.SPAWN.POSITION.
+-- Peças "Spawn" do kit são descartadas — o mapa não controla o spawn.
 local function findSpawnPosition(): Vector3
-	-- P1: peça "Spawn" no mapa
-	local spawnPart = ws:FindFirstChild("Spawn", true) :: BasePart?
-	if spawnPart and spawnPart:IsA("BasePart") then
-		local pos = spawnPart.Position + Vector3.new(0, 5, 0)
-		print(string.format("[CoreEngine] Spawn via part 'Spawn': (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z))
-		return pos
-	end
-
-	-- P2: coordenada do Settings (sem raycast — CanQuery=false em mapas de terceiros)
 	local pos = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION + Vector3.new(0, 5, 0) else Vector3.new(0, 5, 0)
 	print(string.format("[CoreEngine] Spawn via Settings.SPAWN: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z))
 	return pos

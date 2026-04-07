@@ -10,7 +10,7 @@ local S = {}
 -- ── TAGS ─────────────────────────────────────────────────────────────
 S.TAG_MAP = {
 	Tsunami     = { "Water", "Wave", "Tsunami", "Ocean" },
-	SafeZone    = { "SafeZone", "Shelter", "Cosmic", "Mythical" },
+	SafeZone    = { "SafeZone", "Shelter", "Cosmic", "Mythical", "Common", "Uncommon", "Rare", "Epic", "Legendary", "Secret" },
 	WaveMachine = { "WaveMachine" },
 	FuseMachine = { "FuseMachine" },
 	CrackWall   = { "CrackWall", "SecretWall" },
