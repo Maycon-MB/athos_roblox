@@ -48,7 +48,7 @@ function ProgressPanel.init()
 		local ico = Instance.new("Frame")
 		ico.Name  = "Icon"
 		ico.Size  = UDim2.new(0,36,0,36); ico.Position = UDim2.new(0.5,-18,0,3)
-		ico.BackgroundColor3 = j.color; ico.BorderSizePixel = 0; ico.Parent = card
+		ico.BackgroundColor3 = j.color or Color3.fromRGB(255, 255, 255); ico.BorderSizePixel = 0; ico.Parent = card
 		local ic = Instance.new("UICorner"); ic.CornerRadius = UDim.new(0,6); ic.Parent = ico
 		local iL = Instance.new("TextLabel")
 		iL.Name  = "Label"

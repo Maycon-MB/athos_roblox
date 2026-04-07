@@ -65,48 +65,21 @@ safeInit("MobSystem", function()
 end)
 
 -- ── Spawn position ────────────────────────────────────────────────────
--- Prioridade 1: peça tagueada "GameSpawn" (coloque um bloco chamado "Spawn" no mapa)
--- Prioridade 2: raycast a partir de Settings.SPAWN.POSITION (XZ do início da pista)
--- Prioridade 3: fallback manual Settings.SPAWN.POSITION
+-- Prioridade 1: BasePart chamada "Spawn" no mapa
+-- Prioridade 2: Settings.SPAWN.POSITION diretamente (confiar na coordenada)
 local function findSpawnPosition(): Vector3
-	local CollectionService = game:GetService("CollectionService")
-
-	-- P1: GameSpawn explícito
-	local spawns = CollectionService:GetTagged("GameSpawn")
-	if #spawns > 0 then
-		local bp = spawns[1] :: BasePart
-		local pos = bp.Position + Vector3.new(0, bp.Size.Y / 2 + 3, 0)
-		print(string.format("[CoreEngine] Spawn via GameSpawn '%s': (%.1f, %.1f, %.1f)", bp.Name, pos.X, pos.Y, pos.Z))
+	-- P1: peça "Spawn" no mapa
+	local spawnPart = ws:FindFirstChild("Spawn", true) :: BasePart?
+	if spawnPart and spawnPart:IsA("BasePart") then
+		local pos = spawnPart.Position + Vector3.new(0, 5, 0)
+		print(string.format("[CoreEngine] Spawn via part 'Spawn': (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z))
 		return pos
 	end
 
-	-- P2: raycast a partir do XZ do Settings.SPAWN (ignora água)
-	warn("[CoreEngine] Nenhum 'Spawn' no mapa — usando raycast de Settings.SPAWN.")
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	local waterParts: { Instance } = {}
-	for _, obj in CollectionService:GetTagged("TsunamiWater") do
-		table.insert(waterParts, obj)
-	end
-	for _, obj in CollectionService:GetTagged("Tsunami") do
-		table.insert(waterParts, obj)
-	end
-	params.FilterDescendantsInstances = waterParts
-
-	local px = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION.X else 0
-	local pz = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION.Z else 0
-
-	local hit = ws:Raycast(Vector3.new(px, 1000, pz), Vector3.new(0, -2000, 0), params)
-	if hit then
-		local pos = hit.Position + Vector3.new(0, 5, 0)
-		print(string.format("[CoreEngine] Spawn via raycast: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z))
-		return pos
-	end
-
-	-- P3: fallback
-	local fallback = S.SPAWN and S.SPAWN.POSITION or Vector3.new(0, 5, 0)
-	warn("[CoreEngine] Raycast falhou — usando fallback " .. tostring(fallback))
-	return fallback
+	-- P2: coordenada do Settings (sem raycast — CanQuery=false em mapas de terceiros)
+	local pos = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION + Vector3.new(0, 5, 0) else Vector3.new(0, 5, 0)
+	print(string.format("[CoreEngine] Spawn via Settings.SPAWN: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z))
+	return pos
 end
 
 -- 4. task.wait(2) para física estabilizar, depois configura spawn
