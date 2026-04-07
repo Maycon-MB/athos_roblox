@@ -2,17 +2,20 @@
 	"name": "AthosEscapeTsunami",
 	"tree": {
 		"$className": "DataModel",
-		"Workspace": {
-			"$className": "Workspace",
-			"Environment_Dirty": {
+		"ServerStorage": {
+			"$className": "ServerStorage",
+			"Assets": {
 				"$className": "Folder",
-				"mapa_referencia": {
-					"$path": "mapa_referencia.rbxm"
-				},
-				"vfx_brainrot": {
-					"$path": "vfx_brainrot.rbxm"
+				"Maps": {
+					"$className": "Folder",
+					"RawMap": {
+						"$path": "mapa_referencia.rbxm"
+					}
 				}
 			}
+		},
+		"Workspace": {
+			"$className": "Workspace"
 		},
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
@@ -28,16 +31,13 @@
 		},
 		"ServerScriptService": {
 			"$className": "ServerScriptService",
-			"WipeEnvironment": {
-				"$path": "src/server/WipeEnvironment.server.lua"
-			},
 			"CoreEngine": {
 				"$path": "src/server/CoreEngine.server.lua"
 			},
 			"Engine": {
 				"$className": "Folder",
-				"FixPhysics": {
-					"$path": "src/server/Engine/FixPhysics.lua"
+				"MapLoader": {
+					"$path": "src/server/Engine/MapLoader.lua"
 				},
 				"MapTagger": {
 					"$path": "src/server/Engine/MapTagger.lua"

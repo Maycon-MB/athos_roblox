@@ -8,8 +8,21 @@ local MapTagger = {}
 
 -- Nomes considerados "água" na busca automática (case-insensitive)
 local WATER_NAMES = {
-	"water","ocean","sea","wave","tsunami","flood","river","lake",
-	"tide","surge","aqua","liquid","lava","magma","slime",
+	"water",
+	"ocean",
+	"sea",
+	"wave",
+	"tsunami",
+	"flood",
+	"river",
+	"lake",
+	"tide",
+	"surge",
+	"aqua",
+	"liquid",
+	"lava",
+	"magma",
+	"slime",
 }
 
 -- Retorna true se a cor for predominantemente azul/ciano
@@ -25,16 +38,18 @@ end
 
 -- Heurística: BasePart grande E (azul/ciano OU semitransparente)
 local function looksLikeWater(part: BasePart): boolean
-	local s   = part.Size
-	local big = s.X * s.Z > 300 or s.X > 25 or s.Z > 25          -- área grande
+	local s = part.Size
+	local big = s.X * s.Z > 300 or s.X > 25 or s.Z > 25 -- área grande
 	local col = part.Color
-	local blueLike  = isBlueish(col) or isCyanish(col)
+	local blueLike = isBlueish(col) or isCyanish(col)
 	local seeThrough = part.Transparency >= 0.15 and part.Transparency < 0.95
 	return big and (blueLike or seeThrough)
 end
 
 local function tagWater(part: BasePart, reason: string)
-	if CollectionService:HasTag(part, "Tsunami") then return end
+	if CollectionService:HasTag(part, "Tsunami") then
+		return
+	end
 	CollectionService:AddTag(part, "Tsunami")
 	print(string.format("[MapTagger] AUTO-WATER '%s' (%s)", part.Name, reason))
 end
@@ -47,35 +62,6 @@ local HEURISTIC_NAMES = { "water", "wave", "sea", "oceano" }
 -- Reative quando o mapa tiver peças de água com nomes e transparência confirmados.
 local function autoDetectWater(_container: Instance)
 	return
-	-- luacheck: ignore (código de referência abaixo)
-	for _, obj in ({} :: any) do
-		if not obj:IsA("BasePart") then continue end
-		local part = obj :: BasePart
-
-		-- 1) Nome comum (lista ampla) → tagueia independente de propriedades
-		local nameLower = part.Name:lower()
-		for _, wname in WATER_NAMES do
-			if nameLower:find(wname, 1, true) then
-				tagWater(part, "nome: " .. part.Name)
-				break
-			end
-		end
-
-		-- 2) Heurística por propriedades — EXIGE nome com palavra de água
-		-- (evita taguear pisos grandes/transparentes como chão de mapa)
-		if not CollectionService:HasTag(part, "Tsunami") and looksLikeWater(part) then
-			local hasWaterName = false
-			for _, wname in HEURISTIC_NAMES do
-				if nameLower:find(wname, 1, true) then hasWaterName = true; break end
-			end
-			if hasWaterName then
-				tagWater(part, string.format(
-					"prop+nome: size=%.0fx%.0f transp=%.2f",
-					part.Size.X, part.Size.Z, part.Transparency
-				))
-			end
-		end
-	end
 end
 
 function MapTagger.init(tagMap: { [string]: { string } })
@@ -97,7 +83,9 @@ function MapTagger.init(tagMap: { [string]: { string } })
 		end
 	end
 
-	for _, obj in ws:GetDescendants() do tryTag(obj) end
+	for _, obj in ws:GetDescendants() do
+		tryTag(obj)
+	end
 	ws.DescendantAdded:Connect(tryTag)
 
 	-- ── Passo 2: auto-detecção de água dentro de DefaultMap ──────────────────
