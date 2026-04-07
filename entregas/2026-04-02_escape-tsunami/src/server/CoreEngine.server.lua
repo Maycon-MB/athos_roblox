@@ -62,35 +62,62 @@ safeInit("MobSystem",      function() require(E.MobSystem).init(S) end)
 task.spawn(function()
 	task.wait(1) -- aguarda física estabilizar
 
-	-- Localizar ou criar SpawnLocation
-	local spawnLocation: SpawnLocation
+	-- ── Localizar ponto de spawn (3 prioridades) ─────────────────────────
+	local spawnLocation: SpawnLocation? = nil
 
+	-- P1: BasePart chamada "SpawnPoint" — marcador manual do desenvolvedor
 	if gameMap then
-		local sl = gameMap:FindFirstChildOfClass("SpawnLocation") :: SpawnLocation?
+		local marker = gameMap:FindFirstChild("SpawnPoint", true) :: BasePart?
+		if marker and marker:IsA("BasePart") then
+			local newSL        = Instance.new("SpawnLocation")
+			newSL.Size         = Vector3.new(6, 1, 6)
+			newSL.CFrame       = CFrame.new(marker.Position)
+			newSL.Anchored     = true
+			newSL.Transparency = 1
+			newSL.CanCollide   = true
+			newSL.Neutral      = true
+			newSL.Parent       = ws
+			spawnLocation = newSL
+			print(string.format(
+				"[CoreEngine] Spawn via marcador 'SpawnPoint': (%.1f, %.1f, %.1f)",
+				marker.Position.X, marker.Position.Y, marker.Position.Z
+			))
+		end
+	end
+
+	-- P2: SpawnLocation existente no GameMap (busca recursiva)
+	if not spawnLocation and gameMap then
+		local sl = gameMap:FindFirstChildWhichIsA("SpawnLocation", true) :: SpawnLocation?
 		if sl then
-			sl.Neutral = true -- garante que qualquer player possa usar
+			sl.Neutral  = true
 			spawnLocation = sl
 			print(string.format(
-				"[CoreEngine] SpawnLocation do mapa: '%s' (%.1f, %.1f, %.1f)",
+				"[CoreEngine] Spawn via SpawnLocation '%s': (%.1f, %.1f, %.1f)",
 				sl.Name, sl.Position.X, sl.Position.Y, sl.Position.Z
 			))
 		end
 	end
 
+	-- P3: fallback — cria SpawnLocation em Settings.SPAWN
 	if not spawnLocation then
-		warn("[CoreEngine] Sem SpawnLocation no GameMap — criando fallback em Settings.SPAWN.")
-		local base = if S.SPAWN and S.SPAWN.POSITION then S.SPAWN.POSITION else Vector3.new(0, -86.1, 0)
-		local newSL        = Instance.new("SpawnLocation")
-		newSL.Size         = Vector3.new(6, 1, 6)
-		newSL.CFrame       = CFrame.new(Vector3.new(base.X, -86.1, base.Z))
-		newSL.Anchored     = true
-		newSL.Transparency = 1
-		newSL.CanCollide   = true
-		newSL.Neutral      = true
-		newSL.Parent       = ws
-		spawnLocation = newSL
-		print(string.format("[CoreEngine] SpawnLocation criada em: (%.1f, -86.1, %.1f)", base.X, base.Z))
+		if S.SPAWN and S.SPAWN.POSITION then
+			local base     = S.SPAWN.POSITION
+			local newSL    = Instance.new("SpawnLocation")
+			newSL.Size     = Vector3.new(6, 1, 6)
+			newSL.CFrame   = CFrame.new(Vector3.new(base.X, -86.1, base.Z))
+			newSL.Anchored = true
+			newSL.Transparency = 1
+			newSL.CanCollide   = true
+			newSL.Neutral      = true
+			newSL.Parent       = ws
+			spawnLocation = newSL
+			print(string.format("[CoreEngine] Spawn via Settings.SPAWN: (%.1f, -86.1, %.1f)", base.X, base.Z))
+		else
+			warn("[CRITICAL] Nenhum ponto de spawn encontrado no mapa ou no Settings!")
+		end
 	end
+
+	if not spawnLocation then return end
 
 	-- Novos players: define RespawnLocation antes do auto-spawn do Roblox
 	Players.PlayerAdded:Connect(function(player)
