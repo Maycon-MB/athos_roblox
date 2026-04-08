@@ -119,6 +119,11 @@ local function SetupCollections(map: Model?)
 	Players.PlayerRemoving:Connect(syncFilter)
 	syncFilter()
 
+	-- RaycastParams reutilizável para confirmar que o player está SOBRE a zona
+	-- (evita falso positivo ao correr pelo lado da parte)
+	local standCheckParams = RaycastParams.new()
+	standCheckParams.FilterType = Enum.RaycastFilterType.Include
+
 	-- Varredura por Heartbeat — itera em reverso para remoção segura por índice
 	local frameCount   = 0
 	local conn: RBXScriptConnection
@@ -144,14 +149,17 @@ local function SetupCollections(map: Model?)
 			if #hits == 0 then continue end
 
 			-- Primeiro hit válido recompensa o player e consome o item
-			-- FloorMaterial != Air garante que só coleta quando no chão (não no ar / pulando)
+			-- Raycast para baixo confirma que o HRP está SOBRE a parte (não correndo pelo lado)
+			standCheckParams.FilterDescendantsInstances = { bp }
 			for _, hit in hits do
 				local char = hit.Parent
 				if not char then continue end
 				local pl = Players:GetPlayerFromCharacter(char)
 				if not pl then continue end
-				local hum = char:FindFirstChildOfClass("Humanoid")
-				if not hum or hum.FloorMaterial == Enum.Material.Air then continue end
+				local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+				if not hrp then continue end
+				local rc = ws:Raycast(hrp.Position, Vector3.new(0, -6, 0), standCheckParams)
+				if not rc then continue end
 
 				local value = RARITY_VALUE[bp.Name:lower()] or 0
 				if value > 0 then
