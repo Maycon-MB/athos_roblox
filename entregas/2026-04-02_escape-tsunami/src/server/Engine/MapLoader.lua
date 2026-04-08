@@ -13,7 +13,20 @@ local MapLoader = {}
 -- Discovery: '.', 'Line', 'Secret', 'Wall', 'Fence', 'Divider' bloqueavam o caminho.
 local BARRIER_NAMES = { "%.", "line", "secret", "wall", "fence", "divider" }
 
+-- Partes a PRESERVAR mesmo que o nome case com BARRIER_NAMES.
+-- VIPWalls = parede secreta da JumpShop (tagueada como CrackWall — deve sobreviver ao wipe).
+local BARRIER_EXCLUSIONS: { [string]: boolean } = {
+	vipwalls = true,
+	vipwall  = true,
+}
+
 local function isBarrier(bp: BasePart): boolean
+	-- 1. Exclusões explícitas — nunca destruir
+	if BARRIER_EXCLUSIONS[bp.Name:lower()] then return false end
+	-- 2. Pisos/plataformas largas — preservar (X > 8 E Z > 8 = não é parede fina)
+	local s = bp.Size
+	if s.X > 8 and s.Z > 8 then return false end
+	-- 3. Verifica padrões de nome
 	local nameLower = bp.Name:lower()
 	for _, pat in BARRIER_NAMES do
 		if nameLower:find(pat, 1, true) then
