@@ -144,11 +144,14 @@ local function SetupCollections(map: Model?)
 			if #hits == 0 then continue end
 
 			-- Primeiro hit válido recompensa o player e consome o item
+			-- FloorMaterial != Air garante que só coleta quando no chão (não no ar / pulando)
 			for _, hit in hits do
 				local char = hit.Parent
 				if not char then continue end
 				local pl = Players:GetPlayerFromCharacter(char)
 				if not pl then continue end
+				local hum = char:FindFirstChildOfClass("Humanoid")
+				if not hum or hum.FloorMaterial == Enum.Material.Air then continue end
 
 				local value = RARITY_VALUE[bp.Name:lower()] or 0
 				if value > 0 then
