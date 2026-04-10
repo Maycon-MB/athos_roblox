@@ -19,7 +19,19 @@
       "Bash(sed -n 143,155p c:/Users/MayconBruno/Documents/Github/athos_roblox/entregas/2026-04-02_escape-tsunami/src/server/Engine/BrainrotSystem.lua)",
       "Bash(sed -n 19,24p c:/Users/MayconBruno/Documents/Github/athos_roblox/entregas/2026-04-02_escape-tsunami/src/server/Engine/PlayerData.lua)",
       "Bash(c:/Users/MayconBruno/Documents/Github/athos_roblox/rojo.exe --help)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(../../rojo.exe build:*)",
+      "Bash(ls -lh /c/Users/MayconBruno/Documents/Github/athos_roblox/entregas/2026-04-02_escape-tsunami/*.rbxm*)",
+      "Bash(selene .)",
+      "Bash(selene entregas/)",
+      "Bash(selene entregas/2026-04-02_escape-tsunami/src/server/)",
+      "Bash(stylua src/server/)",
+      "Bash(stylua --version)",
+      "Bash(where stylua:*)",
+      "Bash(StyLua src/server/)",
+      "Bash(rojo build:*)",
+      "Bash(selene entregas/2026-04-02_escape-tsunami/src/)",
+      "WebFetch(domain:roblox.fandom.com)"
     ],
     "additionalDirectories": [
       "c:\\Users\\MayconBruno\\Documents\\Github\\athos_roblox\\.claude"

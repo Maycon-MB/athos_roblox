@@ -1,24 +1,19 @@
 --!strict
--- MobSystem — Spawna NPCs em posições aleatórias do mapa via Raycast.
--- Coloque os modelos dos personagens em ReplicatedStorage > Mobs.
--- Se a pasta não existir, o sistema é ignorado silenciosamente.
+-- MobSystem — Spawna 5 NPCs Noob programáticos no mapa com wandering AI e kill detection.
+-- Não depende de modelos externos. noobsKilled é incrementado em PlayerData ao matar.
 local CollectionService = game:GetService("CollectionService")
-local RS = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 local MobSystem = {}
 
-local MOB_COUNT = 5 -- quantos NPCs spawnar por modelo
-local SPREAD = 80 -- raio de dispersão em studs ao redor do centro
+local MOB_COUNT = 5
+local SPREAD = 80
 
 local function raycastGround(x: number, z: number): Vector3?
 	local ws = game:GetService("Workspace")
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
 
-	-- Ignora água
 	local exclude: { Instance } = {}
-	for _, obj in CollectionService:GetTagged("TsunamiWater") do
-		table.insert(exclude, obj)
-	end
 	for _, obj in CollectionService:GetTagged("Tsunami") do
 		table.insert(exclude, obj)
 	end
@@ -31,48 +26,112 @@ local function raycastGround(x: number, z: number): Vector3?
 	return nil
 end
 
-local function spawnMob(template: Model, pos: Vector3)
-	local ws = game:GetService("Workspace")
-	local clone = template:Clone()
-	clone.Parent = ws
+local function buildNoobRig(): Model
+	local model = Instance.new("Model")
+	model.Name = "Noob"
 
-	-- Posiciona via PrimaryPart ou primeiro BasePart encontrado
-	local root = clone.PrimaryPart
-	if not root then
-		for _, obj in clone:GetDescendants() do
-			if obj:IsA("BasePart") then
-				root = obj :: BasePart
-				break
+	local hrp = Instance.new("Part")
+	hrp.Name = "HumanoidRootPart"
+	hrp.Size = Vector3.new(2, 2, 1)
+	hrp.Anchored = false
+	hrp.CanCollide = true
+	hrp.Transparency = 1
+	hrp.Parent = model
+
+	local torso = Instance.new("Part")
+	torso.Name = "Torso"
+	torso.Size = Vector3.new(2, 2, 1)
+	torso.BrickColor = BrickColor.new("Bright blue")
+	torso.CanCollide = false
+	torso.Parent = model
+
+	local head = Instance.new("Part")
+	head.Name = "Head"
+	head.Size = Vector3.new(2, 1, 1)
+	head.BrickColor = BrickColor.new("Yellow")
+	head.CanCollide = false
+	head.Parent = model
+
+	-- Junta cabeça ao torso
+	local weldTorso = Instance.new("WeldConstraint")
+	weldTorso.Part0 = hrp
+	weldTorso.Part1 = torso
+	weldTorso.Parent = model
+
+	local weldHead = Instance.new("WeldConstraint")
+	weldHead.Part0 = torso
+	weldHead.Part1 = head
+	weldHead.Parent = model
+
+	local humanoid = Instance.new("Humanoid")
+	humanoid.MaxHealth = 100
+	humanoid.Health = 100
+	humanoid.WalkSpeed = 8
+	humanoid.Parent = model
+
+	model.PrimaryPart = hrp
+	return model
+end
+
+local function nearestPlayer(pos: Vector3): Player?
+	local best: Player? = nil
+	local bestDist = 40 -- só atribui kill se player estiver dentro de 40 studs
+	for _, pl in Players:GetPlayers() do
+		local char = pl.Character
+		if not char then continue end
+		local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if not hrp then continue end
+		local d = (hrp.Position - pos).Magnitude
+		if d < bestDist then
+			bestDist = d
+			best = pl
+		end
+	end
+	return best
+end
+
+local function spawnNoob(pos: Vector3, spawnCenter: Vector3)
+	local ws = game:GetService("Workspace")
+	local mob = buildNoobRig()
+	mob.Parent = ws
+	mob:PivotTo(CFrame.new(pos))
+
+	local humanoid = mob:FindFirstChildOfClass("Humanoid") :: Humanoid
+	local hrp = mob.PrimaryPart :: BasePart
+
+	-- Wandering AI
+	task.spawn(function()
+		while humanoid.Health > 0 do
+			local offset = Vector3.new(math.random(-30, 30), 0, math.random(-30, 30))
+			humanoid:MoveTo(spawnCenter + offset)
+			task.wait(math.random(3, 7))
+		end
+	end)
+
+	-- Kill detection
+	humanoid.Died:Connect(function()
+		local killer = nearestPlayer(hrp.Position)
+		if killer then
+			local PD = require(script.Parent.PlayerData)
+			local d = PD.get(killer)
+			if d then
+				d.noobsKilled += 1
+				PD.sync(killer)
+				print(string.format("[MobSystem] %s matou Noob (%d/5)", killer.Name, d.noobsKilled))
 			end
 		end
-	end
-	if root then
-		clone:PivotTo(CFrame.new(pos))
-	end
-
-	-- Ancora todos os parts (NPCs estáticos para gravação)
-	for _, obj in clone:GetDescendants() do
-		if obj:IsA("BasePart") then
-			(obj :: BasePart).Anchored = true
-		end
-	end
+		task.delay(1, function() mob:Destroy() end)
+	end)
 end
 
 function MobSystem.init(_cfg: any)
-	local mobsFolder = RS:FindFirstChild("Mobs")
-	if not mobsFolder then
-		print("[MobSystem] ReplicatedStorage.Mobs não encontrado — NPCs desativados.")
-		return
-	end
-
-	-- Aguarda mapa carregar e MapTagger terminar
 	task.delay(4, function()
 		local ws = game:GetService("Workspace")
 
 		-- Centro do mapa
 		local sumX, sumZ, count = 0, 0, 0
 		for _, obj in ws:GetDescendants() do
-			if obj:IsA("BasePart") and not CollectionService:HasTag(obj, "TsunamiWater") then
+			if obj:IsA("BasePart") and not CollectionService:HasTag(obj, "Tsunami") then
 				local bp = obj :: BasePart
 				sumX += bp.Position.X
 				sumZ += bp.Position.Z
@@ -81,25 +140,21 @@ function MobSystem.init(_cfg: any)
 		end
 		local cx = if count > 0 then sumX / count else 0
 		local cz = if count > 0 then sumZ / count else 0
+		local center = Vector3.new(cx, 0, cz)
 
-		for _, template in mobsFolder:GetChildren() do
-			if not template:IsA("Model") then
-				continue
+		local spawned = 0
+		local attempts = 0
+		while spawned < MOB_COUNT and attempts < MOB_COUNT * 6 do
+			attempts += 1
+			local rx = cx + math.random(-SPREAD, SPREAD)
+			local rz = cz + math.random(-SPREAD, SPREAD)
+			local pos = raycastGround(rx, rz)
+			if pos then
+				spawnNoob(pos, center)
+				spawned += 1
 			end
-			local spawned = 0
-			local attempts = 0
-			while spawned < MOB_COUNT and attempts < MOB_COUNT * 6 do
-				attempts += 1
-				local rx = cx + math.random(-SPREAD, SPREAD)
-				local rz = cz + math.random(-SPREAD, SPREAD)
-				local pos = raycastGround(rx, rz)
-				if pos then
-					spawnMob(template, pos)
-					spawned += 1
-				end
-			end
-			print(string.format("[MobSystem] '%s' → %d NPC(s) spawnados", template.Name, spawned))
 		end
+		print(string.format("[MobSystem] %d Noob(s) spawnados", spawned))
 	end)
 end
 

@@ -9,6 +9,9 @@ local active: { Model } = {}
 local carrying: { [Player]: any } = {}
 local sellRemote: RemoteEvent
 local fuseRemote: RemoteEvent
+local fuseResult: RemoteEvent
+local mapCenterX = 0
+local mapCenterZ = 0
 
 -- Solda brainrot acima da cabeça do jogador via WeldConstraint
 local function attachToPlayer(pl: Player, model: Model, body: BasePart)
@@ -172,7 +175,20 @@ end
 local function spawnOne()
 	local z = _cfg.BRAINROT_ZONE
 	local br = pickBrainrot()
-	local cf = CFrame.new(math.random(-z.X_RANGE, z.X_RANGE), z.Y, math.random(z.Z_MIN, z.Z_MAX))
+	local rx = mapCenterX + math.random(-z.X_RANGE, z.X_RANGE)
+	local rz = mapCenterZ + math.random(-z.Z_HALF, z.Z_HALF)
+
+	-- Raycast para encontrar o chão real
+	local ws = game:GetService("Workspace")
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local exclude: { Instance } = {}
+	for _, obj in CollectionService:GetTagged("Tsunami") do table.insert(exclude, obj) end
+	params.FilterDescendantsInstances = exclude
+	local hit = ws:Raycast(Vector3.new(rx, 500, rz), Vector3.new(0, -2000, 0), params)
+	local spawnY = if hit then hit.Position.Y + 2 else 0
+
+	local cf = CFrame.new(rx, spawnY, rz)
 	local model, touch = makeBrainrot(br, cf)
 	table.insert(active, model)
 
@@ -231,6 +247,10 @@ function BrainrotSystem.init(cfg: any)
 	fuseRemote.Name = R.FuseBrainrots
 	fuseRemote.Parent = RS
 
+	fuseResult = Instance.new("RemoteEvent")
+	fuseResult.Name = R.FuseResult
+	fuseResult.Parent = RS
+
 	sellRemote.OnServerEvent:Connect(function(pl, id: string)
 		local PD = require(script.Parent.PlayerData)
 		if not PD.removeBrainrot(pl, id) then
@@ -281,6 +301,103 @@ function BrainrotSystem.init(cfg: any)
 				PD.sync(pl)
 			end
 		end
+	end)
+
+	-- FusionMachine física: cria Part no mapa com ProximityPrompt
+	task.delay(5, function()
+		local ws = game:GetService("Workspace")
+
+		-- Centro do mapa (média de todos BaseParts)
+		local sumX, sumZ, count = 0, 0, 0
+		for _, obj in ws:GetDescendants() do
+			if obj:IsA("BasePart") and not CollectionService:HasTag(obj, "Tsunami") then
+				local bp = obj :: BasePart
+				sumX += bp.Position.X
+				sumZ += bp.Position.Z
+				count += 1
+			end
+		end
+		local cx = if count > 0 then sumX / count else 0
+		local cz = if count > 0 then sumZ / count else 0
+		mapCenterX = cx
+		mapCenterZ = cz
+
+		-- Raycasta o chão sob o ponto deslocado
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		local exclude: { Instance } = {}
+		for _, obj in CollectionService:GetTagged("Tsunami") do
+			table.insert(exclude, obj)
+		end
+		params.FilterDescendantsInstances = exclude
+		local hit = ws:Raycast(Vector3.new(cx + 15, 500, cz), Vector3.new(0, -2000, 0), params)
+		local groundY = if hit then hit.Position.Y else 0
+
+		local machine = Instance.new("Part")
+		machine.Name = "FusionMachine"
+		machine.Size = Vector3.new(4, 6, 4)
+		machine.BrickColor = BrickColor.new("Dark stone grey")
+		machine.Material = Enum.Material.SmoothPlastic
+		machine.Anchored = true
+		machine.Position = Vector3.new(cx + 15, groundY + 3, cz)
+		machine.Parent = ws
+
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.ActionText = "Fundir"
+		prompt.ObjectText = "Fusion Machine"
+		prompt.HoldDuration = 1.5
+		prompt.MaxActivationDistance = 8
+		prompt.Parent = machine
+
+		prompt.Triggered:Connect(function(pl: Player)
+			local PD = require(script.Parent.PlayerData)
+			local d = PD.get(pl)
+			if not d or #d.brainrots < 2 then
+				fuseResult:FireClient(pl, false, "Precisa de 2 Brainrots!")
+				return
+			end
+
+			-- Pega os 2 primeiros brainrots do inventário
+			local id1 = d.brainrots[1].id
+			local id2 = d.brainrots[2].id
+
+			-- Descobre raridade do primeiro
+			local r1 = 1
+			for _, br in cfg.BRAINROTS do
+				if br.id == id1 then
+					r1 = br.rarity
+					break
+				end
+			end
+
+			-- Remove ambos
+			PD.removeBrainrot(pl, id1)
+			PD.removeBrainrot(pl, id2)
+
+			-- Resultado: rarity + 1, clamped ao máximo
+			local target = math.min(r1 + 1, #cfg.RARITIES)
+			local cands: { any } = {}
+			for _, br in cfg.BRAINROTS do
+				if br.rarity == target then
+					table.insert(cands, br)
+				end
+			end
+			local result = if #cands > 0 then cands[math.random(1, #cands)] else nil
+			if result then
+				PD.addBrainrot(pl, result.id)
+				d.brainrotsFused += 1
+				PD.sync(pl)
+				print(string.format("[BrainrotSystem] %s fundiu → %s (rarity %d)", pl.Name, result.id, target))
+				fuseResult:FireClient(pl, true, "Fusão completa! Obteve: " .. result.id)
+			else
+				-- Nenhum brainrot na rarity alvo — devolve um dos originais
+				PD.addBrainrot(pl, id1)
+				PD.sync(pl)
+				fuseResult:FireClient(pl, false, "Nenhum resultado disponível nessa raridade.")
+			end
+		end)
+
+		print("[BrainrotSystem] FusionMachine criada em (" .. math.floor(cx+15) .. ", " .. math.floor(groundY+3) .. ", " .. math.floor(cz) .. ")")
 	end)
 
 	-- Limpeza: ao sair ou morrer, destrói brainrot carregado

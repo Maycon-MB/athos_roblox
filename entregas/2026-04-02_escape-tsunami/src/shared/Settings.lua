@@ -42,14 +42,18 @@ S.RARITIES = {
 S.SPAWN_WEIGHTS = { 60, 25, 10, 4, 1, 0.1, 0.02 }
 
 -- ── BRAINROTS ─────────────────────────────────────────────────────────
-S.BRAINROT_ZONE = { Z_MIN=-180, Z_MAX=180, X_RANGE=16, Y=1, MAX=12, RATE=3 }
+S.BRAINROT_ZONE = { Z_HALF=160, X_RANGE=14, MAX=12, RATE=3 }
 S.BRAINROTS = {
-	{ id = "jamezini_cakenini", name = "Jamezini Cakenini", rarity = 1, income = 2,
+	{ id = "jamezini_cakenini",       name = "Jamezini Cakenini",          rarity = 1, income = 2,
 	  color = Color3.fromRGB(200, 160, 120) },
-	{ id = "mikey",             name = "Mikey",             rarity = 5, income = 7000,
+	{ id = "mikey",                   name = "Mikey",                      rarity = 5, income = 7000,
 	  color = Color3.fromRGB(255, 180,  40) },
-	{ id = "athos_brainrot",    name = "Athos Brainrot",    rarity = 7, income = 999000000,
+	{ id = "glaciero_infernati",      name = "Glaciero Infernati",         rarity = 4, income = 50000,
+	  color = Color3.fromRGB( 80, 180, 255) },
+	{ id = "athos_brainrot",          name = "O Athos Brainrot",           rarity = 7, income = 999000000,
 	  color = Color3.fromRGB(255,  20, 147) },
+	{ id = "athos_mutacao_fogo",      name = "AthosBreinrot Mutacao Fogo", rarity = 7, income = 999000000,
+	  color = Color3.fromRGB(255,  80,   0) },
 }
 
 -- ── PULOS ────────────────────────────────────────────────────────────

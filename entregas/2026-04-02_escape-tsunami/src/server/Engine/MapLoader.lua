@@ -47,13 +47,15 @@ function MapLoader.setup(): Model?
 
 	local clone = raw:Clone()
 
-	-- 1) Wipe: scripts, pastas de kit e SpawnLocations do kit
+	-- 1) Wipe: scripts, pastas de kit, NPCs e conteúdo brainrot do kit
 	local wiped = 0
 	for _, obj in clone:GetDescendants() do
 		if obj.Parent == nil then continue end
-		local isScript    = obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript")
-		local isKitFolder = obj:IsA("Folder") and obj.Name:lower():find("serverscriptservice", 1, true) ~= nil
-		if isScript or isKitFolder then
+		local isScript      = obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript")
+		local isKitFolder   = obj:IsA("Folder") and obj.Name:lower():find("serverscriptservice", 1, true) ~= nil
+		local isNpc         = obj:IsA("Model") and obj:FindFirstChildOfClass("Humanoid") ~= nil
+		local isBrainrotFolder = obj:IsA("Folder") and obj.Name:lower() == "brainrots"
+		if isScript or isKitFolder or isNpc or isBrainrotFolder then
 			obj:Destroy()
 			wiped += 1
 		end

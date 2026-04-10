@@ -58,7 +58,7 @@ local function buildCard(scroll: ScrollingFrame, j: any)
 	local card = Instance.new("Frame")
 	card.Name  = "Card_"..j.id
 	card.Size  = UDim2.new(0, 160, 0, 220)
-	card.BackgroundColor3 = j.color
+	card.BackgroundColor3 = j.color or Color3.fromRGB(80, 80, 80)
 	card.BackgroundTransparency = 0.15
 	card.BorderSizePixel = 0; card.Parent = scroll
 	local cc = Instance.new("UICorner"); cc.CornerRadius = UDim.new(0, 12); cc.Parent = card

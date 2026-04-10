@@ -1,7 +1,7 @@
 --!strict
 -- WaveSystem — Motor Universal de Tsunami
 -- Auto-descobre os limites do mapa pela geometria.
--- Move a peça tagueada "TsunamiWater" do limite Z- ao limite Z+ da pista.
+-- Move a peça tagueada "Tsunami" do limite X- ao limite X+ da pista.
 -- Funciona em qualquer mapa sem coordenadas fixas.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
@@ -43,6 +43,9 @@ local function findMapBounds(): (number, number, number, number, number)
 		if CollectionService:HasTag(bp, "Tsunami") then
 			continue
 		end
+		if CollectionService:HasTag(bp, "SafeZone") then
+			continue
+		end
 		if bp.Transparency >= 0.95 then
 			continue
 		end
@@ -55,10 +58,10 @@ local function findMapBounds(): (number, number, number, number, number)
 		if pos.Y < minY then minY = pos.Y end
 	end
 
-	if minZ == math.huge then
+	if minX == math.huge then
 		minZ = -200; maxZ = 200; minX = -40; maxX = 40; minY = -84
 	end
-	return minZ, maxZ, minX, maxX, minY
+	return minX, maxX, minZ, maxZ, minY
 end
 
 -- ── SafeZone check por bounding box ──────────────────────────────────
@@ -78,28 +81,30 @@ local function isInSafeZone(pos: Vector3): boolean
 end
 
 -- ── Coleta ou cria a peça da onda ────────────────────────────────────
--- centerX/startZ definem posição inicial; fallbackY é usado apenas se nenhuma
+-- startX/centerZ definem posição inicial; fallbackY é usado apenas se nenhuma
 -- peça tagueada for encontrada (o Y das peças do kit é preservado).
+-- A onda move ao longo do eixo X — thin em X, wide em Z.
 local function getOrCreateWavePart(
-	centerX: number,
-	startZ: number,
-	width: number,
+	startX: number,
+	centerZ: number,
+	depth: number,
 	fallbackY: number
 ): BasePart
-	-- Prefere peça já tagueada no mapa — preserva o Y original do kit
-	for _, obj in CollectionService:GetTagged("TsunamiWater") do
+	local WAVE_HEIGHT = 50
+	-- Prefere peça já tagueada no mapa — reposiciona, redimensiona e força Y correto
+	for _, obj in CollectionService:GetTagged("Tsunami") do
 		if obj:IsA("BasePart") then
 			local bp = obj :: BasePart
-			bp.CFrame = CFrame.new(centerX, bp.Position.Y, startZ)
+			bp.Size = Vector3.new(8, WAVE_HEIGHT, depth + 40)
+			bp.CFrame = CFrame.new(startX, fallbackY, centerZ)
 			return bp
 		end
 	end
-	-- Fallback: cria parede azul posicionada no piso real do mapa
-	local WAVE_HEIGHT = 35
+	-- Fallback: cria parede azul
 	local wall = Instance.new("Part")
 	wall.Name = "TsunamiWave"
-	wall.Size = Vector3.new(width + 40, WAVE_HEIGHT, 8)
-	wall.CFrame = CFrame.new(centerX, fallbackY, startZ)
+	wall.Size = Vector3.new(8, WAVE_HEIGHT, depth + 40)
+	wall.CFrame = CFrame.new(startX, fallbackY, centerZ)
 	wall.Anchored = true
 	wall.CanCollide = false
 	wall.Color = Color3.fromRGB(30, 110, 220)
@@ -120,20 +125,20 @@ local function startWave(speedOverride: number?, killer: Player?)
 	local cfg = _cfg.WAVE
 	local speed = speedOverride or math.min(cfg.SPEED + math.floor(waveCount / 5) * 4, cfg.SPEED_MAX)
 
-	-- Calcula limites reais do mapa (X, Z e Y de piso)
-	local minZ, maxZ, minX, maxX, floorY = findMapBounds()
-	local mapWidth  = maxX - minX
-	local centerX   = (minX + maxX) / 2
-	local startZ    = minZ - 20
-	local endZ      = maxZ + 20
-	local fallbackY = floorY + 35 / 2 -- bottom da onda alinha com piso real
+	-- Calcula limites reais do mapa — eixo longo = X (corredor de fuga)
+	local minX, maxX, minZ, maxZ, floorY = findMapBounds()
+	local mapDepth  = maxZ - minZ
+	local centerZ   = (minZ + maxZ) / 2
+	local startX    = minX - 20
+	local endX      = maxX + 20
+	local fallbackY = floorY + 25 -- WAVE_HEIGHT/2 = 50/2
 
-	local wave = getOrCreateWavePart(centerX, startZ, mapWidth, fallbackY)
+	local wave = getOrCreateWavePart(startX, centerZ, mapDepth, fallbackY)
 	local wasCreatedByUs = wave.Name == "TsunamiWave"
 
 	print(string.format(
-		"[WaveSystem] Onda #%d | Y=%.0f | Z: %.0f→%.0f | speed: %.0f",
-		waveCount, wave.Position.Y, startZ, endZ, speed
+		"[WaveSystem] Onda #%d | Y=%.0f | X: %.0f→%.0f | speed: %.0f",
+		waveCount, wave.Position.Y, startX, endX, speed
 	))
 
 	waveStarted:FireAllClients(waveCount)
@@ -202,12 +207,12 @@ local function startWave(speedOverride: number?, killer: Player?)
 	end)
 
 	task.spawn(function()
-		-- Avança pela pista
+		-- Avança pela pista ao longo do eixo X
 		while wave and wave.Parent do
 			local dt = task.wait(0.03)
-			local newZ = wave.Position.Z + speed * dt
-			wave.CFrame = CFrame.new(wave.Position.X, wave.Position.Y, newZ)
-			if newZ >= endZ then
+			local newX = wave.Position.X + speed * dt
+			wave.CFrame = CFrame.new(newX, wave.Position.Y, wave.Position.Z)
+			if newX >= endX then
 				break
 			end
 		end
@@ -220,7 +225,7 @@ local function startWave(speedOverride: number?, killer: Player?)
 			if wasCreatedByUs then
 				wave:Destroy()
 			else
-				wave.CFrame = CFrame.new(centerX, wave.Position.Y, startZ) -- preserva Y
+				wave.CFrame = CFrame.new(startX, wave.Position.Y, wave.Position.Z) -- preserva Y e Z
 			end
 		end
 

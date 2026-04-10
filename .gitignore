@@ -1,0 +1,22 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+processor/__pycache__/
+
+# Roblox binários gerados e locks
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxmx
+
+# Arquivos de referência de mapa soltos na raiz
+/mapa_referencia.*
+
+# Segredos / profiles locais
+.openclaude-profile.json
+.env
+
+# OS
+.DS_Store
+Thumbs.db

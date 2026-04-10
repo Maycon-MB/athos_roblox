@@ -12,4 +12,5 @@ return {
 	ShowShop      = "ShowShop",
 	AdminCmd      = "AdminCmd",
 	AdminResp     = "AdminResp",
+	FuseResult    = "FuseResult",
 }

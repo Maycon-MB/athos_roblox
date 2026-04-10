@@ -111,7 +111,7 @@ local function handleBuy(pl: Player, jumpId: string)
 	end
 	if cfg.fill_base then
 		for _ = 1, d.baseSlots do
-			PD.addBrainrot(pl, "athos_brainrot")
+			PD.addBrainrot(pl, "athos_mutacao_fogo")
 		end
 	end
 	if cfg.wave_tokens then
@@ -119,6 +119,14 @@ local function handleBuy(pl: Player, jumpId: string)
 	end
 	if cfg.extra == "wave_shield" then
 		d.hasShield = true
+	end
+	if cfg.extra == "galaxy_bat" then
+		local bat = RS:FindFirstChild("GalaxyBat", true)
+		if bat and bat:IsA("Tool") then
+			bat:Clone().Parent = pl.Backpack
+		else
+			warn("[JumpSystem] GalaxyBat não encontrado em ReplicatedStorage")
+		end
 	end
 	if cfg.base_upgrade then
 		d.baseSlots = _cfg.BASE.SLOTS_MAX
