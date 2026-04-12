@@ -1,24 +1,21 @@
 --!strict
--- MobSystem — Spawna 5 NPCs Noob programáticos no mapa com wandering AI e kill detection.
--- Não depende de modelos externos. noobsKilled é incrementado em PlayerData ao matar.
+-- MobSystem — Spawna NPCs Noob na area main com wandering AI e kill detection.
+-- Usa MAP_AREAS.main para posicao. Sem auto-center via Workspace scan.
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local MobSystem = {}
 
 local MOB_COUNT = 5
-local SPREAD = 80
 
 local function raycastGround(x: number, z: number): Vector3?
 	local ws = game:GetService("Workspace")
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
-
 	local exclude: { Instance } = {}
 	for _, obj in CollectionService:GetTagged("Tsunami") do
 		table.insert(exclude, obj)
 	end
 	params.FilterDescendantsInstances = exclude
-
 	local hit = ws:Raycast(Vector3.new(x, 1000, z), Vector3.new(0, -2000, 0), params)
 	if hit then
 		return hit.Position + Vector3.new(0, 3, 0)
@@ -52,7 +49,6 @@ local function buildNoobRig(): Model
 	head.CanCollide = false
 	head.Parent = model
 
-	-- Junta cabeça ao torso
 	local weldTorso = Instance.new("WeldConstraint")
 	weldTorso.Part0 = hrp
 	weldTorso.Part1 = torso
@@ -75,12 +71,16 @@ end
 
 local function nearestPlayer(pos: Vector3): Player?
 	local best: Player? = nil
-	local bestDist = 40 -- só atribui kill se player estiver dentro de 40 studs
+	local bestDist = 40
 	for _, pl in Players:GetPlayers() do
 		local char = pl.Character
-		if not char then continue end
+		if not char then
+			continue
+		end
 		local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
-		if not hrp then continue end
+		if not hrp then
+			continue
+		end
 		local d = (hrp.Position - pos).Magnitude
 		if d < bestDist then
 			bestDist = d
@@ -120,34 +120,28 @@ local function spawnNoob(pos: Vector3, spawnCenter: Vector3)
 				print(string.format("[MobSystem] %s matou Noob (%d/5)", killer.Name, d.noobsKilled))
 			end
 		end
-		task.delay(1, function() mob:Destroy() end)
+		task.delay(1, function()
+			mob:Destroy()
+		end)
 	end)
 end
 
-function MobSystem.init(_cfg: any)
+function MobSystem.init(cfg: any)
 	task.delay(4, function()
-		local ws = game:GetService("Workspace")
-
-		-- Centro do mapa
-		local sumX, sumZ, count = 0, 0, 0
-		for _, obj in ws:GetDescendants() do
-			if obj:IsA("BasePart") and not CollectionService:HasTag(obj, "Tsunami") then
-				local bp = obj :: BasePart
-				sumX += bp.Position.X
-				sumZ += bp.Position.Z
-				count += 1
-			end
-		end
-		local cx = if count > 0 then sumX / count else 0
-		local cz = if count > 0 then sumZ / count else 0
+		-- Centro da area main via MAP_AREAS
+		local area = cfg.MAP_AREAS and cfg.MAP_AREAS.main
+		local cx = if area then area.spawn.Position.X else 0
+		local cz = if area then area.spawn.Position.Z else 0
+		local areaSize = if area then area.size else Vector3.new(200, 50, 200)
+		local spread = math.floor(areaSize.X / 3)
 		local center = Vector3.new(cx, 0, cz)
 
 		local spawned = 0
 		local attempts = 0
 		while spawned < MOB_COUNT and attempts < MOB_COUNT * 6 do
 			attempts += 1
-			local rx = cx + math.random(-SPREAD, SPREAD)
-			local rz = cz + math.random(-SPREAD, SPREAD)
+			local rx = cx + math.random(-spread, spread)
+			local rz = cz + math.random(-spread, spread)
 			local pos = raycastGround(rx, rz)
 			if pos then
 				spawnNoob(pos, center)

@@ -2,18 +2,6 @@
 	"name": "AthosEscapeTsunami",
 	"tree": {
 		"$className": "DataModel",
-		"ServerStorage": {
-			"$className": "ServerStorage",
-			"Assets": {
-				"$className": "Folder",
-				"Maps": {
-					"$className": "Folder",
-					"RawMap": {
-						"$path": "mapa_referencia.rbxm"
-					}
-				}
-			}
-		},
 		"Workspace": {
 			"$className": "Workspace"
 		},
@@ -36,11 +24,8 @@
 			},
 			"Engine": {
 				"$className": "Folder",
-				"MapLoader": {
-					"$path": "src/server/Engine/MapLoader.lua"
-				},
-				"MapTagger": {
-					"$path": "src/server/Engine/MapTagger.lua"
+				"MapSystem": {
+					"$path": "src/server/Engine/MapSystem.lua"
 				},
 				"PlayerData": {
 					"$path": "src/server/Engine/PlayerData.lua"
@@ -88,6 +73,9 @@
 					},
 					"AdminPanel": {
 						"$path": "src/client/UI/AdminPanel.lua"
+					},
+					"AreaLabel": {
+						"$path": "src/client/UI/AreaLabel.lua"
 					}
 				}
 			}

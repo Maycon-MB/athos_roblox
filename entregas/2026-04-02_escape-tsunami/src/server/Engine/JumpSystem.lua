@@ -182,9 +182,9 @@ function JumpSystem.init(cfg: any)
 		reapplyOnSpawn(pl)
 	end
 
-	-- CrackWall touch → abre loja
+	-- CrackWall touch → abre loja (Part criado pelo MapSystem)
 	task.spawn(function()
-		task.wait(3) -- aguarda MapTagger terminar
+		task.wait(3) -- aguarda MapSystem criar as áreas
 		local tagged = CollectionService:GetTagged("CrackWall")
 		for _, part in tagged do
 			if not part:IsA("BasePart") then

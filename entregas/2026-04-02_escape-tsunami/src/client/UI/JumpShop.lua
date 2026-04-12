@@ -90,7 +90,7 @@ local function buildCard(scroll: ScrollingFrame, j: any)
 	name.BackgroundTransparency = 1
 	name.Font  = Enum.Font.GothamBold; name.TextScaled = true
 	name.TextColor3 = Color3.new(1,1,1); name.TextStrokeTransparency = 0.4
-	name.Text  = j.name; name.Parent = card
+	name.Text  = j.name or j.label or j.id; name.Parent = card
 
 	-- Stats
 	local stats = Instance.new("TextLabel")
