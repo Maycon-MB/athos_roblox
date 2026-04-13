@@ -188,7 +188,7 @@ function AdminPanel.init()
 	end)
 	scroll.CanvasSize = UDim2.new(0, 0, 0, lay.AbsoluteContentSize.Y + 10)
 
-	-- Response handler
+	-- Response handler (comandos do servidor)
 	resp.OnClientEvent:Connect(function(kind: string, msg: string?)
 		if kind == "toggle" then
 			gui.Enabled = not gui.Enabled
@@ -198,6 +198,28 @@ function AdminPanel.init()
 			log.Text = msg or ""
 		end
 	end)
+
+	-- Tecla F9 abre/fecha o painel (funciona independente do modo de chat)
+	local UIS = game:GetService("UserInputService")
+	UIS.InputBegan:Connect(function(input: InputObject, gameProcessed: boolean)
+		if gameProcessed then return end
+		if input.KeyCode == Enum.KeyCode.F8 then
+			gui.Enabled = not gui.Enabled
+		end
+	end)
+
+	-- Tenta TextChatCommand como fallback (novo chat)
+	local ok, TCS = pcall(function() return game:GetService("TextChatService") end)
+	if ok and TCS then
+		local cmd = Instance.new("TextChatCommand")
+		cmd.Name           = "AdminToggle"
+		cmd.PrimaryAlias   = "/admin"
+		cmd.SecondaryAlias = "/adm"
+		cmd.Parent         = TCS :: TextChatService
+		cmd.Triggered:Connect(function(_src: Instance, _raw: string)
+			gui.Enabled = not gui.Enabled
+		end)
+	end
 end
 
 return AdminPanel

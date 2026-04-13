@@ -1,0 +1,139 @@
+--!strict
+-- BaseSystem — Pedestais 3D na área base.
+-- Cria slots físicos e atualiza BillboardGui com o inventário do jogador.
+local Players = game:GetService("Players")
+local BaseSystem = {}
+
+local _cfg: any
+local pedestals: { BasePart } = {}
+
+local function makePedestal(pos: Vector3, idx: number): BasePart
+	local base = Instance.new("Part")
+	base.Name          = "Pedestal_" .. idx
+	base.Size          = Vector3.new(3, 0.3, 3)
+	base.CFrame        = CFrame.new(pos)
+	base.Anchored      = true
+	base.CanCollide    = true
+	base.Material      = Enum.Material.SmoothPlastic
+	base.Color         = Color3.fromRGB(55, 55, 75)
+	base.Parent        = workspace
+
+	local pole = Instance.new("Part")
+	pole.Name       = "Pole_" .. idx
+	pole.Size       = Vector3.new(0.4, 1.2, 0.4)
+	pole.CFrame     = CFrame.new(pos + Vector3.new(0, 0.75, 0))
+	pole.Anchored   = true
+	pole.CanCollide = false
+	pole.Material   = Enum.Material.SmoothPlastic
+	pole.Color      = Color3.fromRGB(75, 75, 95)
+	pole.Parent     = workspace
+
+	local bb  = Instance.new("BillboardGui")
+	bb.Name          = "Label"
+	bb.Size          = UDim2.new(0, 160, 0, 44)
+	bb.StudsOffset   = Vector3.new(0, 2.8, 0)
+	bb.AlwaysOnTop   = false
+	bb.Parent        = base
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Size                    = UDim2.new(1, 0, 1, 0)
+	lbl.BackgroundColor3        = Color3.fromRGB(18, 16, 28)
+	lbl.BackgroundTransparency  = 0.1
+	lbl.Font                    = Enum.Font.GothamBold
+	lbl.TextScaled              = true
+	lbl.TextColor3              = Color3.fromRGB(160, 160, 160)
+	lbl.Text                    = "[ vazio ]"
+	lbl.Parent                  = bb
+	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 6); c.Parent = lbl
+
+	return base
+end
+
+local function layoutPositions(center: Vector3, count: number): { Vector3 }
+	local positions: { Vector3 } = {}
+	local cols    = math.max(2, math.ceil(math.sqrt(count)))
+	local spacing = 4.5
+	for i = 1, count do
+		local row = math.floor((i - 1) / cols)
+		local col = (i - 1) % cols
+		local x   = center.X + (col - (cols - 1) / 2) * spacing
+		local z   = center.Z + (row - math.floor((count - 1) / cols) / 2) * spacing
+		table.insert(positions, Vector3.new(x, center.Y, z))
+	end
+	return positions
+end
+
+-- Atualiza os BillboardGuis com o inventário atual do jogador.
+function BaseSystem.update(player: Player)
+	local PD = require(script.Parent.PlayerData)
+	local d  = PD.get(player)
+	if not d then return end
+
+	local brainrots: { [string]: number } = d.brainrots or {}
+
+	-- Montar lista plana ordenada (mais raro primeiro)
+	local list: { { id: string, qty: number, rarity: number } } = {}
+	for id, qty in brainrots do
+		if qty > 0 then
+			local rarity = 1
+			for _, br in _cfg.BRAINROTS do
+				if br.id == id then rarity = br.rarity; break end
+			end
+			table.insert(list, { id = id, qty = qty, rarity = rarity })
+		end
+	end
+	table.sort(list, function(a, b) return a.rarity > b.rarity end)
+
+	for i, ped in pedestals do
+		local bb  = ped:FindFirstChild("Label")
+		local lbl = bb and (bb :: BillboardGui):FindFirstChildOfClass("TextLabel")
+		if not lbl then continue end
+
+		local entry = list[i]
+		if entry then
+			local name  = entry.id
+			local color = Color3.fromRGB(255, 200, 40)
+			for _, br in _cfg.BRAINROTS do
+				if br.id == entry.id then
+					name  = br.name
+					color = br.color
+					break
+				end
+			end
+			local lbl2 = lbl :: TextLabel
+			lbl2.Text       = (entry.qty > 1 and ("×" .. entry.qty .. " ") or "") .. name
+			lbl2.TextColor3 = color
+		else
+			local lbl2 = lbl :: TextLabel
+			lbl2.Text       = "[ vazio ]"
+			lbl2.TextColor3 = Color3.fromRGB(160, 160, 160)
+		end
+	end
+end
+
+function BaseSystem.init(cfg: any)
+	_cfg = cfg
+
+	local area   = cfg.MAP_AREAS.base
+	local center = area.spawn.Position
+	local slots  = cfg.BASE.SLOTS_DEFAULT
+
+	local positions = layoutPositions(Vector3.new(center.X, center.Y - 1, center.Z), slots)
+	for i, pos in positions do
+		table.insert(pedestals, makePedestal(pos, i))
+	end
+
+	-- Refresh a cada 2s (solo recording: 1 jogador)
+	task.spawn(function()
+		while true do
+			task.wait(2)
+			for _, pl in Players:GetPlayers() do
+				BaseSystem.update(pl)
+			end
+		end
+	end)
+
+	print(string.format("[BaseSystem] %d pedestais criados em MAP_AREAS.base", slots))
+end
+
+return BaseSystem

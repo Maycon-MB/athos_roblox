@@ -136,9 +136,12 @@ local function makeBrainrot(br: any, origin: CFrame): (Model, BasePart)
 		end
 		while m.Parent and not m:FindFirstChild("_carried") do
 			t += task.wait(0.03)
+			if m:FindFirstChild("_carried") then break end
 			local dy = math.sin(t) * 0.3
 			for i, p2 in parts do
-				p2.CFrame = CFrame.new(p2.Position.X, baseY[i] + dy, p2.Position.Z)
+				if p2.Anchored then -- não move parts já soldadas ao HRP
+					p2.CFrame = CFrame.new(p2.Position.X, baseY[i] + dy, p2.Position.Z)
+				end
 			end
 		end
 	end)

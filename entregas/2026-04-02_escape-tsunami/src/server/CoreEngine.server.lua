@@ -56,5 +56,8 @@ end)
 safeInit("MobSystem", function()
 	require(E.MobSystem).init(S)
 end)
+safeInit("BaseSystem", function()
+	require(E.BaseSystem).init(S)
+end)
 
 print("[CoreEngine] Ativo — " .. game.Name)

@@ -44,6 +44,9 @@
 				},
 				"MobSystem": {
 					"$path": "src/server/Engine/MobSystem.lua"
+				},
+				"BaseSystem": {
+					"$path": "src/server/Engine/BaseSystem.lua"
 				}
 			}
 		},
@@ -76,6 +79,12 @@
 					},
 					"AreaLabel": {
 						"$path": "src/client/UI/AreaLabel.lua"
+					},
+					"HudController": {
+						"$path": "src/client/UI/HudController.lua"
+					},
+					"BasePanel": {
+						"$path": "src/client/UI/BasePanel.lua"
 					}
 				}
 			}
