@@ -14,10 +14,10 @@ local REWARDS: { [string]: string } = {
 	james   = "🎁 Jamezini",
 	jj      = "🎁 Mikey · 🛡️ Shield",
 	mana    = "💛 Hearts · 🏠 Base MAX",
-	pdoro   = "🌊 10.000 Tokens",
+	pdoro   = "🌊 10,000 Tokens",
 	matheus = "🎁 ×3 Glaciero · 🏏 Galaxy Bat",
 	caylus  = "🎁 ×3 Lucky Box",
-	athos   = "🔥 Base cheia Athos",
+	athos   = "🔥 Full Athos Base",
 }
 
 local gui: ScreenGui
