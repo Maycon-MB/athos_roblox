@@ -247,6 +247,54 @@ local function setupShopArea(area: any, folder: Instance)
 	ytBadge(CFrame.new(cx - crackW/2 - sideW/2, baseY + 5, cz - halfZ - 0.1))
 	ytBadge(CFrame.new(cx + crackW/2 + sideW/2, baseY + 5, cz - halfZ - 0.1))
 
+	-- NPC Shopkeeper — personagem Roblox simples perto da entrada
+	local function npcPart(name: string, sz: Vector3, cf: CFrame, col: Color3): Part
+		local p = Instance.new("Part")
+		p.Name           = name
+		p.Size           = sz
+		p.CFrame         = cf
+		p.Color          = col
+		p.Anchored       = true
+		p.CanCollide     = false
+		p.Material       = Enum.Material.SmoothPlastic
+		p.TopSurface     = Enum.SurfaceType.Smooth
+		p.BottomSurface  = Enum.SurfaceType.Smooth
+		p.Parent         = folder
+		return p
+	end
+	local nx  = cx + halfX - 6          -- junto à parede direita
+	local nz  = cz - halfZ + 7          -- perto da entrada
+	local ny  = baseY - 1               -- topo do chão
+	local SKN = Color3.fromRGB(255, 213, 170)
+	local SHT = Color3.fromRGB(255, 80,  0)   -- camisa laranja
+	local PNT = Color3.fromRGB(50,  50,  160)  -- calça azul
+	-- Torso
+	npcPart("NPC_Torso",   Vector3.new(2, 2.5, 1), CFrame.new(nx, ny + 3.75, nz), SHT)
+	-- Cabeça
+	local npcHead = npcPart("NPC_Head", Vector3.new(2, 2, 2), CFrame.new(nx, ny + 6.0, nz), SKN)
+	-- Braços
+	npcPart("NPC_ArmL",   Vector3.new(1, 2.5, 1), CFrame.new(nx - 1.5, ny + 3.75, nz), SHT)
+	npcPart("NPC_ArmR",   Vector3.new(1, 2.5, 1), CFrame.new(nx + 1.5, ny + 3.75, nz), SHT)
+	-- Pernas
+	npcPart("NPC_LegL",   Vector3.new(1, 2.5, 1), CFrame.new(nx - 0.5, ny + 1.25, nz), PNT)
+	npcPart("NPC_LegR",   Vector3.new(1, 2.5, 1), CFrame.new(nx + 0.5, ny + 1.25, nz), PNT)
+	-- Name tag
+	local npcBB = Instance.new("BillboardGui")
+	npcBB.Size        = UDim2.new(0, 150, 0, 38)
+	npcBB.StudsOffset = Vector3.new(0, 2.5, 0)
+	npcBB.AlwaysOnTop = false
+	npcBB.Parent      = npcHead
+	local npcLbl = Instance.new("TextLabel")
+	npcLbl.Size                   = UDim2.new(1, 0, 1, 0)
+	npcLbl.BackgroundColor3       = Color3.fromRGB(20, 16, 30)
+	npcLbl.BackgroundTransparency = 0.1
+	npcLbl.Font                   = Enum.Font.GothamBold
+	npcLbl.TextScaled             = true
+	npcLbl.TextColor3             = Color3.fromRGB(255, 200, 40)
+	npcLbl.Text                   = "Shop Keeper"
+	npcLbl.Parent                 = npcBB
+	local npcC = Instance.new("UICorner"); npcC.CornerRadius = UDim.new(0, 6); npcC.Parent = npcLbl
+
 	-- CrackWall trigger (invisível, no fundo da sala)
 	local trigger = Instance.new("Part")
 	trigger.Name        = "CrackWall"

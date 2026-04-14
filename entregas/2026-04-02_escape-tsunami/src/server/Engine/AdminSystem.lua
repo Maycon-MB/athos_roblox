@@ -10,6 +10,7 @@ local adminCmd: RemoteEvent
 local adminResp: RemoteEvent
 
 local godModePlayers: { [Player]: boolean } = {}
+local brainrotSpawnEnabled: { [string]: boolean } = {} -- nil = enabled by default
 
 local function handle(pl: Player, cmd: string, arg: string?)
 	local WS = require(script.Parent.WaveSystem)
@@ -107,6 +108,31 @@ local function handle(pl: Player, cmd: string, arg: string?)
 			showShop:FireClient(pl)
 		end
 		adminResp:FireClient(pl, "ok", "Shop opened")
+	elseif cmd == "give_brainrot" then
+		local brainrotId = arg or ""
+		local PD = require(script.Parent.PlayerData)
+		PD.addBrainrot(pl, brainrotId, 1)
+		adminResp:FireClient(pl, "ok", "Brainrot given: " .. brainrotId)
+	elseif cmd == "reset_speed" then
+		local char = pl.Character
+		if char then
+			local h = char:FindFirstChildOfClass("Humanoid")
+			if h then
+				h.WalkSpeed = 16
+				h.JumpPower = 50
+			end
+		end
+		adminResp:FireClient(pl, "ok", "Speed reset (WalkSpeed 16 / JumpPower 50)")
+	elseif cmd == "toggle_brainrot" then
+		local brainrotId = arg or ""
+		-- nil ou true = habilitado; false = desabilitado
+		local current = brainrotSpawnEnabled[brainrotId]
+		local newState = if current == false then true else false
+		brainrotSpawnEnabled[brainrotId] = newState
+		local BS = require(script.Parent.BrainrotSystem)
+		BS.setEnabled(brainrotId, newState)
+		local stateText = if newState then "ON" else "OFF"
+		adminResp:FireClient(pl, "ok", "Spawn " .. brainrotId .. ": " .. stateText)
 	elseif cmd == "reset" then
 		local d = PD.get(pl)
 		if d then

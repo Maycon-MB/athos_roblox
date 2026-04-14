@@ -135,15 +135,39 @@ function AdminPanel.init()
 	makeBtn(scroll, "Max Money ($999M)", greenBtn, function()
 		cmdRemote:FireServer("give_money", "")
 	end)
-	makeBtn(scroll, "Set 50K Coins", darkBtn, function()
-		cmdRemote:FireServer("set_coins", "50000")
+	-- TextBox para valor customizado
+	local moneyRow = Instance.new("Frame")
+	moneyRow.Size = UDim2.new(1, 0, 0, 36)
+	moneyRow.BackgroundTransparency = 1
+	moneyRow.Parent = scroll
+	local moneyInput = Instance.new("TextBox")
+	moneyInput.Size = UDim2.new(0.55, -2, 1, 0)
+	moneyInput.BackgroundColor3 = Color3.fromRGB(30, 28, 44)
+	moneyInput.BorderSizePixel = 0
+	moneyInput.Font = Enum.Font.Gotham
+	moneyInput.TextScaled = true
+	moneyInput.TextColor3 = Color3.new(1,1,1)
+	moneyInput.PlaceholderText = "valor ex: 5000"
+	moneyInput.Text = ""
+	moneyInput.Parent = moneyRow
+	local mic = Instance.new("UICorner"); mic.CornerRadius = UDim.new(0,8); mic.Parent = moneyInput
+	local moneySetBtn = Instance.new("TextButton")
+	moneySetBtn.Size = UDim2.new(0.45, -2, 1, 0)
+	moneySetBtn.Position = UDim2.new(0.55, 2, 0, 0)
+	moneySetBtn.BackgroundColor3 = greenBtn
+	moneySetBtn.BorderSizePixel = 0
+	moneySetBtn.Font = Enum.Font.GothamBold
+	moneySetBtn.TextScaled = true
+	moneySetBtn.TextColor3 = Color3.new(1,1,1)
+	moneySetBtn.Text = "Set $"
+	moneySetBtn.Parent = moneyRow
+	local msc = Instance.new("UICorner"); msc.CornerRadius = UDim.new(0,8); msc.Parent = moneySetBtn
+	moneySetBtn.MouseButton1Click:Connect(function()
+		local v = moneyInput.Text:gsub("[^%d]", "")
+		if v ~= "" then cmdRemote:FireServer("set_coins", v) end
 	end)
-	makeBtn(scroll, "Set 500K Coins", darkBtn, function()
-		cmdRemote:FireServer("set_coins", "500000")
-	end)
-	makeBtn(scroll, "Set 0 Coins", redBtn, function()
-		cmdRemote:FireServer("set_coins", "0")
-	end)
+	makeBtn(scroll, "Set 500K", darkBtn, function() cmdRemote:FireServer("set_coins", "500000") end)
+	makeBtn(scroll, "Set 0 Coins", redBtn, function() cmdRemote:FireServer("set_coins", "0") end)
 
 	-- ── JUMPS ────────────────────────────────────────────────────────
 	makeSection(scroll, "JUMPS")
@@ -164,10 +188,41 @@ function AdminPanel.init()
 		cmdRemote:FireServer("fast_wave", "")
 	end)
 
+	-- ── BRAINROTS ────────────────────────────────────────────────────
+	makeSection(scroll, "BRAINROTS — DAR")
+	for _, br in S.BRAINROTS do
+		local brId   = br.id
+		local brName = br.name
+		local brCol  = br.color or darkBtn
+		makeBtn(scroll, "+ " .. brName, brCol, function()
+			cmdRemote:FireServer("give_brainrot", brId)
+		end)
+	end
+
+	makeSection(scroll, "BRAINROTS — SPAWN")
+	-- Toggle por brainrot: verde = ON, cinza = OFF
+	local spawnState: { [string]: boolean } = {}
+	local spawnBtns: { [string]: TextButton } = {}
+	for _, br in S.BRAINROTS do
+		local brId   = br.id
+		local brName = br.name
+		spawnState[brId] = true -- começa habilitado
+		local btn = makeBtn(scroll, "✓ " .. brName .. " spawn", greenBtn, function()
+			spawnState[brId] = not spawnState[brId]
+			cmdRemote:FireServer("toggle_brainrot", brId)
+			spawnBtns[brId].Text = (if spawnState[brId] then "✓ " else "✗ ") .. brName .. " spawn"
+			spawnBtns[brId].BackgroundColor3 = if spawnState[brId] then greenBtn else redBtn
+		end)
+		spawnBtns[brId] = btn
+	end
+
 	-- ── TOOLS ────────────────────────────────────────────────────────
 	makeSection(scroll, "TOOLS")
 	makeBtn(scroll, "God Mode Toggle", Color3.fromRGB(200, 160, 0), function()
 		cmdRemote:FireServer("god_mode", "")
+	end)
+	makeBtn(scroll, "Reset Speed", Color3.fromRGB(60, 130, 200), function()
+		cmdRemote:FireServer("reset_speed", "")
 	end)
 	makeBtn(scroll, "Open Shop", blueBtn, function()
 		cmdRemote:FireServer("open_shop", "")

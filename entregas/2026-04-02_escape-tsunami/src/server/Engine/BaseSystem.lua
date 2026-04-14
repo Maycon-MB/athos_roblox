@@ -23,6 +23,19 @@ local function makePedestal(pos: Vector3, idx: number): BasePart
 	base.BottomSurface = Enum.SurfaceType.Smooth
 	base.Parent        = workspace
 
+	-- Pad verde quadrado sob o pedestal (como na referência do jogo)
+	local pad = Instance.new("Part")
+	pad.Name          = "Pad_" .. idx
+	pad.Size          = Vector3.new(4.4, 0.3, 4.4)
+	pad.CFrame        = CFrame.new(pos + Vector3.new(0, -0.5, 0))
+	pad.Anchored      = true
+	pad.CanCollide    = false
+	pad.Material      = Enum.Material.SmoothPlastic
+	pad.Color         = Color3.fromRGB(100, 210, 100)
+	pad.TopSurface    = Enum.SurfaceType.Smooth
+	pad.BottomSurface = Enum.SurfaceType.Smooth
+	pad.Parent        = workspace
+
 	-- Borda neon verde (anel ligeiramente maior)
 	local ring = Instance.new("Part")
 	ring.Name       = "Ring_" .. idx
@@ -77,17 +90,18 @@ function BaseSystem.update(player: Player)
 	local d  = PD.get(player)
 	if not d then return end
 
-	local brainrots: { [string]: number } = d.brainrots or {}
+	-- brainrots é array: { {id: string, qty: number} }
+	local brainrots: { { id: string, qty: number } } = d.brainrots or {}
 
 	-- Montar lista plana ordenada (mais raro primeiro)
 	local list: { { id: string, qty: number, rarity: number } } = {}
-	for id, qty in brainrots do
-		if qty > 0 then
+	for _, entry in brainrots do
+		if entry.qty > 0 then
 			local rarity = 1
 			for _, br in _cfg.BRAINROTS do
-				if br.id == id then rarity = br.rarity; break end
+				if br.id == entry.id then rarity = br.rarity; break end
 			end
-			table.insert(list, { id = id, qty = qty, rarity = rarity })
+			table.insert(list, { id = entry.id, qty = entry.qty, rarity = rarity })
 		end
 	end
 	table.sort(list, function(a, b) return a.rarity > b.rarity end)

@@ -10,6 +10,12 @@ local BrainrotSystem = {}
 local _cfg: any
 local active: { Model } = {}
 local carrying: { [Player]: any } = {}
+local disabledBrainrots: { [string]: boolean } = {}
+
+-- Habilita/desabilita spawn de um brainrot específico (chamado pelo AdminSystem)
+function BrainrotSystem.setEnabled(id: string, enabled: boolean)
+	disabledBrainrots[id] = not enabled
+end
 local sellRemote: RemoteEvent
 local fuseRemote: RemoteEvent
 local fuseResult: RemoteEvent
@@ -113,26 +119,15 @@ local function makeBrainrot(br: any, origin: CFrame): (Model, BasePart)
 		end
 		m.Parent = ws
 	else
-		-- Fallback: boneco de Parts geométricas
+		-- Fallback: esfera flutuante na cor do brainrot (sem boneco feio)
 		m = Instance.new("Model")
-		m.Name = "BR_" .. br.id
+		m.Name   = "BR_" .. br.id
 		m.Parent = ws
 
-		body = pt(m, Vector3.new(2.5, 3, 1.5), origin * CFrame.new(0, 1.5, 0), br.color or rar.color or Color3.new(1, 1, 1))
-		body.Name = "Body"
-		local head = pt(m, Vector3.new(2.5, 2.5, 2.5), origin * CFrame.new(0, 4.25, 0), Color3.fromRGB(255, 213, 170))
-		head.Name = "Head"
-		pt(m, Vector3.new(0.9, 2.5, 0.9), origin * CFrame.new(-1.8, 1.5, 0), br.color)
-		pt(m, Vector3.new(0.9, 2.5, 0.9), origin * CFrame.new(1.8, 1.5, 0), br.color)
-		pt(m, Vector3.new(1.1, 2.5, 1.1), origin * CFrame.new(-0.7, -1.1, 0), Color3.fromRGB(50, 50, 100))
-		pt(m, Vector3.new(1.1, 2.5, 1.1), origin * CFrame.new(0.7, -1.1, 0), Color3.fromRGB(50, 50, 100))
-
-		local faceBB = Instance.new("BillboardGui")
-		faceBB.Size = UDim2.new(0, 70, 0, 50)
-		faceBB.StudsOffset = Vector3.new(0, 0, head.Size.Z / 2 + 0.1)
-		faceBB.Parent = head
-		textLabel(faceBB, "- -", Color3.fromRGB(40, 30, 20), UDim2.new(1, 0, 0.5, 0), UDim2.new(0, 0, 0.05, 0))
-		textLabel(faceBB, "u", Color3.fromRGB(40, 30, 20), UDim2.new(1, 0, 0.4, 0), UDim2.new(0, 0, 0.58, 0))
+		body          = pt(m, Vector3.new(3, 3, 3), origin * CFrame.new(0, 2, 0), br.color or rar.color or Color3.new(1, 1, 1))
+		body.Name     = "Body"
+		body.Shape    = Enum.PartType.Ball
+		body.Material = Enum.Material.SmoothPlastic
 	end
 
 	-- BillboardGui de tag (nome/raridade/renda) — sempre presente
@@ -185,19 +180,28 @@ end
 
 local function pickBrainrot(): any
 	local w = _cfg.SPAWN_WEIGHTS
-	local total = 0
+	-- Filtra brainrots desabilitados pelo admin
+	local pool: { any } = {}
 	for _, br in _cfg.BRAINROTS do
+		if not disabledBrainrots[br.id] then
+			table.insert(pool, br)
+		end
+	end
+	if #pool == 0 then return _cfg.BRAINROTS[1] end
+
+	local total = 0
+	for _, br in pool do
 		total += w[br.rarity] or 0
 	end
 	local roll = math.random() * total
 	local acc = 0
-	for _, br in _cfg.BRAINROTS do
+	for _, br in pool do
 		acc += w[br.rarity] or 0
 		if roll <= acc then
 			return br
 		end
 	end
-	return _cfg.BRAINROTS[1]
+	return pool[1]
 end
 
 -- ── Spawn dentro de MAP_AREAS.main ──────────────────────────────────
