@@ -9,13 +9,24 @@ local JumpShop = {}
 local player     = Players.LocalPlayer
 local S          = require(RS.Shared.Settings)
 
+-- ── Emoji do avatar por tier (visual da loja) ────────────────────────
+local AVATARS: { [string]: string } = {
+	james   = "👟",
+	jj      = "🛡️",
+	mana    = "💜",
+	pdoro   = "🌊",
+	matheus = "🦇",
+	caylus  = "🔔",
+	athos   = "🔥",
+}
+
 -- ── Tabela de rewards por tier (texto para câmera, emojis) ───────────
 local REWARDS: { [string]: string } = {
 	james   = "🎁 Jamezini",
 	jj      = "🎁 Mikey · 🛡️ Shield",
-	mana    = "💛 Hearts · 🏠 Base MAX",
+	mana    = "💜 Hearts · 🏠 Base MAX",
 	pdoro   = "🌊 10,000 Tokens",
-	matheus = "🎁 ×3 Glaciero · 🏏 Galaxy Bat",
+	matheus = "🎁 ×3 Glaciero · 🦇 Galaxy Bat",
 	caylus  = "🎁 ×3 Lucky Box",
 	athos   = "🔥 Full Athos Base",
 }
@@ -113,7 +124,7 @@ local function buildCard(parent: Instance, j: any, state: string)
 
 	-- ── ESTADO: BLOQUEADO ────────────────────────────────────────────
 	if state == "locked" then
-		-- Shoe icon apagado
+		-- Avatar apagado
 		local shoe = Instance.new("TextLabel")
 		shoe.Size                   = UDim2.new(1, 0, 0, 60)
 		shoe.Position               = UDim2.new(0, 0, 0, 10)
@@ -121,7 +132,7 @@ local function buildCard(parent: Instance, j: any, state: string)
 		shoe.Font                   = Enum.Font.GothamBold
 		shoe.TextScaled             = true
 		shoe.TextColor3             = Color3.fromRGB(60, 60, 70)
-		shoe.Text                   = "👟"
+		shoe.Text                   = AVATARS[j.id] or "👟"
 		shoe.Parent                 = card
 
 		-- Lock icon
@@ -178,7 +189,7 @@ local function buildCard(parent: Instance, j: any, state: string)
 	shoe.Font                   = Enum.Font.GothamBold
 	shoe.TextScaled             = true
 	shoe.TextColor3             = Color3.new(1, 1, 1)
-	shoe.Text                   = "👟"
+	shoe.Text                   = AVATARS[j.id] or "👟"
 	shoe.Parent                 = card
 
 	local nameLbl = Instance.new("TextLabel")

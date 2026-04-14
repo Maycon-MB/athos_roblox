@@ -224,22 +224,28 @@ local function setupShopArea(area: any, folder: Instance)
 		CFrame.new(cx, baseY + crackH + (wallH - crackH)/2, cz - halfZ),
 		BRICK, BRICK_MAT)
 
-	-- Placa "Youtuber Jump Shop" acima da entrada
-	local sign = part("ShopSign",
-		Vector3.new(crackW + 4, 3, 1),
-		CFrame.new(cx, baseY + crackH + 2, cz - halfZ - 0.5),
-		RED, MAT)
-	surfaceLabel(sign, "Youtuber Jump Shop", Enum.NormalId.Front, RED, WHITE)
+	-- Banner YouTube acima da entrada (sem texto — só logo ▶)
+	local banner = Instance.new("Part")
+	banner.Name          = "YTBanner"
+	banner.Size          = Vector3.new(crackW + 6, 3, 0.15)
+	banner.CFrame        = CFrame.new(cx, baseY + crackH + 2, cz - halfZ - 0.08)
+	banner.Anchored      = true
+	banner.CanCollide    = false
+	banner.Color         = RED
+	banner.Material      = MAT
+	banner.TopSurface    = Enum.SurfaceType.Smooth
+	banner.BottomSurface = Enum.SurfaceType.Smooth
+	banner.Parent        = folder
+	local sgBanner = Instance.new("SurfaceGui"); sgBanner.Face = Enum.NormalId.Front; sgBanner.Parent = banner
+	local lbBanner = Instance.new("TextLabel")
+	lbBanner.Size = UDim2.new(1,0,1,0); lbBanner.BackgroundColor3 = RED; lbBanner.BackgroundTransparency = 0
+	lbBanner.Font = Enum.Font.GothamBold; lbBanner.TextScaled = true
+	lbBanner.TextColor3 = WHITE; lbBanner.Text = "▶"; lbBanner.Parent = sgBanner
 
-	-- Dois monitores decorativos nas laterais do sign (como no print)
-	for _, side in { -1, 1 } do
-		local mon = part("Monitor_" .. side,
-			Vector3.new(2.5, 2.5, 0.5),
-			CFrame.new(cx + side * (crackW/2 + 2.5), baseY + crackH + 2, cz - halfZ - 0.5),
-			Color3.fromRGB(30, 30, 30), MAT)
-		surfaceLabel(mon, "▶", Enum.NormalId.Front,
-			Color3.fromRGB(30, 30, 30), RED)
-	end
+	-- Badges YouTube na fachada (lado de fora da parede frontal)
+	-- facing -Z = em direção ao jogador que se aproxima de fora ✓
+	ytBadge(CFrame.new(cx - crackW/2 - sideW/2, baseY + 5, cz - halfZ - 0.1))
+	ytBadge(CFrame.new(cx + crackW/2 + sideW/2, baseY + 5, cz - halfZ - 0.1))
 
 	-- CrackWall trigger (invisível, no fundo da sala)
 	local trigger = Instance.new("Part")
