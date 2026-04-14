@@ -105,7 +105,7 @@ local function setupShopArea(area: any, folder: Instance)
 
 	local BRICK  = Color3.fromRGB(174, 99, 0)   -- tijolo laranja/marrom
 	local ROOF   = Color3.fromRGB(140, 60, 0)
-	local FLOOR  = Color3.fromRGB(200, 170, 100) -- chão areia
+	local FLOOR  = Color3.fromRGB(235, 155, 55) -- chão laranja (estética do jogo original)
 	local RED    = Color3.fromRGB(255, 0, 0)
 	local WHITE  = Color3.fromRGB(255, 255, 255)
 	local MAT    = Enum.Material.SmoothPlastic
@@ -169,9 +169,9 @@ local function setupShopArea(area: any, folder: Instance)
 		lbl.Parent                 = sg
 	end
 
-	-- Chão
+	-- Chão laranja tijolo (material Brick dá a textura de ladrilho)
 	part("ShopFloor", Vector3.new(area.size.X, 1, area.size.Z),
-		CFrame.new(cx, baseY - 1.5, cz), FLOOR, MAT)
+		CFrame.new(cx, baseY - 1.5, cz), FLOOR, BRICK_MAT)
 
 	-- Teto
 	part("ShopCeiling", Vector3.new(area.size.X + 2, 2, area.size.Z + 2),
@@ -224,11 +224,11 @@ local function setupShopArea(area: any, folder: Instance)
 		CFrame.new(cx, baseY + crackH + (wallH - crackH)/2, cz - halfZ),
 		BRICK, BRICK_MAT)
 
-	-- Banner YouTube acima da entrada (sem texto — só logo ▶)
+	-- Sign "Youtuber Jump Shop" acima da entrada (igual ao jogo de referência)
 	local banner = Instance.new("Part")
-	banner.Name          = "YTBanner"
-	banner.Size          = Vector3.new(crackW + 6, 3, 0.15)
-	banner.CFrame        = CFrame.new(cx, baseY + crackH + 2, cz - halfZ - 0.08)
+	banner.Name          = "ShopSign"
+	banner.Size          = Vector3.new(crackW + 6, 3.5, 0.3)
+	banner.CFrame        = CFrame.new(cx, baseY + crackH + 2.2, cz - halfZ - 0.16)
 	banner.Anchored      = true
 	banner.CanCollide    = false
 	banner.Color         = RED
@@ -240,7 +240,7 @@ local function setupShopArea(area: any, folder: Instance)
 	local lbBanner = Instance.new("TextLabel")
 	lbBanner.Size = UDim2.new(1,0,1,0); lbBanner.BackgroundColor3 = RED; lbBanner.BackgroundTransparency = 0
 	lbBanner.Font = Enum.Font.GothamBold; lbBanner.TextScaled = true
-	lbBanner.TextColor3 = WHITE; lbBanner.Text = "▶"; lbBanner.Parent = sgBanner
+	lbBanner.TextColor3 = WHITE; lbBanner.Text = "Youtuber Jump Shop"; lbBanner.Parent = sgBanner
 
 	-- Badges YouTube na fachada (lado de fora da parede frontal)
 	-- facing -Z = em direção ao jogador que se aproxima de fora ✓

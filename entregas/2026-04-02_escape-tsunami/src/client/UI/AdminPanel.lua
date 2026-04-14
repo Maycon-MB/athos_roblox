@@ -147,7 +147,7 @@ function AdminPanel.init()
 	moneyInput.Font = Enum.Font.Gotham
 	moneyInput.TextScaled = true
 	moneyInput.TextColor3 = Color3.new(1,1,1)
-	moneyInput.PlaceholderText = "valor ex: 5000"
+	moneyInput.PlaceholderText = "amount e.g. 5000"
 	moneyInput.Text = ""
 	moneyInput.Parent = moneyRow
 	local mic = Instance.new("UICorner"); mic.CornerRadius = UDim.new(0,8); mic.Parent = moneyInput
@@ -167,7 +167,7 @@ function AdminPanel.init()
 		if v ~= "" then cmdRemote:FireServer("set_coins", v) end
 	end)
 	makeBtn(scroll, "Set 500K", darkBtn, function() cmdRemote:FireServer("set_coins", "500000") end)
-	makeBtn(scroll, "Set 0 Coins", redBtn, function() cmdRemote:FireServer("set_coins", "0") end)
+	makeBtn(scroll, "Set 0 Coins (reset)", redBtn, function() cmdRemote:FireServer("set_coins", "0") end)
 
 	-- ── JUMPS ────────────────────────────────────────────────────────
 	makeSection(scroll, "JUMPS")
@@ -189,17 +189,17 @@ function AdminPanel.init()
 	end)
 
 	-- ── BRAINROTS ────────────────────────────────────────────────────
-	makeSection(scroll, "BRAINROTS — DAR")
+	makeSection(scroll, "BRAINROTS — GIVE")
 	for _, br in S.BRAINROTS do
 		local brId   = br.id
 		local brName = br.name
 		local brCol  = br.color or darkBtn
-		makeBtn(scroll, "+ " .. brName, brCol, function()
+		makeBtn(scroll, "Give: " .. brName, brCol, function()
 			cmdRemote:FireServer("give_brainrot", brId)
 		end)
 	end
 
-	makeSection(scroll, "BRAINROTS — SPAWN")
+	makeSection(scroll, "BRAINROTS — SPAWN CONTROL")
 	-- Toggle por brainrot: verde = ON, cinza = OFF
 	local spawnState: { [string]: boolean } = {}
 	local spawnBtns: { [string]: TextButton } = {}
@@ -207,10 +207,10 @@ function AdminPanel.init()
 		local brId   = br.id
 		local brName = br.name
 		spawnState[brId] = true -- começa habilitado
-		local btn = makeBtn(scroll, "✓ " .. brName .. " spawn", greenBtn, function()
+		local btn = makeBtn(scroll, "ON: " .. brName, greenBtn, function()
 			spawnState[brId] = not spawnState[brId]
 			cmdRemote:FireServer("toggle_brainrot", brId)
-			spawnBtns[brId].Text = (if spawnState[brId] then "✓ " else "✗ ") .. brName .. " spawn"
+			spawnBtns[brId].Text = (if spawnState[brId] then "ON: " else "OFF: ") .. brName
 			spawnBtns[brId].BackgroundColor3 = if spawnState[brId] then greenBtn else redBtn
 		end)
 		spawnBtns[brId] = btn
