@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  META-PROMPT: Engine Universal — Escape do Tsunami (Roblox)
+  Roteiro: [AT-RB-L1352-260325]
+  Gerado para uso com Claude Code (claude-code CLI)
+  Arquitetura: Modular / Engine Universal
+-->
+<MetaPrompt version="1.0" project="EscapeDoTsunami_EngineUniversal">
+
+  <!-- ============================================================
+       CONTEXTO GERAL
+  ============================================================ -->
+  <Context>
+    <GamePlatform>Roblox Studio (Lua 5.1 / Luau)</GamePlatform>
+    <BaseGame>Escape Waves For Brainmodz</BaseGame>
+    <ProjectGoal>
+      Implementar uma camada de sistemas customizados por cima do mapa original,
+      sem tocar nos sistemas nativos de ondas, morte, colisão ou bases de outros jogadores.
+      Toda a lógica deve ser encapsulada em módulos independentes (Engine Universal)
+      para facilitar reutilização em futuros roteiros do mesmo cliente.
+    </ProjectGoal>
+    <DesignPrinciple>
+      Cada sistema é um ModuleScript isolado. Scripts de jogo apenas requerem os módulos
+      necessários. Nenhum sistema deve depender diretamente de outro — use eventos
+      (RemoteEvent / BindableEvent) como barramento de comunicação entre módulos.
+    </DesignPrinciple>
+    <OutOfScope>
+      <Item>Sistema de ondas principal (geração, física, movimento dos tsunamis)</Item>
+      <Item>Mecânicas de sobrevivência nativas (morte padrão, colisão com água, checkpoints)</Item>
+      <Item>Ambiente de corrida original (pista de tsunamis dos noobs)</Item>
+      <Item>Bases de outros jogadores já existentes no mapa original</Item>
+    </OutOfScope>
+  </Context>
+
+  <!-- ============================================================
+       ESTRUTURA DE ARQUIVOS ESPERADA
+  ============================================================ -->
+  <FileStructure>
+    <Root>ServerScriptService/
+  EscapeEngine/
+    Core/
+      EventBus.lua            -- Barramento central de eventos
+      PlayerState.lua         -- Estado persistente por jogador
+    Modules/
+      MapTransition.lua       -- Sistema de mapas e teletransporte
+      JumpProgression.lua     -- Progressão de pulos de YouTubers
+      EconomyShop.lua         -- Economia e loja customizada
+      SpecialItems.lua        -- WaveShield, GalaxyBat, WaveTokens
+      BrainrotEntities.lua    -- NPCs Brainrot e geração de renda
+      AdminPanel.lua          -- Painel admin oculto
+    Init.server.lua           -- Inicialização de todos os módulos
+
+StarterGui/
+  HUD/
+    ResourceHUD.lua           -- HUD editável de recursos
+    ShopUI.lua                -- Interface da loja
+    ProgressionUI.lua         -- Interface de progressão de pulos
+    AdminUI.lua               -- Painel admin (client-side)
+
+ReplicatedStorage/
+  EscapeEngine/
+    RemoteEvents/             -- Todos os RemoteEvents do projeto
+    SharedData/
+      JumpData.lua            -- Tabela de dados dos pulos de YouTubers
+      ItemData.lua            -- Tabela de dados dos itens especiais
+      BrainrotData.lua        -- Tabela de dados dos NPCs Brainrot
+</Root>
+  </FileStructure>
+
+  <!-- ============================================================
+       MÓDULO 1 — SISTEMA DE MAPAS E TRANSIÇÃO
+  ============================================================ -->
+  <Module id="M01" name="MapTransition" file="Modules/MapTransition.lua">
+    <Description>
+      Gerencia a criação dos mapas auxiliares e os gatilhos de teletransporte entre eles.
+    </Description>
+
+    <Maps>
+      <Map id="secret_shop">
+        <Name>LojaDePulos</Name>
+        <Design>
+          Sala secreta estilizada: paredes com logos do YouTube (usando SurfaceGui ou Decals),
+          fachada com letreiro "Loja de Pulos". Iluminação roxa/vermelha temática.
+          Posicionada fora do mapa original (ex: Vector3 distante para não colidir).
+        </Design>
+      </Map>
+      <Map id="player_base">
+        <Name>BaseSeparada</Name>
+        <Design>
+          Área fechada com muros. Contém apenas a base do jogador principal.
+          Design minimalista seguindo o estilo visual do jogo original.
+          Inclui plataformas de posicionamento para NPCs Brainrot.
+        </Design>
+      </Map>
+    </Maps>
+
+    <Teleporters>
+      <Teleporter id="tp_main_to_shop">
+        <Trigger>Part invisível no mapa original com CollisionGroup = "Trigger"</Trigger>
+        <Destination>SpawnPoint da LojaDePulos</Destination>
+        <Condition>Qualquer jogador que toque o trigger</Condition>
+      </Teleporter>
+      <Teleporter id="tp_shop_to_main">
+        <Trigger>Part de saída dentro da LojaDePulos</Trigger>
+        <Destination>SpawnPoint de volta ao mapa original</Destination>
+      </Teleporter>
+      <Teleporter id="tp_main_to_base">
+        <Trigger>Part invisível separada no mapa original</Trigger>
+        <Destination>SpawnPoint da BaseSeparada</Destination>
+      </Teleporter>
+      <Teleporter id="tp_base_to_main">
+        <Trigger>Part de saída na BaseSeparada</Trigger>
+        <Destination>SpawnPoint de volta ao mapa original</Destination>
+      </Teleporter>
+    </Teleporters>
+
+    <Implementation>
+      Use TeleportService apenas se for servidor separado. Para mapas na mesma place,
+      use CFrame para reposicionar o HumanoidRootPart do jogador diretamente.
+      Emita evento "PlayerChangedMap" no EventBus após cada teleporte.
+    </Implementation>
+  </Module>
+
+  <!-- ============================================================
+       MÓDULO 2 — PROGRESSÃO DE PULOS (YOUTUBERS)
+  ============================================================ -->
+  <Module id="M02" name="JumpProgression" file="Modules/JumpProgression.lua">
+    <Description>
+      Controla a aquisição e aplicação dos modificadores de JumpPower e WalkSpeed
+      conforme o nível de pulo comprado.
+    </Description>
+
+    <JumpLevels>
+      <Level order="1"  name="James"   jumpPower="10"   walkSpeed="67"    cost_type="coins" cost_value="5000"/>
+      <Level order="2"  name="Nível2"  jumpPower="20"   walkSpeed="100"   cost_type="coins" cost_value="10000"/>
+      <Level order="3"  name="Nível3"  jumpPower="35"   walkSpeed="150"   cost_type="challenge" cost_value="pular_10_ondas"/>
+      <Level order="4"  name="Nível4"  jumpPower="55"   walkSpeed="220"   cost_type="combat" cost_value="matar_5_players"/>
+      <Level order="5"  name="Nível5"  jumpPower="80"   walkSpeed="350"   cost_type="coins" cost_value="50000"/>
+      <Level order="6"  name="Nível6"  jumpPower="120"  walkSpeed="500"   cost_type="item" cost_value="vender_brainrot"/>
+      <Level order="7"  name="Nível7"  jumpPower="180"  walkSpeed="800"   cost_type="coins" cost_value="200000"/>
+      <Level order="8"  name="Athos"   jumpPower="250"  walkSpeed="2500"  cost_type="coins" cost_value="500000"/>
+    </JumpLevels>
+
+    <Logic>
+      <Step>Ao comprar um nível, salvar em PlayerState[player].jumpLevel</Step>
+      <Step>Aplicar Humanoid.JumpPower e Humanoid.WalkSpeed imediatamente</Step>
+      <Step>Reaplicar ao respawn (conectar ao evento CharacterAdded)</Step>
+      <Step>Checar custo_type antes de processar compra:
+        - "coins": verificar saldo em PlayerState
+        - "challenge": verificar flag de progresso (ex: wavesJumped >= 10)
+        - "combat": verificar flag de kills
+        - "item": verificar inventário e consumir item
+      </Step>
+      <Step>Emitir evento "JumpLevelChanged" no EventBus com {player, newLevel}</Step>
+    </Logic>
+  </Module>
+
+  <!-- ============================================================
+       MÓDULO 3 — ECONOMIA E LOJA CUSTOMIZADA
+  ============================================================ -->
+  <Module id="M03" name="EconomyShop" file="Modules/EconomyShop.lua">
+    <Description>
+      Gerencia moedas, compras na loja e os diferentes tipos de condições de custo.
+    </Description>
+
+    <CurrencySystem>
+      <Currency name="Coins" storageKey="coins" defaultValue="0"/>
+      <Currency name="WaveTokens" storageKey="waveTokens" defaultValue="0"/>
+    </CurrencySystem>
+
+    <ShopItems>
+      <Item ref="jump_levels" handledBy="M02"/>
+      <Item ref="wave_shield"  handledBy="M04"/>
+      <Item ref="galaxy_bat"   handledBy="M04"/>
+      <Item ref="brainrot_npc" handledBy="M05"/>
+    </ShopItems>
+
+    <Functions>
+      <Function name="AddCoins(player, amount)">Adiciona moedas ao jogador</Function>
+      <Function name="DeductCoins(player, amount)">Debita moedas; retorna false se saldo insuficiente</Function>
+      <Function name="GetBalance(player)">Retorna saldo atual de moedas</Function>
+      <Function name="ProcessPurchase(player, itemId)">
+        Valida condição de compra (coins/challenge/combat/item),
+        executa debit, notifica módulo responsável via EventBus.
+      </Function>
+      <Function name="AddWaveTokens(player, amount)">Adiciona Wave Tokens</Function>
+      <Function name="SpendWaveToken(player)">Consome 1 Wave Token; retorna false se 0</Function>
+    </Functions>
+
+    <EarningsLoop>
+      Usar heartbeat ou loop com task.wait(1) no servidor para processar renda
+      passiva dos Brainrots (delegado ao módulo M05, mas os coins são creditados aqui).
+    </EarningsLoop>
+  </Module>
+
+  <!-- ============================================================
+       MÓDULO 4 — ITENS ESPECIAIS
+  ============================================================ -->
+  <Module id="M04" name="SpecialItems" file="Modules/SpecialItems.lua">
+    <Description>
+      Implementa WaveShield, GalaxyBat e WaveTokens como itens funcionais.
+    </Description>
+
+    <Item id="wave_shield">
+      <Name>Wave Shield</Name>
+      <Mechanic>
+        Quando ativo, o jogador recebe um atributo "ShieldActive = true".
+        Conectar ao evento de colisão com a onda (ou ao evento de morte customizado
+        que o mapa original possa expor). Se ShieldActive = true, cancelar a morte
+        e consumir o shield. Exibir efeito visual (ParticleEmitter ou SelectionBox azul).
+      </Mechanic>
+      <Inventory>Item de uso único; armazenar quantidade em PlayerState</Inventory>
+    </Item>
+
+    <Item id="galaxy_bat">
+      <Name>Galaxy Bat</Name>
+      <Mechanic>
+        Tool do Roblox com script de repulsão.
+        Ao ativar (Activated), detectar HumanoidRootPart de outros jogadores em raio de 10 studs.
+        Aplicar VectorForce ou BodyVelocity no RootPart do alvo com força configurável
+        (sugerido: magnitude 200-500, direção = (target.Position - bat.Position).Unit).
+        Efeito visual: trail roxo/estrelado no taco.
+      </Mechanic>
+    </Item>
+
+    <Item id="wave_tokens">
+      <Name>Wave Tokens</Name>
+      <Mechanic>
+        Moeda especial gerenciada pelo EconomyShop (M03).
+        Máquina de ondas: Part interativa no mapa. Ao tocar ou clicar, abre UI
+        de seleção de tipo de tsunami. Cada ativação consome 1 Wave Token.
+        Os tipos de tsunami disponíveis devem ser listados em SharedData/ItemData.lua
+        com IDs que o sistema de ondas nativo do mapa possa reconhecer (se expuser API).
+        Se o mapa não expuser API de ondas, este item apenas exibe a UI sem acionar ondas.
+      </Mechanic>
+    </Item>
+  </Module>
+
+  <!-- ============================================================
+       MÓDULO 5 — ENTIDADES BRAINROT
+  ============================================================ -->
+  <Module id="M05" name="BrainrotEntities" file="Modules/BrainrotEntities.lua">
+    <Description>
+      Gerencia os NPCs Brainrot: configuração de modelos, posicionamento na base
+      e lógica de geração de renda passiva.
+    </Description>
+
+    <Entities>
+      <Entity id="jamezini_cakenini">
+        <DisplayName>Jamezini Cakenini</DisplayName>
+        <IncomePerSecond>50</IncomePerSecond>
+        <VisualNotes>Modelo de NPC com chapéu de bolo; escala ~1.2x do R6 padrão</VisualNotes>
+      </Entity>
+      <Entity id="mikey">
+        <DisplayName>Mikey</DisplayName>
+        <IncomePerSecond>150</IncomePerSecond>
+        <VisualNotes>Modelo de NPC estilo padrão Roblox; sem efeitos especiais</VisualNotes>
+      </Entity>
+      <Entity id="athos_brainrot">
+        <DisplayName>Athos Brainrot</DisplayName>
+        <IncomePerSecond>500</IncomePerSecond>
+        <VisualNotes>
+          Aura de fogo obrigatória: usar ParticleEmitter laranja/vermelho no HumanoidRootPart
+          com SpreadAngle amplo e alta densidade. Adicionar PointLight laranja.
+        </VisualNotes>
+      </Entity>
+    </Entities>
+
+    <PlacementSystem>
+      <MaxSlotsPerPlayer>3</MaxSlotsPerPlayer>
+      <PlacementMethod>
+        Ao comprar um Brainrot na loja, invocar PlaceBrainrot(player, entityId).
+        Verificar slots disponíveis na base do jogador.
+        Instanciar modelo do NPC em ReplicatedStorage/EscapeEngine e clonar para workspace/PlayerBase.
+        Salvar lista de NPCs ativos em PlayerState[player].brainrots.
+      </PlacementMethod>
+      <RemovalMethod>
+        FuseBrainrots(player, entityId1, entityId2): remove 2 NPCs e credita bônus de moedas.
+        SellBrainrot(player, entityId): remove NPC e credita valor de venda.
+      </RemovalMethod>
+    </PlacementSystem>
+
+    <IncomeLoop>
+      Loop com task.wait(1) no servidor. Para cada jogador, somar IncomePerSecond
+      de todos os NPCs ativos e chamar EconomyShop.AddCoins(player, totalIncome).
+    </IncomeLoop>
+  </Module>
+
+  <!-- ============================================================
+       MÓDULO 6 — PAINEL ADMIN
+  ============================================================ -->
+  <Module id="M06" name="AdminPanel" file="Modules/AdminPanel.lua">
+    <Description>
+      Interface oculta para o host ajustar atributos e obter itens instantaneamente
+      para fins de gravação ("em off"). Invisível para jogadores comuns.
+    </Description>
+
+    <Access>
+      <Condition>UserId do player == UserId do criador do jogo OU player.Name em lista de admins</Condition>
+      <UIVisibility>ScreenGui.Enabled = false para não-admins na inicialização</UIVisibility>
+      <ActivationMethod>
+        Botão invisível (transparência 1, tamanho 30x30px) no canto inferior esquerdo do HUD.
+        Ao clicar (MouseButton1Click), abrir/fechar o painel admin.
+      </ActivationMethod>
+    </Access>
+
+    <AdminControls>
+      <Control name="SetCoins">
+        <UI>Campo de texto + botão "Definir". Chama RemoteEvent AdminSetCoins com valor.</UI>
+      </Control>
+      <Control name="SetWalkSpeed">
+        <UI>Slider ou campo numérico (16 — 10000). Aplica via RemoteEvent.</UI>
+      </Control>
+      <Control name="SetJumpPower">
+        <UI>Slider ou campo numérico (7 — 500). Aplica via RemoteEvent.</UI>
+      </Control>
+      <Control name="AddWaveTokens">
+        <UI>Botão "+10 Tokens". Chama RemoteEvent.</UI>
+      </Control>
+      <Control name="GiveItem">
+        <UI>Dropdown com lista de itens (WaveShield, GalaxyBat). Botão "Obter".</UI>
+      </Control>
+      <Control name="GiveBrainrot">
+        <UI>Dropdown com Jamezini, Mikey, Athos. Botão "Colocar na Base".</UI>
+      </Control>
+      <Control name="MaxJumpLevel">
+        <UI>Botão "Pulo Máximo (Athos)". Aplica nível 8 imediatamente.</UI>
+      </Control>
+    </AdminControls>
+
+    <Security>
+      Todos os RemoteEvents admin devem verificar no servidor se o sender
+      é admin antes de executar qualquer ação. Nunca confiar apenas no cliente.
+    </Security>
+  </Module>
+
+  <!-- ============================================================
+       UI — HUD DE RECURSOS
+  ============================================================ -->
+  <Module id="UI01" name="ResourceHUD" file="StarterGui/HUD/ResourceHUD.lua">
+    <Description>
+      HUD que exibe Coins, Wave Tokens e nível de pulo atual.
+      Deve ser editável visualmente (labels com nomes de instância previsíveis)
+      para que o operador de vídeo possa alterar valores exibidos sem mexer no script.
+    </Description>
+
+    <Elements>
+      <Element name="CoinsLabel">Exibe: "{coins}"</Element>
+      <Element name="WaveTokensLabel">Exibe: "{tokens}"</Element>
+      <Element name="JumpLevelLabel">Exibe: "{jumpName}"</Element>
+    </Elements>
+
+    <UpdateTrigger>
+      Escutar RemoteEvent "HUDUpdate" emitido pelo servidor sempre que
+      coins, tokens ou jumpLevel mudarem para o jogador local.
+    </UpdateTrigger>
+
+    <EditableNote>
+      Todos os TextLabel possuem nome semântico (ex: "CoinsLabel") para fácil
+      localização no Explorer do Roblox Studio. Os valores podem ser editados
+      diretamente no campo Text da instância para gravações estéticas.
+    </EditableNote>
+  </Module>
+
+  <!-- ============================================================
+       UI — SHOP UI
+  ============================================================ -->
+  <Module id="UI02" name="ShopUI" file="StarterGui/HUD/ShopUI.lua">
+    <Description>
+      Interface da loja de pulos e itens especiais dentro da LojaDePulos.
+      Design focado em ícones dos YouTubers e símbolos dos itens.
+    </Description>
+
+    <Layout>
+      Frame central com scroll. Cada item = card com:
+      - Imagem/ícone (ImageLabel — usar ImageId configurável em SharedData)
+      - Nome do item (TextLabel)
+      - Custo exibido com ícone do tipo (coins / desafio / kills / item)
+      - Botão "Comprar" (chama RemoteEvent ShopPurchase com itemId)
+      - Se já comprado: botão substituído por checkmark verde
+    </Layout>
+
+    <OpenTrigger>
+      ProximityPrompt ou ClickDetector em Part dentro da LojaDePulos.
+      Ao ativar, abre ShopUI via RemoteEvent ou direto no cliente.
+    </OpenTrigger>
+  </Module>
+
+  <!-- ============================================================
+       UI — PROGRESSÃO DE PULOS
+  ============================================================ -->
+  <Module id="UI03" name="ProgressionUI" file="StarterGui/HUD/ProgressionUI.lua">
+    <Description>
+      Exibe a lista ordenada de todos os níveis de pulo com indicador visual
+      de quais já foram obtidos (check verde) e qual é o próximo.
+    </Description>
+
+    <Layout>
+      Frame lateral direito (ou acessível via botão). Lista vertical com todos os 8 níveis.
+      Cada linha: número de ordem | nome do YouTuber | ícone de status (locked / check).
+      Linha atual (próxima a comprar): destaque com borda amarela.
+    </Layout>
+
+    <UpdateTrigger>
+      Atualizar ao receber RemoteEvent "JumpLevelChanged" com o novo nível do jogador.
+    </UpdateTrigger>
+  </Module>
+
+  <!-- ============================================================
+       INIT — INICIALIZAÇÃO DOS MÓDULOS
+  ============================================================ -->
+  <Module id="INIT" name="Init" file="Init.server.lua">
+    <Description>
+      Script de entrada que carrega todos os módulos na ordem correta
+      e inicializa o EventBus.
+    </Description>
+    <LoadOrder>
+      <Step>1. EventBus (Core)</Step>
+      <Step>2. PlayerState (Core)</Step>
+      <Step>3. EconomyShop (M03) — sem dependências de outros módulos customizados</Step>
+      <Step>4. MapTransition (M01)</Step>
+      <Step>5. JumpProgression (M02)</Step>
+      <Step>6. SpecialItems (M04)</Step>
+      <Step>7. BrainrotEntities (M05)</Step>
+      <Step>8. AdminPanel (M06)</Step>
+    </LoadOrder>
+    <PlayerEvents>
+      Conectar Players.PlayerAdded e Players.PlayerRemoving para
+      inicializar e limpar PlayerState de cada jogador.
+    </PlayerEvents>
+  </Module>
+
+  <!-- ============================================================
+       CONVENÇÕES DE CÓDIGO
+  ============================================================ -->
+  <CodingConventions>
+    <Language>Luau (Lua 5.1 compatível com Roblox)</Language>
+    <Naming>
+      <Variables>camelCase para variáveis locais</Variables>
+      <Functions>PascalCase para funções exportadas de módulos</Functions>
+      <Constants>SCREAMING_SNAKE_CASE para constantes globais</Constants>
+      <Instances>PascalCase para nomes de Parts/Frames no workspace</Instances>
+    </Naming>
+    <Comments>
+      Cada módulo deve ter bloco de comentário no topo com:
+      -- Módulo: [Nome]
+      -- Descrição: [uma linha]
+      -- Dependências: [lista de módulos requeridos]
+      -- Eventos emitidos: [lista]
+      -- Eventos recebidos: [lista]
+    </Comments>
+    <ErrorHandling>
+      Usar pcall em operações críticas (compras, teletransporte).
+      Logar erros com warn("[ModuleName] Descrição do erro: " .. tostring(err)).
+    </ErrorHandling>
+    <PerformanceBudget>
+      Loops de renda e HUD update: mínimo task.wait(1) entre iterações.
+      Evitar loops tight sem yield.
+    </PerformanceBudget>
+  </CodingConventions>
+
+  <!-- ============================================================
+       CHECKLIST DE ENTREGA
+  ============================================================ -->
+  <DeliveryChecklist>
+    <Item module="M01">Mapas LojaDePulos e BaseSeparada criados com design descrito</Item>
+    <Item module="M01">4 teleporters funcionais (main-shop, main-base)</Item>
+    <Item module="M02">8 níveis de pulo com stats corretos aplicados no respawn</Item>
+    <Item module="M02">Validação de todos os 4 tipos de custo (coins/challenge/combat/item)</Item>
+    <Item module="M03">Sistema de coins e wave tokens com funções CRUD completas</Item>
+    <Item module="M04">WaveShield cancela morte e se consome</Item>
+    <Item module="M04">GalaxyBat aplica repulsão com BodyVelocity</Item>
+    <Item module="M04">UI da máquina de Wave Tokens funcional</Item>
+    <Item module="M05">3 NPCs Brainrot com IncomePerSecond distintos</Item>
+    <Item module="M05">Athos Brainrot com ParticleEmitter de fogo</Item>
+    <Item module="M05">Sistema de fuse e sell de Brainrots</Item>
+    <Item module="M06">AdminPanel invisível para não-admins</Item>
+    <Item module="M06">Todos os controles admin validados no servidor</Item>
+    <Item module="UI01">HUD com labels editáveis e nomes semânticos</Item>
+    <Item module="UI02">ShopUI com ícones, custos e estado de compra</Item>
+    <Item module="UI03">ProgressionUI com lista ordenada e checkmarks</Item>
+    <Item module="INIT">Init carrega módulos na ordem correta sem erros</Item>
+  </DeliveryChecklist>
+
+</MetaPrompt>
