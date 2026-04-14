@@ -55,16 +55,22 @@
   <tr><td><span class="badge">AREAS</span></td><td>TSUNAMI ESCAPE</td><td>Teleporta para a área principal (tsunami)</td></tr>
   <tr><td><span class="badge">AREAS</span></td><td>SECRET SHOP</td><td>Teleporta para a loja secreta de pulos</td></tr>
   <tr><td><span class="badge">AREAS</span></td><td>YOUR BASE</td><td>Teleporta para a base com pedestais de brainrot</td></tr>
+  <tr><td><span class="badge">AREAS</span></td><td>TSUNAMI ESCAPE / SECRET SHOP / YOUR BASE</td><td>Teleporta para a área selecionada</td></tr>
   <tr><td><span class="badge green">ECONOMY</span></td><td>Max Money ($999M)</td><td>Adiciona $999 milhões ao personagem</td></tr>
-  <tr><td><span class="badge green">ECONOMY</span></td><td>Set 500K Coins</td><td>Define moedas para 500 mil</td></tr>
+  <tr><td><span class="badge green">ECONOMY</span></td><td>Caixa de texto + "Set $"</td><td>Digite qualquer valor e clique para definir as moedas</td></tr>
+  <tr><td><span class="badge green">ECONOMY</span></td><td>Set 500K / Set 0 Coins</td><td>Define moedas para 500 mil ou zera</td></tr>
   <tr><td><span class="badge blue">JUMPS</span></td><td>Give: James / JJ / Mana…</td><td>Dá o pulo correspondente ao personagem (sem precisar cumprir condições)</td></tr>
   <tr><td><span class="badge blue">JUMPS</span></td><td>Give: Matheus</td><td>Dá o pulo + <strong>GalaxyBat</strong> no inventário</td></tr>
   <tr><td><span class="badge blue">JUMPS</span></td><td>Give: JJ</td><td>Dá o pulo + <strong>escudo azul</strong> ao redor do personagem</td></tr>
   <tr><td><span class="badge blue">JUMPS</span></td><td>Give: Mana / Athos</td><td>Dá o pulo + <strong>partículas</strong> saindo do personagem</td></tr>
   <tr><td><span class="badge red">WAVES</span></td><td>Wave (speed 40)</td><td>Lança a onda do tsunami manualmente</td></tr>
   <tr><td><span class="badge red">WAVES</span></td><td>Fast Wave (speed 80)</td><td>Onda em velocidade dobrada</td></tr>
+  <tr><td><span class="badge">BRAINROTS — GIVE</span></td><td>Give: Jamezini / Mikey / Glaciero…</td><td>Adiciona 1 unidade do brainrot ao inventário (aparece nos pedestais em até 2s)</td></tr>
+  <tr><td><span class="badge">BRAINROTS — SPAWN</span></td><td>ON/OFF por brainrot</td><td>Controla quais brainrots aparecem no mapa (verde = spawna, vermelho = pausado)</td></tr>
   <tr><td><span class="badge red">TOOLS</span></td><td>God Mode Toggle</td><td>Invencibilidade (útil para gravar sem morrer)</td></tr>
+  <tr><td><span class="badge red">TOOLS</span></td><td>Reset Speed</td><td>Restaura WalkSpeed 16 e JumpPower 50 (estado inicial)</td></tr>
   <tr><td><span class="badge red">TOOLS</span></td><td>Kill All</td><td>Elimina todos os Noobs (NPCs) do mapa</td></tr>
+  <tr><td><span class="badge red">TOOLS</span></td><td>Reset Progress</td><td>Zera dinheiro, pulos, brainrots e todos os dados do personagem</td></tr>
 </table>
 
 <h2>3. Fluxo recomendado para gravação</h2>
@@ -112,7 +118,29 @@
   <li>Equipe o item → clique perto de um Noob → Noob é lançado para longe</li>
 </ul>
 
-<h2>5. HUD (Interface)</h2>
+<h2>5. Adicionar modelos 3D de Brainrots (opcional)</h2>
+
+<p>Por padrão os brainrots aparecem como <strong>esferas coloridas</strong>. Para usar modelos personalizados (boneco do Jamezini, etc.), siga os passos abaixo no Studio:</p>
+
+<div class="box">
+  1. Abra o <code>game_ready.rbxl</code> no Studio<br>
+  2. No <strong>Explorer</strong>, clique com o botão direito em <strong>Workspace</strong> → <em>Insert Object</em> → <strong>Folder</strong><br>
+  3. Nomeie a pasta exatamente: <code>VFXBrainrots</code><br>
+  4. Dentro desta pasta, insira cada modelo nomeado exatamente como:<br>
+  &nbsp;&nbsp;&nbsp;• <code>jamezini_cakenini</code><br>
+  &nbsp;&nbsp;&nbsp;• <code>mikey</code><br>
+  &nbsp;&nbsp;&nbsp;• <code>glaciero_infernati</code><br>
+  &nbsp;&nbsp;&nbsp;• <code>athos_brainrot</code><br>
+  &nbsp;&nbsp;&nbsp;• <code>athos_mutacao_fogo</code><br>
+  5. Cada modelo deve ter um <strong>PrimaryPart</strong> configurado (selecione o modelo → Properties → PrimaryPart)<br>
+  6. Salve o arquivo (<kbd>Ctrl+S</kbd>) → pronto, ao próximo Play os modelos personalizados serão usados
+</div>
+
+<div class="tip">
+  Se um modelo não tiver PrimaryPart, o sistema usa automaticamente a esfera colorida como fallback — nenhum erro ocorre.
+</div>
+
+<h2>7. HUD (Interface)</h2>
 
 <table>
   <tr><th>Posição na tela</th><th>O que mostra</th></tr>
@@ -123,7 +151,7 @@
   <tr><td>Centro (topo)</td><td>ProgressPanel — checklist de missões para desbloquear pulos</td></tr>
 </table>
 
-<h2>6. Teclas úteis</h2>
+<h2>8. Teclas úteis</h2>
 
 <table>
   <tr><th>Tecla</th><th>Função</th></tr>
@@ -135,7 +163,7 @@
   <strong>Dica para gravação:</strong> Ative o <strong>God Mode</strong> logo no início para não morrer enquanto mostra as mecânicas. Desative antes das cenas de "tensão" com o tsunami.
 </div>
 
-<h2>7. Arquivos desta entrega</h2>
+<h2>9. Arquivos desta entrega</h2>
 
 <table>
   <tr><th>Arquivo</th><th>Descrição</th></tr>
