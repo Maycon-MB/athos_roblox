@@ -51,7 +51,7 @@ function HudController.init()
 	frame = Instance.new("Frame")
 	frame.Name                  = "TierFrame"
 	frame.Size                  = UDim2.new(0, 200, 0, 64)
-	frame.Position              = UDim2.new(0, 8, 1, -80)
+	frame.Position              = UDim2.new(0, 8, 1, -265)
 	frame.BackgroundColor3      = Color3.fromRGB(16, 14, 24)
 	frame.BackgroundTransparency = 0.18
 	frame.BorderSizePixel       = 0

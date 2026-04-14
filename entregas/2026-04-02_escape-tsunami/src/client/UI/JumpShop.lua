@@ -163,7 +163,7 @@ local function buildCard(parent: Instance, j: any, state: string)
 		btnLocked.Font             = Enum.Font.GothamBold
 		btnLocked.TextScaled       = true
 		btnLocked.TextColor3       = Color3.fromRGB(80, 80, 90)
-		btnLocked.Text             = "🔒 BLOQUEADO"
+		btnLocked.Text             = "🔒 LOCKED"
 		btnLocked.AutoButtonColor  = false
 		btnLocked.Parent           = card
 		local blc = Instance.new("UICorner"); blc.CornerRadius = UDim.new(0, 8); blc.Parent = btnLocked

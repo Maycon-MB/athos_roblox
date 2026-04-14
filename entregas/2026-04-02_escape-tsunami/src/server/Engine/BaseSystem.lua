@@ -42,7 +42,7 @@ local function makePedestal(pos: Vector3, idx: number): BasePart
 	lbl.Font                    = Enum.Font.GothamBold
 	lbl.TextScaled              = true
 	lbl.TextColor3              = Color3.fromRGB(160, 160, 160)
-	lbl.Text                    = "[ vazio ]"
+	lbl.Text                    = "[ empty ]"
 	lbl.Parent                  = bb
 	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 6); c.Parent = lbl
 
@@ -105,7 +105,7 @@ function BaseSystem.update(player: Player)
 			lbl2.TextColor3 = color
 		else
 			local lbl2 = lbl :: TextLabel
-			lbl2.Text       = "[ vazio ]"
+			lbl2.Text       = "[ empty ]"
 			lbl2.TextColor3 = Color3.fromRGB(160, 160, 160)
 		end
 	end

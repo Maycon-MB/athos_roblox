@@ -17,12 +17,12 @@ S.MAP_AREAS = {
 		size = Vector3.new(200, 50, 200),
 	},
 	shop = {
-		label = "LOJA SECRETA",
+		label = "SECRET SHOP",
 		spawn = CFrame.new(500, 10, 0),
 		size = Vector3.new(60, 30, 60),
 	},
 	base = {
-		label = "SUA BASE",
+		label = "YOUR BASE",
 		spawn = CFrame.new(0, 10, 500),
 		size = Vector3.new(80, 30, 80),
 	},
