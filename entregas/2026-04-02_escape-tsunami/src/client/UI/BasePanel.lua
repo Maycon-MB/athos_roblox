@@ -100,7 +100,7 @@ local function rebuild(data: any)
 		sellBtn.Font             = Enum.Font.GothamBold
 		sellBtn.TextScaled       = true
 		sellBtn.TextColor3       = Color3.new(1, 1, 1)
-		sellBtn.Text             = "Vender"
+		sellBtn.Text             = "Sell"
 		sellBtn.BorderSizePixel  = 0
 		sellBtn.Parent           = row
 		local sc = Instance.new("UICorner"); sc.CornerRadius = UDim.new(0, 4); sc.Parent = sellBtn
@@ -137,7 +137,7 @@ function BasePanel.init()
 	title.Font               = Enum.Font.GothamBold
 	title.TextScaled         = true
 	title.TextColor3         = Color3.fromRGB(255, 200, 40)
-	title.Text               = "SUA BASE"
+	title.Text               = "YOUR BASE"
 	title.Parent             = panel
 
 	incomeLabel = Instance.new("TextLabel")
@@ -164,6 +164,13 @@ function BasePanel.init()
 	layout.SortOrder  = Enum.SortOrder.LayoutOrder
 	layout.Padding    = UDim.new(0, 4)
 	layout.Parent     = listFrame
+
+	-- Só visível na área base
+	panel.Visible = false
+	local teleportRemote = RS:WaitForChild(NAMES.TeleportArea) :: RemoteEvent
+	teleportRemote.OnClientEvent:Connect(function(areaName: string)
+		panel.Visible = (areaName == "base")
+	end)
 
 	local syncData = RS:WaitForChild(NAMES.SyncData) :: RemoteEvent
 	syncData.OnClientEvent:Connect(function(data: any)

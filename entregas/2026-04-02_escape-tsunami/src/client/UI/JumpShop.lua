@@ -27,7 +27,7 @@ local currentData: any = {}
 local function costText(j: any): string
 	local ct = j.cost_type :: string
 	if ct == "free" then
-		return "🆓 GRÁTIS"
+		return "🆓 FREE"
 	elseif ct == "money" then
 		local v = j.cost_value :: number
 		if v >= 1e6 then return "💰 " .. string.format("%.0fM", v / 1e6)

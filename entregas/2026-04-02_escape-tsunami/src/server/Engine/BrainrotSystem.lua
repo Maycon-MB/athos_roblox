@@ -207,7 +207,7 @@ local function spawnOne()
 
 	-- ProximityPrompt: tecla E para carregar
 	local pp = Instance.new("ProximityPrompt")
-	pp.ActionText = "Coletar"
+	pp.ActionText = "Collect"
 	pp.ObjectText = br.name
 	pp.KeyboardKeyCode = Enum.KeyCode.E
 	pp.MaxActivationDistance = 8
@@ -321,7 +321,7 @@ function BrainrotSystem.init(cfg: any)
 				continue
 			end
 			local prompt = Instance.new("ProximityPrompt")
-			prompt.ActionText = "Fundir"
+			prompt.ActionText = "Fuse"
 			prompt.ObjectText = "Fusion Machine"
 			prompt.HoldDuration = 1.5
 			prompt.MaxActivationDistance = 8

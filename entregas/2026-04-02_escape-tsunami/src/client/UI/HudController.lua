@@ -25,7 +25,7 @@ end
 
 local function updateTier(jumpId: string?)
 	if not jumpId or jumpId == "" then
-		lblName.Text        = "sem pulo"
+		lblName.Text        = "no jump"
 		lblName.TextColor3  = Color3.fromRGB(120, 120, 120)
 		lblStats.Text       = ""
 		return
@@ -78,7 +78,7 @@ function HudController.init()
 	lblName.TextScaled          = true
 	lblName.TextXAlignment      = Enum.TextXAlignment.Left
 	lblName.TextColor3          = Color3.fromRGB(120, 120, 120)
-	lblName.Text                = "sem pulo"
+	lblName.Text                = "no jump"
 	lblName.Parent              = frame
 
 	lblStats = Instance.new("TextLabel")
