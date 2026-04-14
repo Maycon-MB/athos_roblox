@@ -85,6 +85,9 @@
 					},
 					"BasePanel": {
 						"$path": "src/client/UI/BasePanel.lua"
+					},
+					"FakeButtons": {
+						"$path": "src/client/UI/FakeButtons.lua"
 					}
 				}
 			}

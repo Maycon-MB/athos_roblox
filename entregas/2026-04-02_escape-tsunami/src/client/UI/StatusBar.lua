@@ -1,4 +1,6 @@
 --!strict
+-- StatusBar — Painel de recursos no canto inferior esquerdo.
+-- Replica o layout do HUD original (Escape Waves For Brainmodz).
 local Players = game:GetService("Players")
 local RS      = game:GetService("ReplicatedStorage")
 local StatusBar = {}
@@ -6,16 +8,30 @@ local StatusBar = {}
 local player = Players.LocalPlayer
 local S      = require(RS.Shared.Settings)
 
-local lblMoney: TextLabel
-local lblBR:    TextLabel
-local lblJump:  TextLabel
-local lblToken: TextLabel
+local lblIncome: TextLabel
+local lblBR:     TextLabel
+local lblMoney:  TextLabel
+local lblTokens: TextLabel
+local lblJump:   TextLabel
 
 local function fmt(n: number): string
-	if n >= 1e9 then return string.format("%.1fB", n/1e9)
-	elseif n >= 1e6 then return string.format("%.1fM", n/1e6)
-	elseif n >= 1e3 then return string.format("%.1fK", n/1e3)
+	if n >= 1e9 then return string.format("%.1fB", n / 1e9)
+	elseif n >= 1e6 then return string.format("%.1fM", n / 1e6)
+	elseif n >= 1e3 then return string.format("%.1fK", n / 1e3)
 	else return tostring(math.floor(n)) end
+end
+
+local function incomePerSec(brainrots: any): number
+	local total = 0
+	for _, entry in brainrots do
+		for _, br in S.BRAINROTS do
+			if br.id == entry.id then
+				total += br.income * entry.qty
+				break
+			end
+		end
+	end
+	return total
 end
 
 local function jumpColor(id: string): Color3
@@ -29,67 +45,119 @@ local function jumpName(id: string): string
 	return id
 end
 
-local function statBox(bar: Frame, icon: string, iconCol: Color3, w: number): TextLabel
-	local f = Instance.new("Frame")
-	f.Size  = UDim2.new(0, w, 0, 52)
-	f.BackgroundColor3 = Color3.fromRGB(25, 18, 8)
-	f.BackgroundTransparency = 0.25
-	f.BorderSizePixel = 0; f.Parent = bar
-	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 10); c.Parent = f
+local function makeRow(parent: Frame, icon: string, iconCol: Color3): TextLabel
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, 0, 0, 28)
+	row.BackgroundTransparency = 1
+	row.Parent = parent
 
-	local iL = Instance.new("TextLabel")
-	iL.Size  = UDim2.new(0, 32, 1, 0)
-	iL.BackgroundTransparency = 1
-	iL.Font  = Enum.Font.GothamBold; iL.TextScaled = true
-	iL.TextColor3 = iconCol; iL.Text = icon; iL.Parent = f
+	local iconLbl = Instance.new("TextLabel")
+	iconLbl.Size = UDim2.new(0, 24, 1, 0)
+	iconLbl.BackgroundTransparency = 1
+	iconLbl.Font = Enum.Font.GothamBold
+	iconLbl.TextScaled = true
+	iconLbl.TextColor3 = iconCol
+	iconLbl.Text = icon
+	iconLbl.Parent = row
 
-	local vL = Instance.new("TextLabel")
-	vL.Size  = UDim2.new(1, -34, 1, 0); vL.Position = UDim2.new(0, 34, 0, 0)
-	vL.BackgroundTransparency = 1
-	vL.Font  = Enum.Font.GothamBold; vL.TextScaled = true
-	vL.TextColor3 = Color3.new(1,1,1); vL.TextStrokeTransparency = 0.35
-	vL.Text  = "0"; vL.Parent = f
-	return vL
+	local valLbl = Instance.new("TextLabel")
+	valLbl.Size = UDim2.new(1, -28, 1, 0)
+	valLbl.Position = UDim2.new(0, 28, 0, 0)
+	valLbl.BackgroundTransparency = 1
+	valLbl.Font = Enum.Font.GothamBold
+	valLbl.TextScaled = true
+	valLbl.TextXAlignment = Enum.TextXAlignment.Left
+	valLbl.TextColor3 = Color3.new(1, 1, 1)
+	valLbl.TextStrokeTransparency = 0.4
+	valLbl.Text = "0"
+	valLbl.Parent = row
+	return valLbl
 end
 
 function StatusBar.init()
 	local gui = Instance.new("ScreenGui")
-	gui.Name = "StatusBar"; gui.ResetOnSpawn = false
+	gui.Name = "StatusBar"
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = 3
 	gui.Parent = player:WaitForChild("PlayerGui")
 
-	local bar = Instance.new("Frame")
-	bar.Size  = UDim2.new(0, 530, 0, 64)
-	bar.Position = UDim2.new(0.5, -265, 1, -76)
-	bar.BackgroundColor3 = Color3.fromRGB(195, 95, 15)
-	bar.BackgroundTransparency = 0.08
-	bar.BorderSizePixel = 0; bar.Parent = gui
-	local bc = Instance.new("UICorner"); bc.CornerRadius = UDim.new(0, 14); bc.Parent = bar
+	-- Painel principal — canto inferior esquerdo
+	local panel = Instance.new("Frame")
+	panel.Size = UDim2.new(0, 210, 0, 170)
+	panel.Position = UDim2.new(0, 8, 1, -188)
+	panel.BackgroundColor3 = Color3.fromRGB(20, 18, 28)
+	panel.BackgroundTransparency = 0.15
+	panel.BorderSizePixel = 0
+	panel.Parent = gui
+	local pc = Instance.new("UICorner"); pc.CornerRadius = UDim.new(0, 10); pc.Parent = panel
+	local pp = Instance.new("UIPadding")
+	pp.PaddingLeft = UDim.new(0, 8)
+	pp.PaddingRight = UDim.new(0, 8)
+	pp.PaddingTop = UDim.new(0, 6)
+	pp.PaddingBottom = UDim.new(0, 6)
+	pp.Parent = panel
 
-	local lay = Instance.new("UIListLayout")
-	lay.FillDirection = Enum.FillDirection.Horizontal
-	lay.VerticalAlignment = Enum.VerticalAlignment.Center
-	lay.Padding = UDim.new(0, 6)
-	lay.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	lay.Parent = bar
-	local pad = Instance.new("UIPadding")
-	pad.PaddingLeft = UDim.new(0, 8); pad.PaddingRight = UDim.new(0, 8); pad.Parent = bar
+	local layout = Instance.new("UIListLayout")
+	layout.Padding = UDim.new(0, 4)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.FillDirection = Enum.FillDirection.Vertical
+	layout.Parent = panel
 
-	lblMoney = statBox(bar, "$",  Color3.fromRGB(255,230,60),  120)
-	lblBR    = statBox(bar, "BR", Color3.fromRGB(200,160,255), 110)
-	lblJump  = statBox(bar, "👟", Color3.new(1,1,1),           155)
-	lblToken = statBox(bar, "~",  Color3.fromRGB(80,200,255),  110)
+	-- Income/s no topo (verde — como o jogo original)
+	lblIncome = Instance.new("TextLabel")
+	lblIncome.LayoutOrder = 0
+	lblIncome.Size = UDim2.new(1, 0, 0, 22)
+	lblIncome.BackgroundColor3 = Color3.fromRGB(18, 40, 18)
+	lblIncome.BackgroundTransparency = 0.3
+	lblIncome.BorderSizePixel = 0
+	lblIncome.Font = Enum.Font.GothamBold
+	lblIncome.TextScaled = true
+	lblIncome.TextXAlignment = Enum.TextXAlignment.Center
+	lblIncome.TextColor3 = Color3.fromRGB(80, 230, 80)
+	lblIncome.Text = "$0/s"
+	lblIncome.Parent = panel
+	local ic = Instance.new("UICorner"); ic.CornerRadius = UDim.new(0, 6); ic.Parent = lblIncome
+
+	-- Separador
+	local sep = Instance.new("Frame")
+	sep.LayoutOrder = 1
+	sep.Size = UDim2.new(1, 0, 0, 1)
+	sep.BackgroundColor3 = Color3.fromRGB(60, 55, 80)
+	sep.BorderSizePixel = 0
+	sep.Parent = panel
+
+	-- Linhas de recursos
+	local rows = Instance.new("Frame")
+	rows.LayoutOrder = 2
+	rows.Size = UDim2.new(1, 0, 0, 124)
+	rows.BackgroundTransparency = 1
+	rows.Parent = panel
+	local rl = Instance.new("UIListLayout")
+	rl.Padding = UDim.new(0, 3)
+	rl.SortOrder = Enum.SortOrder.LayoutOrder
+	rl.Parent = rows
+
+	lblBR     = makeRow(rows, "🟠", Color3.fromRGB(255, 160, 60))
+	lblMoney  = makeRow(rows, "🟢", Color3.fromRGB(60, 220, 60))
+	lblTokens = makeRow(rows, "⚡", Color3.fromRGB(80, 200, 255))
+	lblJump   = makeRow(rows, "👟", Color3.fromRGB(200, 200, 200))
 
 	local R    = require(RS.Shared.Remotes)
 	local sync = RS:WaitForChild(R.SyncData) :: RemoteEvent
 	sync.OnClientEvent:Connect(function(d: any)
-		lblMoney.Text = "$" .. fmt(d.money or 0)
-		local tot = 0
-		for _, e in (d.brainrots or {}) do tot += e.qty end
-		lblBR.Text   = tot .. "/" .. tostring(d.baseSlots or 4)
-		local jid    = d.currentJump or "none"
-		lblJump.Text = jumpName(jid)
+		local brs: any = d.brainrots or {}
+		local total = 0
+		for _, e in brs do total += e.qty end
+
+		local inc = incomePerSec(brs)
+		lblIncome.Text = "$" .. fmt(inc) .. "/s"
+		lblBR.Text     = total .. "/" .. tostring(d.baseSlots or 4) .. " BR"
+		lblMoney.Text  = "$" .. fmt(d.money or 0)
+		lblTokens.Text = "⚡" .. tostring(d.waveTokens or 0)
+
+		local jid = d.currentJump or "none"
+		lblJump.Text       = jumpName(jid)
 		lblJump.TextColor3 = jumpColor(jid)
-		lblToken.Text = "~" .. tostring(d.waveTokens or 0)
 	end)
 end
 

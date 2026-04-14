@@ -15,4 +15,5 @@ return {
 	FuseResult = "FuseResult",
 	TeleportArea = "TeleportArea",
 	GiveJump = "GiveJump",
+	GalaxyBatSwing = "GalaxyBatSwing",
 }

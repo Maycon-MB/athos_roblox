@@ -121,12 +121,27 @@ local function handleBuy(pl: Player, jumpId: string)
 		d.hasShield = true
 	end
 	if cfg.extra == "galaxy_bat" then
-		local bat = RS:FindFirstChild("GalaxyBat", true)
-		if bat and bat:IsA("Tool") then
-			bat:Clone().Parent = pl.Backpack
-		else
-			warn("[JumpSystem] GalaxyBat não encontrado em ReplicatedStorage")
-		end
+		local tool = Instance.new("Tool")
+		tool.Name = "GalaxyBat"
+		tool.ToolTip = "Taco de Galáxia"
+		tool.RequiresHandle = true
+		local handle = Instance.new("Part")
+		handle.Name = "Handle"
+		handle.Size = Vector3.new(0.35, 2.4, 0.35)
+		handle.BrickColor = BrickColor.new("Bright violet")
+		handle.Material = Enum.Material.Neon
+		handle.Parent = tool
+		local head = Instance.new("Part")
+		head.Name = "Head"
+		head.Size = Vector3.new(1.4, 0.5, 0.5)
+		head.BrickColor = BrickColor.new("Bright yellow")
+		head.Material = Enum.Material.SmoothPlastic
+		head.CanCollide = false
+		head.Parent = tool
+		local hw = Instance.new("WeldConstraint")
+		hw.Part0 = handle; hw.Part1 = head; hw.Parent = tool
+		head.CFrame = handle.CFrame * CFrame.new(0.9, 1.1, 0)
+		tool.Parent = pl.Backpack
 	end
 	if cfg.base_upgrade then
 		d.baseSlots = _cfg.BASE.SLOTS_MAX
@@ -176,6 +191,30 @@ function JumpSystem.init(cfg: any)
 	showShop = Instance.new("RemoteEvent")
 	showShop.Name = R.ShowShop
 	showShop.Parent = RS
+
+	-- GalaxyBat knockback (client dispara via GalaxyBatSwing)
+	local galaxyBatSwing = Instance.new("RemoteEvent")
+	galaxyBatSwing.Name = R.GalaxyBatSwing
+	galaxyBatSwing.Parent = RS
+	galaxyBatSwing.OnServerEvent:Connect(function(pl: Player)
+		local char = pl.Character
+		if not char then return end
+		local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if not hrp then return end
+		local ws = game:GetService("Workspace")
+		for _, obj in ws:GetDescendants() do
+			if obj.Name == "Noob" and obj:IsA("Model") then
+				local noobHrp = obj:FindFirstChild("HumanoidRootPart") :: BasePart?
+				if noobHrp then
+					local dist = (noobHrp.Position - hrp.Position).Magnitude
+					if dist < 14 then
+						local dir = (noobHrp.Position - hrp.Position).Unit
+						noobHrp:ApplyImpulse(dir * 90 + Vector3.new(0, 45, 0))
+					end
+				end
+			end
+		end
+	end)
 
 	Players.PlayerAdded:Connect(reapplyOnSpawn)
 	for _, pl in Players:GetPlayers() do

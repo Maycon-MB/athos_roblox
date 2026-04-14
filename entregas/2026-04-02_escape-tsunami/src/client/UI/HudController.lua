@@ -98,6 +98,28 @@ function HudController.init()
 		if data and data.currentJump then
 			updateTier(data.currentJump)
 		end
+		-- Wave Shield: SelectionBox azul ao redor do HRP
+		local char = player.Character
+		if char then
+			local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if hrp then
+				local existing = hrp:FindFirstChild("ShieldBox")
+				if data and data.hasShield then
+					if not existing then
+						local sb = Instance.new("SelectionBox")
+						sb.Name = "ShieldBox"
+						sb.Adornee = hrp
+						sb.Color3 = Color3.fromRGB(80, 160, 255)
+						sb.LineThickness = 0.08
+						sb.SurfaceTransparency = 0.85
+						sb.SurfaceColor3 = Color3.fromRGB(80, 160, 255)
+						sb.Parent = hrp
+					end
+				else
+					if existing then existing:Destroy() end
+				end
+			end
+		end
 	end)
 end
 
