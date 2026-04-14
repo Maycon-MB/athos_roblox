@@ -3,13 +3,7 @@
 	"tree": {
 		"$className": "DataModel",
 		"Workspace": {
-			"$className": "Workspace",
-			"MapBase": {
-				"$path": "mapa_base.rbxm"
-			},
-			"VFXBrainrots": {
-				"$path": "vfx_brainrot.rbxm"
-			}
+			"$className": "Workspace"
 		},
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",

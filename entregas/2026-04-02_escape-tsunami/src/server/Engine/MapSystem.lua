@@ -17,14 +17,19 @@ local function buildArea(name: string, area: any)
 	folder.Name = "Area_" .. name
 	folder.Parent = ws
 
-	-- Chão
+	-- Chão — cor diferente por área
+	local floorColor = if name == "base"
+		then Color3.fromRGB(210, 100, 180)   -- rosa/roxo como no print da base
+		elseif name == "main"
+		then Color3.fromRGB(80, 80, 90)
+		else Color3.fromRGB(200, 170, 100)   -- areia (shop usa chão próprio)
 	local floor = Instance.new("Part")
 	floor.Name = "Floor_" .. name
 	floor.Size = Vector3.new(area.size.X, 2, area.size.Z)
 	floor.CFrame = area.spawn * CFrame.new(0, -2, 0)
 	floor.Anchored = true
 	floor.CanCollide = true
-	floor.Color = Color3.fromRGB(60, 60, 70)
+	floor.Color = floorColor
 	floor.Material = Enum.Material.SmoothPlastic
 	floor.TopSurface = Enum.SurfaceType.Smooth
 	floor.BottomSurface = Enum.SurfaceType.Smooth
@@ -87,32 +92,33 @@ local function setupMainArea(area: any, folder: Instance)
 	CollectionService:AddTag(fuse, "FuseMachine")
 end
 
--- ── Constrói sala física da loja secreta ────────────────────────────
--- Sala confinada com paredes visíveis, teto, fenda de entrada e neon.
+-- ── Constrói sala da loja — visual "Youtuber Jump Shop" (tijolo marrom) ─
 local function setupShopArea(area: any, folder: Instance)
-	local cx     = area.spawn.Position.X
-	local cz     = area.spawn.Position.Z
-	local baseY  = area.spawn.Position.Y  -- nível do chão (Y do spawn)
-	local halfX  = area.size.X / 2        -- 30
-	local halfZ  = area.size.Z / 2        -- 30
-	local wallH  = area.size.Y            -- 30
-	local midY   = baseY + wallH / 2      -- centro vertical das paredes
-	local topY   = baseY + wallH          -- topo (onde vai o teto)
+	local cx    = area.spawn.Position.X
+	local cz    = area.spawn.Position.Z
+	local baseY = area.spawn.Position.Y
+	local halfX = area.size.X / 2
+	local halfZ = area.size.Z / 2
+	local wallH = area.size.Y
+	local midY  = baseY + wallH / 2
+	local topY  = baseY + wallH
 
-	local WALL_COLOR  = Color3.fromRGB(35, 32, 42)
-	local FLOOR_COLOR = Color3.fromRGB(25, 23, 32)
-	local NEON_COLOR  = Color3.fromRGB(255, 30, 30)  -- vermelho YouTube
-	local MAT         = Enum.Material.SmoothPlastic
-	local NEON_MAT    = Enum.Material.Neon
+	local BRICK  = Color3.fromRGB(174, 99, 0)   -- tijolo laranja/marrom
+	local ROOF   = Color3.fromRGB(140, 60, 0)
+	local FLOOR  = Color3.fromRGB(200, 170, 100) -- chão areia
+	local RED    = Color3.fromRGB(255, 0, 0)
+	local WHITE  = Color3.fromRGB(255, 255, 255)
+	local MAT    = Enum.Material.SmoothPlastic
+	local BRICK_MAT = Enum.Material.Brick
 
 	local function part(name: string, size: Vector3, cf: CFrame,
-		color: Color3, mat: Enum.Material, transparency: number?): Part
+		color: Color3, mat: Enum.Material, transparency: number?, collide: boolean?): Part
 		local p = Instance.new("Part")
 		p.Name        = name
 		p.Size        = size
 		p.CFrame      = cf
 		p.Anchored    = true
-		p.CanCollide  = true
+		p.CanCollide  = if collide == false then false else true
 		p.Color       = color
 		p.Material    = mat
 		p.Transparency = transparency or 0
@@ -122,73 +128,84 @@ local function setupShopArea(area: any, folder: Instance)
 		return p
 	end
 
-	-- Chão visível (substitui o placeholder cinza do buildArea)
+	local function surfaceLabel(parent: BasePart, text: string, face: Enum.NormalId,
+		bg: Color3, fg: Color3)
+		local sg = Instance.new("SurfaceGui")
+		sg.Face   = face
+		sg.Parent = parent
+		local lbl = Instance.new("TextLabel")
+		lbl.Size                   = UDim2.new(1, 0, 1, 0)
+		lbl.BackgroundColor3       = bg
+		lbl.BackgroundTransparency = 0
+		lbl.Font                   = Enum.Font.GothamBold
+		lbl.TextScaled             = true
+		lbl.TextColor3             = fg
+		lbl.Text                   = text
+		lbl.Parent                 = sg
+	end
+
+	-- Chão
 	part("ShopFloor", Vector3.new(area.size.X, 1, area.size.Z),
-		CFrame.new(cx, baseY - 1.5, cz), FLOOR_COLOR, MAT)
+		CFrame.new(cx, baseY - 1.5, cz), FLOOR, MAT)
 
 	-- Teto
-	part("ShopCeiling", Vector3.new(area.size.X + 4, 2, area.size.Z + 4),
-		CFrame.new(cx, topY + 1, cz), WALL_COLOR, MAT)
+	part("ShopCeiling", Vector3.new(area.size.X + 2, 2, area.size.Z + 2),
+		CFrame.new(cx, topY + 1, cz), ROOF, BRICK_MAT)
 
-	-- Parede traseira (fundo da sala — onde fica o trigger da loja)
-	part("WallBack", Vector3.new(area.size.X, wallH, 2),
-		CFrame.new(cx, midY, cz + halfZ), WALL_COLOR, MAT)
-
-	-- Paredes laterais
+	-- Paredes laterais (tijolo)
 	part("WallLeft",  Vector3.new(2, wallH, area.size.Z),
-		CFrame.new(cx - halfX, midY, cz), WALL_COLOR, MAT)
+		CFrame.new(cx - halfX, midY, cz), BRICK, BRICK_MAT)
 	part("WallRight", Vector3.new(2, wallH, area.size.Z),
-		CFrame.new(cx + halfX, midY, cz), WALL_COLOR, MAT)
+		CFrame.new(cx + halfX, midY, cz), BRICK, BRICK_MAT)
 
-	-- Parede frontal com FENDA (crack) centralizada — 3 studs larga, 6 studs alta
-	local crackW  = 3    -- largura da fenda
-	local crackH  = 6    -- altura da fenda (passa o personagem)
-	local sideW   = halfX - crackW / 2  -- 28.5
+	-- Parede traseira com logos YouTube (SurfaceGui)
+	local wallBack = part("WallBack", Vector3.new(area.size.X, wallH, 2),
+		CFrame.new(cx, midY, cz + halfZ), BRICK, BRICK_MAT)
+	-- Logo YouTube central (▶ vermelho)
+	surfaceLabel(wallBack, "▶", Enum.NormalId.Front, RED, WHITE)
 
-	-- Trecho esquerdo
+	-- Logos YouTube nas paredes laterais
+	local wallL = folder:FindFirstChild("WallLeft") :: BasePart
+	local wallR = folder:FindFirstChild("WallRight") :: BasePart
+	if wallL then surfaceLabel(wallL, "▶", Enum.NormalId.Right, RED, WHITE) end
+	if wallR then surfaceLabel(wallR, "▶", Enum.NormalId.Left,  RED, WHITE) end
+
+	-- Parede frontal com abertura larga (entrada da loja) — 8 studs
+	local crackW = 8
+	local crackH = 8
+	local sideW  = (halfX - crackW / 2)
+
 	part("WallFront_L",
 		Vector3.new(sideW, wallH, 2),
 		CFrame.new(cx - crackW/2 - sideW/2, midY, cz - halfZ),
-		WALL_COLOR, MAT)
-
-	-- Trecho direito
+		BRICK, BRICK_MAT)
 	part("WallFront_R",
 		Vector3.new(sideW, wallH, 2),
 		CFrame.new(cx + crackW/2 + sideW/2, midY, cz - halfZ),
-		WALL_COLOR, MAT)
-
-	-- Verga acima da fenda (fecha o topo)
+		BRICK, BRICK_MAT)
 	part("WallFront_Top",
 		Vector3.new(crackW, wallH - crackH, 2),
 		CFrame.new(cx, baseY + crackH + (wallH - crackH)/2, cz - halfZ),
-		WALL_COLOR, MAT)
+		BRICK, BRICK_MAT)
 
-	-- Borda neon vermelha ao redor da fenda (efeito YouTube)
-	local neonThick = 0.3
-	-- Lateral esquerda da fenda
-	part("CrackNeon_L", Vector3.new(neonThick, crackH, neonThick),
-		CFrame.new(cx - crackW/2, baseY + crackH/2, cz - halfZ), NEON_COLOR, NEON_MAT)
-	-- Lateral direita
-	part("CrackNeon_R", Vector3.new(neonThick, crackH, neonThick),
-		CFrame.new(cx + crackW/2, baseY + crackH/2, cz - halfZ), NEON_COLOR, NEON_MAT)
-	-- Topo da fenda
-	part("CrackNeon_Top", Vector3.new(crackW + neonThick*2, neonThick, neonThick),
-		CFrame.new(cx, baseY + crackH, cz - halfZ), NEON_COLOR, NEON_MAT)
+	-- Placa "Youtuber Jump Shop" acima da entrada
+	local sign = part("ShopSign",
+		Vector3.new(crackW + 4, 3, 1),
+		CFrame.new(cx, baseY + crackH + 2, cz - halfZ - 0.5),
+		RED, MAT)
+	surfaceLabel(sign, "Youtuber Jump Shop", Enum.NormalId.Front, RED, WHITE)
 
-	-- Faixas neon nas paredes laterais (atmosfera de sala secreta)
-	for side = -1, 1, 2 do
-		local x = cx + side * (halfX - 0.2)
-		-- Faixa horizontal a meia altura
-		part("NeonStrip_Side_" .. side,
-			Vector3.new(neonThick, neonThick, area.size.Z - 4),
-			CFrame.new(x, baseY + wallH * 0.4, cz), NEON_COLOR, NEON_MAT)
+	-- Dois monitores decorativos nas laterais do sign (como no print)
+	for _, side in { -1, 1 } do
+		local mon = part("Monitor_" .. side,
+			Vector3.new(2.5, 2.5, 0.5),
+			CFrame.new(cx + side * (crackW/2 + 2.5), baseY + crackH + 2, cz - halfZ - 0.5),
+			Color3.fromRGB(30, 30, 30), MAT)
+		surfaceLabel(mon, "▶", Enum.NormalId.Front,
+			Color3.fromRGB(30, 30, 30), RED)
 	end
-	-- Faixa na parede traseira
-	part("NeonStrip_Back",
-		Vector3.new(area.size.X - 4, neonThick, neonThick),
-		CFrame.new(cx, baseY + wallH * 0.4, cz + halfZ - 0.2), NEON_COLOR, NEON_MAT)
 
-	-- CrackWall — trigger na parede do fundo (player se aproxima → loja abre)
+	-- CrackWall trigger (invisível, no fundo da sala)
 	local trigger = Instance.new("Part")
 	trigger.Name        = "CrackWall"
 	trigger.Size        = Vector3.new(area.size.X - 4, wallH - 2, 1)
@@ -199,7 +216,7 @@ local function setupShopArea(area: any, folder: Instance)
 	trigger.Parent      = folder
 	CollectionService:AddTag(trigger, "CrackWall")
 
-	print("[MapSystem] Sala da loja construída com fenda de entrada")
+	print("[MapSystem] Loja construída: Youtuber Jump Shop (tijolo + logos YouTube)")
 end
 
 -- ── Teleporte ───────────────────────────────────────────────────────

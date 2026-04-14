@@ -7,43 +7,53 @@ local BaseSystem = {}
 local _cfg: any
 local pedestals: { BasePart } = {}
 
+-- Cria plataforma circular (slot de brainrot) — visual idêntico ao jogo original
 local function makePedestal(pos: Vector3, idx: number): BasePart
+	-- Plataforma circular azul/teal
 	local base = Instance.new("Part")
 	base.Name          = "Pedestal_" .. idx
-	base.Size          = Vector3.new(3, 0.3, 3)
+	base.Size          = Vector3.new(5, 0.4, 5)
 	base.CFrame        = CFrame.new(pos)
 	base.Anchored      = true
 	base.CanCollide    = true
+	base.Shape         = Enum.PartType.Cylinder
 	base.Material      = Enum.Material.SmoothPlastic
-	base.Color         = Color3.fromRGB(55, 55, 75)
+	base.Color         = Color3.fromRGB(0, 180, 200)   -- azul/teal como no print
+	base.TopSurface    = Enum.SurfaceType.Smooth
+	base.BottomSurface = Enum.SurfaceType.Smooth
+	-- Cylinder fica deitado por padrão — rotacionar para ficar em pé (flat)
+	base.CFrame        = CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(90))
 	base.Parent        = workspace
 
-	local pole = Instance.new("Part")
-	pole.Name       = "Pole_" .. idx
-	pole.Size       = Vector3.new(0.4, 1.2, 0.4)
-	pole.CFrame     = CFrame.new(pos + Vector3.new(0, 0.75, 0))
-	pole.Anchored   = true
-	pole.CanCollide = false
-	pole.Material   = Enum.Material.SmoothPlastic
-	pole.Color      = Color3.fromRGB(75, 75, 95)
-	pole.Parent     = workspace
+	-- Borda verde ao redor
+	local ring = Instance.new("Part")
+	ring.Name       = "Ring_" .. idx
+	ring.Size       = Vector3.new(5.6, 0.3, 5.6)
+	ring.CFrame     = CFrame.new(pos + Vector3.new(0, -0.05, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	ring.Anchored   = true
+	ring.CanCollide = false
+	ring.Shape      = Enum.PartType.Cylinder
+	ring.Material   = Enum.Material.Neon
+	ring.Color      = Color3.fromRGB(0, 220, 80)   -- verde neon
+	ring.Parent     = workspace
 
-	local bb  = Instance.new("BillboardGui")
-	bb.Name          = "Label"
-	bb.Size          = UDim2.new(0, 160, 0, 44)
-	bb.StudsOffset   = Vector3.new(0, 2.8, 0)
-	bb.AlwaysOnTop   = false
-	bb.Parent        = base
+	-- BillboardGui com nome do brainrot
+	local bb = Instance.new("BillboardGui")
+	bb.Name        = "Label"
+	bb.Size        = UDim2.new(0, 160, 0, 44)
+	bb.StudsOffset = Vector3.new(0, 3.2, 0)
+	bb.AlwaysOnTop = false
+	bb.Parent      = base
 
 	local lbl = Instance.new("TextLabel")
-	lbl.Size                    = UDim2.new(1, 0, 1, 0)
-	lbl.BackgroundColor3        = Color3.fromRGB(18, 16, 28)
-	lbl.BackgroundTransparency  = 0.1
-	lbl.Font                    = Enum.Font.GothamBold
-	lbl.TextScaled              = true
-	lbl.TextColor3              = Color3.fromRGB(160, 160, 160)
-	lbl.Text                    = "[ empty ]"
-	lbl.Parent                  = bb
+	lbl.Size                   = UDim2.new(1, 0, 1, 0)
+	lbl.BackgroundColor3       = Color3.fromRGB(18, 16, 28)
+	lbl.BackgroundTransparency = 0.1
+	lbl.Font                   = Enum.Font.GothamBold
+	lbl.TextScaled             = true
+	lbl.TextColor3             = Color3.fromRGB(160, 160, 160)
+	lbl.Text                   = "[ empty ]"
+	lbl.Parent                 = bb
 	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 6); c.Parent = lbl
 
 	return base
