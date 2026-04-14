@@ -4,17 +4,11 @@
 		"$className": "DataModel",
 		"Workspace": {
 			"$className": "Workspace",
-			"MapReferencia": {
-				"$path": "mapa_referencia.rbxm"
-			}
-		},
-		"ServerStorage": {
-			"$className": "ServerStorage",
-			"Assets": {
-				"$className": "Folder",
-				"VFX": {
-					"$path": "vfx_brainrot.rbxm"
-				}
+			"MapBase": {
+				"$path": "mapa_base.rbxm"
+			},
+			"VFXBrainrots": {
+				"$path": "vfx_brainrot.rbxm"
 			}
 		},
 		"ReplicatedStorage": {

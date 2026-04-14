@@ -80,29 +80,62 @@ end
 
 local function makeBrainrot(br: any, origin: CFrame): (Model, BasePart)
 	local ws = game:GetService("Workspace")
-	local m = Instance.new("Model")
-	m.Name = "BR_" .. br.id
-	m.Parent = ws
-
 	local rar = _cfg.RARITIES[br.rarity] or _cfg.RARITIES[1]
 
-	local body =
-		pt(m, Vector3.new(2.5, 3, 1.5), origin * CFrame.new(0, 1.5, 0), br.color or rar.color or Color3.new(1, 1, 1))
-	body.Name = "Body"
-	local head = pt(m, Vector3.new(2.5, 2.5, 2.5), origin * CFrame.new(0, 4.25, 0), Color3.fromRGB(255, 213, 170))
-	head.Name = "Head"
-	pt(m, Vector3.new(0.9, 2.5, 0.9), origin * CFrame.new(-1.8, 1.5, 0), br.color)
-	pt(m, Vector3.new(0.9, 2.5, 0.9), origin * CFrame.new(1.8, 1.5, 0), br.color)
-	pt(m, Vector3.new(1.1, 2.5, 1.1), origin * CFrame.new(-0.7, -1.1, 0), Color3.fromRGB(50, 50, 100))
-	pt(m, Vector3.new(1.1, 2.5, 1.1), origin * CFrame.new(0.7, -1.1, 0), Color3.fromRGB(50, 50, 100))
+	-- Tenta clonar modelo real de VFXBrainrots (pelo id ou nome do brainrot)
+	local vfxFolder = ws:FindFirstChild("VFXBrainrots")
+	local template: Model? = nil
+	if vfxFolder then
+		template = vfxFolder:FindFirstChild(br.id) :: Model?
+			or vfxFolder:FindFirstChild(br.name) :: Model?
+	end
 
-	local faceBB = Instance.new("BillboardGui")
-	faceBB.Size = UDim2.new(0, 70, 0, 50)
-	faceBB.StudsOffset = Vector3.new(0, 0, head.Size.Z / 2 + 0.1)
-	faceBB.Parent = head
-	textLabel(faceBB, "- -", Color3.fromRGB(40, 30, 20), UDim2.new(1, 0, 0.5, 0), UDim2.new(0, 0, 0.05, 0))
-	textLabel(faceBB, "u", Color3.fromRGB(40, 30, 20), UDim2.new(1, 0, 0.4, 0), UDim2.new(0, 0, 0.58, 0))
+	local m: Model
+	local body: BasePart
 
+	if template then
+		-- Usa modelo real com textura
+		m = template:Clone() :: Model
+		m.Name = "BR_" .. br.id
+		-- Posiciona: PrimaryPart ou primeiro BasePart encontrado
+		local primary = m.PrimaryPart or m:FindFirstChildWhichIsA("BasePart") :: BasePart?
+		if primary then
+			m:PivotTo(origin * CFrame.new(0, primary.Size.Y / 2, 0))
+		end
+		body = (m.PrimaryPart or m:FindFirstChildWhichIsA("BasePart")) :: BasePart
+		body.Name = "Body"
+		-- Ancora todas as parts do modelo
+		for _, obj in m:GetDescendants() do
+			if obj:IsA("BasePart") then
+				obj.Anchored = true
+				obj.CanCollide = false
+			end
+		end
+		m.Parent = ws
+	else
+		-- Fallback: boneco de Parts geométricas
+		m = Instance.new("Model")
+		m.Name = "BR_" .. br.id
+		m.Parent = ws
+
+		body = pt(m, Vector3.new(2.5, 3, 1.5), origin * CFrame.new(0, 1.5, 0), br.color or rar.color or Color3.new(1, 1, 1))
+		body.Name = "Body"
+		local head = pt(m, Vector3.new(2.5, 2.5, 2.5), origin * CFrame.new(0, 4.25, 0), Color3.fromRGB(255, 213, 170))
+		head.Name = "Head"
+		pt(m, Vector3.new(0.9, 2.5, 0.9), origin * CFrame.new(-1.8, 1.5, 0), br.color)
+		pt(m, Vector3.new(0.9, 2.5, 0.9), origin * CFrame.new(1.8, 1.5, 0), br.color)
+		pt(m, Vector3.new(1.1, 2.5, 1.1), origin * CFrame.new(-0.7, -1.1, 0), Color3.fromRGB(50, 50, 100))
+		pt(m, Vector3.new(1.1, 2.5, 1.1), origin * CFrame.new(0.7, -1.1, 0), Color3.fromRGB(50, 50, 100))
+
+		local faceBB = Instance.new("BillboardGui")
+		faceBB.Size = UDim2.new(0, 70, 0, 50)
+		faceBB.StudsOffset = Vector3.new(0, 0, head.Size.Z / 2 + 0.1)
+		faceBB.Parent = head
+		textLabel(faceBB, "- -", Color3.fromRGB(40, 30, 20), UDim2.new(1, 0, 0.5, 0), UDim2.new(0, 0, 0.05, 0))
+		textLabel(faceBB, "u", Color3.fromRGB(40, 30, 20), UDim2.new(1, 0, 0.4, 0), UDim2.new(0, 0, 0.58, 0))
+	end
+
+	-- BillboardGui de tag (nome/raridade/renda) — sempre presente
 	local tagBB = Instance.new("BillboardGui")
 	tagBB.Size = UDim2.new(0, 160, 0, 54)
 	tagBB.StudsOffset = Vector3.new(0, 4.5, 0)
