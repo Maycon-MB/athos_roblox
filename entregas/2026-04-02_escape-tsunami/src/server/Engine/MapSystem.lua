@@ -144,6 +144,31 @@ local function setupShopArea(area: any, folder: Instance)
 		lbl.Parent                 = sg
 	end
 
+	-- Plaquinha YouTube: Part vermelho pequeno com ▶ branco, pregado sobre a parede
+	local function ytBadge(cf: CFrame)
+		local badge = Instance.new("Part")
+		badge.Name          = "YTBadge"
+		badge.Size          = Vector3.new(3, 2, 0.15)
+		badge.CFrame        = cf
+		badge.Anchored      = true
+		badge.CanCollide    = false
+		badge.Color         = RED
+		badge.Material      = MAT
+		badge.TopSurface    = Enum.SurfaceType.Smooth
+		badge.BottomSurface = Enum.SurfaceType.Smooth
+		badge.Parent        = folder
+		local sg  = Instance.new("SurfaceGui"); sg.Face = Enum.NormalId.Front; sg.Parent = badge
+		local lbl = Instance.new("TextLabel")
+		lbl.Size                   = UDim2.new(1, 0, 1, 0)
+		lbl.BackgroundColor3       = RED
+		lbl.BackgroundTransparency = 0
+		lbl.Font                   = Enum.Font.GothamBold
+		lbl.TextScaled             = true
+		lbl.TextColor3             = WHITE
+		lbl.Text                   = "▶"
+		lbl.Parent                 = sg
+	end
+
 	-- Chão
 	part("ShopFloor", Vector3.new(area.size.X, 1, area.size.Z),
 		CFrame.new(cx, baseY - 1.5, cz), FLOOR, MAT)
@@ -158,17 +183,28 @@ local function setupShopArea(area: any, folder: Instance)
 	part("WallRight", Vector3.new(2, wallH, area.size.Z),
 		CFrame.new(cx + halfX, midY, cz), BRICK, BRICK_MAT)
 
-	-- Parede traseira com logos YouTube (SurfaceGui)
-	local wallBack = part("WallBack", Vector3.new(area.size.X, wallH, 2),
+	-- Parede traseira — tijolo marrom, sem cor sobre a face
+	part("WallBack", Vector3.new(area.size.X, wallH, 2),
 		CFrame.new(cx, midY, cz + halfZ), BRICK, BRICK_MAT)
-	-- Logo YouTube central (▶ vermelho)
-	surfaceLabel(wallBack, "▶", Enum.NormalId.Front, RED, WHITE)
 
-	-- Logos YouTube nas paredes laterais
-	local wallL = folder:FindFirstChild("WallLeft") :: BasePart
-	local wallR = folder:FindFirstChild("WallRight") :: BasePart
-	if wallL then surfaceLabel(wallL, "▶", Enum.NormalId.Right, RED, WHITE) end
-	if wallR then surfaceLabel(wallR, "▶", Enum.NormalId.Left,  RED, WHITE) end
+	-- Logos YouTube: plaquinhas vermelhas (3×2 studs) presas sobre as paredes
+	-- Parede traseira: 5 badges, face aponta -Z (em direção à entrada)
+	local backZ = cz + halfZ - 0.1
+	ytBadge(CFrame.new(cx,      baseY + 4, backZ))
+	ytBadge(CFrame.new(cx - 9,  baseY + 4, backZ))
+	ytBadge(CFrame.new(cx + 9,  baseY + 4, backZ))
+	ytBadge(CFrame.new(cx - 4,  baseY + 8, backZ))
+	ytBadge(CFrame.new(cx + 4,  baseY + 8, backZ))
+
+	-- Paredes laterais: badge face aponta para o interior
+	-- Esq (cx-halfX): face aponta +X → rotação Y -90°
+	local rotE = CFrame.Angles(0, math.rad(-90), 0)
+	-- Dir (cx+halfX): face aponta -X → rotação Y +90°
+	local rotD = CFrame.Angles(0, math.rad( 90), 0)
+	ytBadge(CFrame.new(cx - halfX + 0.1, baseY + 4, cz - 6) * rotE)
+	ytBadge(CFrame.new(cx - halfX + 0.1, baseY + 4, cz + 6) * rotE)
+	ytBadge(CFrame.new(cx + halfX - 0.1, baseY + 4, cz - 6) * rotD)
+	ytBadge(CFrame.new(cx + halfX - 0.1, baseY + 4, cz + 6) * rotD)
 
 	-- Parede frontal com abertura larga (entrada da loja) — 8 studs
 	local crackW = 8

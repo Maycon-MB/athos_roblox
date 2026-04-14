@@ -9,32 +9,30 @@ local pedestals: { BasePart } = {}
 
 -- Cria plataforma circular (slot de brainrot) — visual idêntico ao jogo original
 local function makePedestal(pos: Vector3, idx: number): BasePart
-	-- Plataforma circular azul/teal
+	-- Disco circular plano azul/teal (Cylinder deitado: Size.X = espessura, Y/Z = diâmetro)
 	local base = Instance.new("Part")
 	base.Name          = "Pedestal_" .. idx
-	base.Size          = Vector3.new(5, 0.4, 5)
-	base.CFrame        = CFrame.new(pos)
+	base.Shape         = Enum.PartType.Cylinder
+	base.Size          = Vector3.new(0.4, 5, 5)   -- 0.4 de espessura, 5 de diâmetro
+	base.CFrame        = CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(90)) -- eixo X aponta pra cima → disco flat
 	base.Anchored      = true
 	base.CanCollide    = true
-	base.Shape         = Enum.PartType.Cylinder
 	base.Material      = Enum.Material.SmoothPlastic
-	base.Color         = Color3.fromRGB(0, 180, 200)   -- azul/teal como no print
+	base.Color         = Color3.fromRGB(0, 180, 200)
 	base.TopSurface    = Enum.SurfaceType.Smooth
 	base.BottomSurface = Enum.SurfaceType.Smooth
-	-- Cylinder fica deitado por padrão — rotacionar para ficar em pé (flat)
-	base.CFrame        = CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(90))
 	base.Parent        = workspace
 
-	-- Borda verde ao redor
+	-- Borda neon verde (anel ligeiramente maior)
 	local ring = Instance.new("Part")
 	ring.Name       = "Ring_" .. idx
-	ring.Size       = Vector3.new(5.6, 0.3, 5.6)
-	ring.CFrame     = CFrame.new(pos + Vector3.new(0, -0.05, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	ring.Shape      = Enum.PartType.Cylinder
+	ring.Size       = Vector3.new(0.25, 5.8, 5.8)
+	ring.CFrame     = CFrame.new(pos + Vector3.new(0, -0.08, 0)) * CFrame.Angles(0, 0, math.rad(90))
 	ring.Anchored   = true
 	ring.CanCollide = false
-	ring.Shape      = Enum.PartType.Cylinder
 	ring.Material   = Enum.Material.Neon
-	ring.Color      = Color3.fromRGB(0, 220, 80)   -- verde neon
+	ring.Color      = Color3.fromRGB(0, 220, 80)
 	ring.Parent     = workspace
 
 	-- BillboardGui com nome do brainrot
