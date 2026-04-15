@@ -17,47 +17,45 @@ local function buildArea(name: string, area: any)
 	folder.Name = "Area_" .. name
 	folder.Parent = ws
 
-	-- Chão — cor diferente por área
-	local floorColor = if name == "base"
-		then Color3.fromRGB(210, 100, 180)   -- rosa/roxo como no print da base
-		elseif name == "main"
-		then Color3.fromRGB(80, 80, 90)
-		else Color3.fromRGB(200, 170, 100)   -- areia (shop usa chão próprio)
-	local floor = Instance.new("Part")
-	floor.Name = "Floor_" .. name
-	floor.Size = Vector3.new(area.size.X, 2, area.size.Z)
-	floor.CFrame = area.spawn * CFrame.new(0, -2, 0)
-	floor.Anchored = true
-	floor.CanCollide = true
-	floor.Color = floorColor
-	floor.Material = Enum.Material.SmoothPlastic
-	floor.TopSurface = Enum.SurfaceType.Smooth
-	floor.BottomSurface = Enum.SurfaceType.Smooth
-	floor.Parent = folder
+	-- shop constrói chão e paredes próprias em setupShopArea
+	if name ~= "shop" then
+		local floorColor = if name == "base"
+			then Color3.fromRGB(210, 100, 180)
+			else Color3.fromRGB(80, 80, 90)
+		local floor = Instance.new("Part")
+		floor.Name = "Floor_" .. name
+		floor.Size = Vector3.new(area.size.X, 2, area.size.Z)
+		floor.CFrame = area.spawn * CFrame.new(0, -2, 0)
+		floor.Anchored = true
+		floor.CanCollide = true
+		floor.Color = floorColor
+		floor.Material = Enum.Material.SmoothPlastic
+		floor.TopSurface = Enum.SurfaceType.Smooth
+		floor.BottomSurface = Enum.SurfaceType.Smooth
+		floor.Parent = folder
 
-	-- 4 Paredes invisíveis (barreira)
-	local wallH = area.size.Y
-	local halfX = area.size.X / 2
-	local halfZ = area.size.Z / 2
-	local baseY = area.spawn.Position.Y + wallH / 2
-	local cx = area.spawn.Position.X
-	local cz = area.spawn.Position.Z
-
-	local walls = {
-		{ CFrame.new(cx, baseY, cz - halfZ), Vector3.new(area.size.X, wallH, 2) },
-		{ CFrame.new(cx, baseY, cz + halfZ), Vector3.new(area.size.X, wallH, 2) },
-		{ CFrame.new(cx - halfX, baseY, cz), Vector3.new(2, wallH, area.size.Z) },
-		{ CFrame.new(cx + halfX, baseY, cz), Vector3.new(2, wallH, area.size.Z) },
-	}
-	for i, w in walls do
-		local wall = Instance.new("Part")
-		wall.Name = "Wall_" .. i
-		wall.Size = w[2] :: Vector3
-		wall.CFrame = w[1] :: CFrame
-		wall.Anchored = true
-		wall.CanCollide = true
-		wall.Transparency = 1
-		wall.Parent = folder
+		local wallH = area.size.Y
+		local halfX = area.size.X / 2
+		local halfZ = area.size.Z / 2
+		local baseY = area.spawn.Position.Y + wallH / 2
+		local cx = area.spawn.Position.X
+		local cz = area.spawn.Position.Z
+		local walls = {
+			{ CFrame.new(cx, baseY, cz - halfZ), Vector3.new(area.size.X, wallH, 2) },
+			{ CFrame.new(cx, baseY, cz + halfZ), Vector3.new(area.size.X, wallH, 2) },
+			{ CFrame.new(cx - halfX, baseY, cz), Vector3.new(2, wallH, area.size.Z) },
+			{ CFrame.new(cx + halfX, baseY, cz), Vector3.new(2, wallH, area.size.Z) },
+		}
+		for i, w in walls do
+			local wall = Instance.new("Part")
+			wall.Name = "Wall_" .. i
+			wall.Size = w[2] :: Vector3
+			wall.CFrame = w[1] :: CFrame
+			wall.Anchored = true
+			wall.CanCollide = true
+			wall.Transparency = 1
+			wall.Parent = folder
+		end
 	end
 
 	return folder
@@ -92,193 +90,238 @@ local function setupMainArea(area: any, folder: Instance)
 	CollectionService:AddTag(fuse, "FuseMachine")
 end
 
--- ── Constrói sala da loja — estética Roblox SmoothPlastic (quadrados) ─
+-- ── Constrói sala da loja — studs clássico + stall + NPC R6 ──────────
 local function setupShopArea(area: any, folder: Instance)
-	local cx    = area.spawn.Position.X
-	local cz    = area.spawn.Position.Z
-	local baseY = area.spawn.Position.Y
-	local halfX = area.size.X / 2
-	local halfZ = area.size.Z / 2
-	local wallH = area.size.Y
-	local midY  = baseY + wallH / 2
-	local topY  = baseY + wallH
-	local floorY = baseY - 1  -- topo do chão
+	local cx     = area.spawn.Position.X
+	local cz     = area.spawn.Position.Z
+	local baseY  = area.spawn.Position.Y
+	local halfX  = area.size.X / 2
+	local halfZ  = area.size.Z / 2
+	local wallH  = area.size.Y
+	local floorY = baseY - 1              -- topo do chão (Y=9)
+	local midY   = floorY + wallH / 2     -- centro das paredes (Y=24)
+	local topY   = floorY + wallH         -- topo (Y=39)
+	local frontZ = cz - halfZ             -- parede frontal
 
-	-- Cores — estética Roblox quadrado (SmoothPlastic, não tijolo)
-	local WALL  = Color3.fromRGB(188, 128, 68)  -- marrom quente
-	local ROOF  = Color3.fromRGB(150, 80,  20)
-	local FLOOR = Color3.fromRGB(235, 155, 55)  -- laranja
-	local RED   = Color3.fromRGB(220, 30,  30)
-	local WHITE = Color3.fromRGB(255, 255, 255)
-	local MAT   = Enum.Material.SmoothPlastic    -- quadrados Roblox
+	-- Cores
+	local WALL   = Color3.fromRGB(218, 133, 65)
+	local ROOF   = Color3.fromRGB(150, 75,  20)
+	local FLOOR  = Color3.fromRGB(232, 158, 60)
+	local RED    = Color3.fromRGB(220, 30,  30)
+	local STBLUE = Color3.fromRGB(30,  100, 200)   -- pilares do stall
+	local WHITE  = Color3.fromRGB(255, 255, 255)
+	local MAT    = Enum.Material.Plastic   -- Plastic mostra studs claramente
+	local SMOOTH = Enum.SurfaceType.Smooth
+	local STUDS  = Enum.SurfaceType.Studs
 
-	local function part(name: string, size: Vector3, cf: CFrame,
-		color: Color3, mat: Enum.Material, transparency: number?, collide: boolean?): Part
+	-- Helper genérico (mat e topSurf opcionais)
+	local function mk(pname: string, size: Vector3, cf: CFrame,
+		color: Color3, mat: Enum.Material?, transp: number?,
+		collide: boolean?, topSurf: Enum.SurfaceType?): Part
 		local p = Instance.new("Part")
-		p.Name          = name; p.Size = size; p.CFrame = cf
-		p.Anchored      = true
-		p.CanCollide    = if collide == false then false else true
-		p.Color         = color; p.Material = mat
-		p.Transparency  = transparency or 0
-		p.TopSurface    = Enum.SurfaceType.Smooth
-		p.BottomSurface = Enum.SurfaceType.Smooth
-		p.Parent        = folder
+		p.Name         = pname;  p.Size   = size;    p.CFrame  = cf
+		p.Anchored     = true
+		p.CanCollide   = if collide == false then false else true
+		p.Color        = color;  p.Material = mat or MAT
+		p.Transparency = transp or 0
+		p.TopSurface   = topSurf or SMOOTH
+		p.BottomSurface = SMOOTH
+		p.Parent       = folder
 		return p
 	end
 
-	-- Monitor YouTube: tela azul escura com logo do YouTube (= estética do jogo ref)
-	local function ytMonitor(cf: CFrame)
-		local mon = Instance.new("Part")
-		mon.Name          = "YTMonitor"
-		mon.Size          = Vector3.new(5, 3.5, 0.25)
-		mon.CFrame        = cf
-		mon.Anchored      = true; mon.CanCollide = false
-		mon.Color         = Color3.fromRGB(20, 20, 30)
-		mon.Material      = MAT
-		mon.TopSurface    = Enum.SurfaceType.Smooth
-		mon.BottomSurface = Enum.SurfaceType.Smooth
-		mon.Parent        = folder
-		local sg = Instance.new("SurfaceGui"); sg.Face = Enum.NormalId.Front; sg.Parent = mon
-		-- Fundo da tela
+	-- Screen YouTube: parte plana, SurfaceGui na face passada
+	local function ytScreen(pos: Vector3, size: Vector3, face: Enum.NormalId)
+		local scr = mk("YTScreen", size, CFrame.new(pos),
+			Color3.fromRGB(35, 35, 35), nil, nil, false)
+		local sg = Instance.new("SurfaceGui"); sg.Face = face; sg.Parent = scr
 		local bg = Instance.new("Frame")
-		bg.Size = UDim2.new(1,0,1,0)
-		bg.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+		bg.Size = UDim2.fromScale(1, 1)
+		bg.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
 		bg.Parent = sg
-		-- Logo YouTube: retângulo vermelho arredondado com ▶
-		local logo = Instance.new("Frame")
-		logo.Size     = UDim2.new(0.55, 0, 0.58, 0)
-		logo.Position = UDim2.new(0.225, 0, 0.21, 0)
-		logo.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-		logo.Parent = bg
-		local lc = Instance.new("UICorner"); lc.CornerRadius = UDim.new(0.18, 0); lc.Parent = logo
-		local play = Instance.new("TextLabel")
-		play.Size = UDim2.new(1,0,1,0)
-		play.BackgroundTransparency = 1
-		play.Font = Enum.Font.GothamBold
-		play.TextScaled = true
-		play.TextColor3 = WHITE
-		play.Text = "▶"
-		play.Parent = logo
+		local yt = Instance.new("Frame")
+		yt.Size = UDim2.fromScale(0.55, 0.5)
+		yt.Position = UDim2.fromScale(0.225, 0.25)
+		yt.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+		yt.Parent = bg
+		local uc = Instance.new("UICorner"); uc.CornerRadius = UDim.new(0.14, 0); uc.Parent = yt
+		local pl = Instance.new("TextLabel")
+		pl.Size = UDim2.fromScale(1, 1); pl.BackgroundTransparency = 1
+		pl.Font = Enum.Font.GothamBold; pl.TextScaled = true
+		pl.TextColor3 = WHITE; pl.Text = "▶"; pl.Parent = yt
 	end
 
-	-- ── Chão + Teto ────────────────────────────────────────────────────
-	part("ShopFloor",   Vector3.new(area.size.X, 1, area.size.Z),
-		CFrame.new(cx, baseY - 1.5, cz), FLOOR, MAT)
-	part("ShopCeiling", Vector3.new(area.size.X + 2, 2, area.size.Z + 2),
-		CFrame.new(cx, topY + 1, cz), ROOF, MAT)
+	-- ── Chão com Studs ─────────────────────────────────────────────────
+	mk("ShopFloor", Vector3.new(area.size.X, 1, area.size.Z),
+		CFrame.new(cx, baseY - 1.5, cz), FLOOR, nil, nil, nil, STUDS)
 
-	-- ── Paredes (SmoothPlastic — estética "quadrados" do Roblox) ───────
-	part("WallLeft",  Vector3.new(2, wallH, area.size.Z),
-		CFrame.new(cx - halfX, midY, cz), WALL, MAT)
-	part("WallRight", Vector3.new(2, wallH, area.size.Z),
-		CFrame.new(cx + halfX, midY, cz), WALL, MAT)
-	part("WallBack",  Vector3.new(area.size.X, wallH, 2),
-		CFrame.new(cx, midY, cz + halfZ), WALL, MAT)
+	-- ── Teto ────────────────────────────────────────────────────────────
+	mk("ShopCeiling", Vector3.new(area.size.X + 2, 2, area.size.Z + 2),
+		CFrame.new(cx, topY + 1, cz), ROOF)
 
-	-- ── Monitores YouTube nas paredes ──────────────────────────────────
-	-- Parede traseira — 3 monitores (face aponta -Z, em direção à entrada)
-	ytMonitor(CFrame.new(cx,     baseY + 5, cz + halfZ - 0.14))
-	ytMonitor(CFrame.new(cx - 10, baseY + 5, cz + halfZ - 0.14))
-	ytMonitor(CFrame.new(cx + 10, baseY + 5, cz + halfZ - 0.14))
-	-- Lateral esquerda — face aponta +X (rotação Y -90°)
-	local rotE = CFrame.Angles(0, math.rad(-90), 0)
-	ytMonitor(CFrame.new(cx - halfX + 0.14, baseY + 5, cz - 4) * rotE)
-	ytMonitor(CFrame.new(cx - halfX + 0.14, baseY + 5, cz + 8) * rotE)
-	-- Lateral direita — face aponta -X (rotação Y +90°)
-	local rotD = CFrame.Angles(0, math.rad( 90), 0)
-	ytMonitor(CFrame.new(cx + halfX - 0.14, baseY + 5, cz - 4) * rotD)
-	ytMonitor(CFrame.new(cx + halfX - 0.14, baseY + 5, cz + 8) * rotD)
+	-- Paredes com Studs na face interior
+	mk("WallBack", Vector3.new(area.size.X, wallH, 2),
+		CFrame.new(cx, midY, cz + halfZ), WALL).FrontSurface = STUDS
+	mk("WallLeft", Vector3.new(2, wallH, area.size.Z),
+		CFrame.new(cx - halfX, midY, cz), WALL).RightSurface = STUDS
+	mk("WallRight", Vector3.new(2, wallH, area.size.Z),
+		CFrame.new(cx + halfX, midY, cz), WALL).LeftSurface = STUDS
 
-	-- ── Parede frontal com entrada ──────────────────────────────────────
-	local crackW = 8
-	local crackH = 8
-	local sideW  = halfX - crackW / 2
+	local crackW    = 8;   local crackH = 8
+	local sideW     = halfX - crackW / 2
+	local topSecH   = wallH - crackH
+	local topSecMid = floorY + crackH + topSecH / 2
 
-	part("WallFront_L", Vector3.new(sideW, wallH, 2),
-		CFrame.new(cx - crackW/2 - sideW/2, midY, cz - halfZ), WALL, MAT)
-	part("WallFront_R", Vector3.new(sideW, wallH, 2),
-		CFrame.new(cx + crackW/2 + sideW/2, midY, cz - halfZ), WALL, MAT)
-	part("WallFront_Top", Vector3.new(crackW, wallH - crackH, 2),
-		CFrame.new(cx, baseY + crackH + (wallH - crackH)/2, cz - halfZ), WALL, MAT)
+	mk("WallFront_L", Vector3.new(sideW, wallH, 2),
+		CFrame.new(cx - crackW/2 - sideW/2, midY, frontZ), WALL).BackSurface = STUDS
+	mk("WallFront_R", Vector3.new(sideW, wallH, 2),
+		CFrame.new(cx + crackW/2 + sideW/2, midY, frontZ), WALL).BackSurface = STUDS
+	mk("WallFront_Top", Vector3.new(crackW, topSecH, 2),
+		CFrame.new(cx, topSecMid, frontZ), WALL).BackSurface = STUDS
 
-	-- Sign "Youtuber Jump Shop" (vermelho, acima da entrada)
-	local signPart = Instance.new("Part")
-	signPart.Name = "ShopSign"; signPart.Size = Vector3.new(crackW + 8, 4, 0.4)
-	signPart.CFrame = CFrame.new(cx, baseY + crackH + 2.5, cz - halfZ - 0.2)
-	signPart.Anchored = true; signPart.CanCollide = false
-	signPart.Color = RED; signPart.Material = MAT
-	signPart.TopSurface = Enum.SurfaceType.Smooth; signPart.BottomSurface = Enum.SurfaceType.Smooth
-	signPart.Parent = folder
-	local sgSign = Instance.new("SurfaceGui"); sgSign.Face = Enum.NormalId.Front; sgSign.Parent = signPart
-	local lbSign = Instance.new("TextLabel")
-	lbSign.Size = UDim2.new(1,0,1,0); lbSign.BackgroundColor3 = RED; lbSign.BackgroundTransparency = 0
-	lbSign.Font = Enum.Font.GothamBold; lbSign.TextScaled = true
-	lbSign.TextColor3 = WHITE; lbSign.Text = "Youtuber\nJump Shop"; lbSign.Parent = sgSign
-
-	-- Monitores YouTube na fachada (lado de fora, cada lado da entrada)
-	ytMonitor(CFrame.new(cx - crackW/2 - sideW/2, baseY + 5, cz - halfZ - 0.14))
-	ytMonitor(CFrame.new(cx + crackW/2 + sideW/2, baseY + 5, cz - halfZ - 0.14))
-
-	-- ── NPC — Shopkeeper sentado atrás de balcão vermelho ──────────────
-	-- Balcão vermelho centralizado, ~15 studs da entrada
-	local deskX = cx
-	local deskZ = cz - halfZ + 14
-	-- Pernas do balcão
-	for _, side in { -2.2, 2.2 } do
-		part("DeskLeg", Vector3.new(0.8, 3.5, 0.8),
-			CFrame.new(deskX + side, floorY + 1.75, deskZ), RED, MAT)
+	-- Helper: cria placa com texto "Youtuber\nJump Shop"
+	local function makeSign(pname: string, size: Vector3, cf: CFrame)
+		local s = mk(pname, size, cf, RED, nil, nil, false)
+		local sg = Instance.new("SurfaceGui"); sg.Face = Enum.NormalId.Front; sg.Parent = s
+		local lb = Instance.new("TextLabel")
+		lb.Size = UDim2.fromScale(1, 1); lb.BackgroundColor3 = RED
+		lb.BackgroundTransparency = 0; lb.Font = Enum.Font.GothamBold
+		lb.TextScaled = true; lb.TextColor3 = WHITE
+		lb.Text = "Youtuber\nJump Shop"; lb.Parent = sg
 	end
-	-- Tampo do balcão
-	part("DeskTop", Vector3.new(6.5, 0.6, 2.5),
-		CFrame.new(deskX, floorY + 3.8, deskZ), RED, MAT)
 
-	-- NPC atrás do balcão — corpo azul estilo Roblox
-	local nz  = deskZ + 2.2
-	local NBODY = Color3.fromRGB(50, 110, 210)   -- azul médio
-	local NHEAD = Color3.fromRGB(255, 213, 170)  -- skin
-	local NLEG  = Color3.fromRGB(30,  60,  150)  -- azul escuro (calça)
+	-- Sign exterior (visível de fora, face Front = -Z)
+	makeSign("ShopSignExt", Vector3.new(crackW + 8, 4, 0.4),
+		CFrame.new(cx, floorY + crackH + 2.5, frontZ - 0.2))
 
-	-- Torso (visível acima do balcão)
-	part("NPC_Torso", Vector3.new(2, 2.5, 1),
-		CFrame.new(deskX, floorY + 5.0, nz), NBODY, MAT)
-	-- Cabeça
-	local npcHead = part("NPC_Head", Vector3.new(2, 2, 2),
-		CFrame.new(deskX, floorY + 7.2, nz), NHEAD, MAT)
-	-- Braços apoiados no balcão (ligeiramente inclinados para frente)
-	part("NPC_ArmL", Vector3.new(1, 2.5, 1),
-		CFrame.new(deskX - 1.5, floorY + 4.6, nz - 0.5) * CFrame.Angles(math.rad(20), 0, 0),
-		NBODY, MAT)
-	part("NPC_ArmR", Vector3.new(1, 2.5, 1),
-		CFrame.new(deskX + 1.5, floorY + 4.6, nz - 0.5) * CFrame.Angles(math.rad(20), 0, 0),
-		NBODY, MAT)
-	-- Pernas (atrás do balcão, não visíveis pela frente)
-	part("NPC_LegL", Vector3.new(1, 2.5, 1),
-		CFrame.new(deskX - 0.5, floorY + 1.25, nz), NLEG, MAT)
-	part("NPC_LegR", Vector3.new(1, 2.5, 1),
-		CFrame.new(deskX + 0.5, floorY + 1.25, nz), NLEG, MAT)
-	-- Name tag acima da cabeça
-	local npcBB = Instance.new("BillboardGui")
-	npcBB.Size = UDim2.new(0, 160, 0, 36); npcBB.StudsOffset = Vector3.new(0, 2.2, 0)
-	npcBB.AlwaysOnTop = false; npcBB.Parent = npcHead
-	local npcLbl = Instance.new("TextLabel")
-	npcLbl.Size = UDim2.new(1,0,1,0)
-	npcLbl.BackgroundColor3 = Color3.fromRGB(20,16,30); npcLbl.BackgroundTransparency = 0.1
-	npcLbl.Font = Enum.Font.GothamBold; npcLbl.TextScaled = true
-	npcLbl.TextColor3 = Color3.fromRGB(255,200,40); npcLbl.Text = "Shop Keeper"; npcLbl.Parent = npcBB
-	local npcC = Instance.new("UICorner"); npcC.CornerRadius = UDim.new(0,6); npcC.Parent = npcLbl
+	-- ── YouTube screens nas paredes (sem rotação, NormalId correto) ────
+	-- Parede traseira — face Front (-Z) aponta para interior ✓
+	ytScreen(Vector3.new(cx - 8, floorY + 8, cz + halfZ - 0.16),
+		Vector3.new(5, 4, 0.3), Enum.NormalId.Front)
+	ytScreen(Vector3.new(cx,     floorY + 8, cz + halfZ - 0.16),
+		Vector3.new(5, 4, 0.3), Enum.NormalId.Front)
+	ytScreen(Vector3.new(cx + 8, floorY + 8, cz + halfZ - 0.16),
+		Vector3.new(5, 4, 0.3), Enum.NormalId.Front)
+	-- Parede direita — face Left (-X) aponta para interior ✓
+	ytScreen(Vector3.new(cx + halfX - 0.16, floorY + 8, cz - 8),
+		Vector3.new(0.3, 4, 5), Enum.NormalId.Left)
+	ytScreen(Vector3.new(cx + halfX - 0.16, floorY + 8, cz + 6),
+		Vector3.new(0.3, 4, 5), Enum.NormalId.Left)
+	-- Parede esquerda — face Right (+X) aponta para interior ✓
+	ytScreen(Vector3.new(cx - halfX + 0.16, floorY + 8, cz - 8),
+		Vector3.new(0.3, 4, 5), Enum.NormalId.Right)
+	ytScreen(Vector3.new(cx - halfX + 0.16, floorY + 8, cz + 6),
+		Vector3.new(0.3, 4, 5), Enum.NormalId.Right)
 
-	-- CrackWall trigger (invisível, no fundo da sala)
-	local trigger = Instance.new("Part")
-	trigger.Name        = "CrackWall"
-	trigger.Size        = Vector3.new(area.size.X - 4, wallH - 2, 1)
-	trigger.CFrame      = CFrame.new(cx, midY, cz + halfZ - 2)
-	trigger.Anchored    = true
-	trigger.CanCollide  = false
-	trigger.Transparency = 1
-	trigger.Parent      = folder
+	-- ── Stall "Youtuber Jump Shop" (pilares azuis + balcão + sign) ─────
+	local stallZ = cz + 10         -- 10 studs além do centro, na metade traseira
+	-- Pilares
+	mk("Stall_PillarL", Vector3.new(2, 8, 2),
+		CFrame.new(cx - 5, floorY + 4,   stallZ), STBLUE)
+	mk("Stall_PillarR", Vector3.new(2, 8, 2),
+		CFrame.new(cx + 5, floorY + 4,   stallZ), STBLUE)
+	-- Balcão
+	mk("Stall_CounterTop", Vector3.new(12, 0.8, 2.5),
+		CFrame.new(cx, floorY + 3.6, stallZ), RED)
+	mk("Stall_CounterFront", Vector3.new(12, 3.2, 0.5),
+		CFrame.new(cx, floorY + 1.6, stallZ - 1.25), RED)
+	-- Sign interior sobre o stall (face Front = -Z, visível de quem entra)
+	makeSign("ShopSign", Vector3.new(12, 3.5, 0.4),
+		CFrame.new(cx, floorY + 9.5, stallZ))
+
+	-- ── NPC — R6 branco, cabeça preta, olhos vermelhos Neon ────────────
+	local npcX  = cx
+	local npcZ  = stallZ + 3       -- atrás do balcão, bem no fundo da loja
+	local NWHITE = Color3.fromRGB(242, 243, 243)
+	local NBLACK = Color3.fromRGB(17,  17,  17)
+	local REDEYE = Color3.fromRGB(255, 20,  20)
+
+	mk("NPC_LegL",       Vector3.new(1, 2,   1),
+		CFrame.new(npcX - 0.55, floorY + 1,   npcZ), NWHITE)
+	mk("NPC_LegR",       Vector3.new(1, 2,   1),
+		CFrame.new(npcX + 0.55, floorY + 1,   npcZ), NWHITE)
+	mk("NPC_LowerTorso", Vector3.new(2, 1,   1),
+		CFrame.new(npcX,        floorY + 2.5,  npcZ), NWHITE)
+	mk("NPC_UpperTorso", Vector3.new(2, 2,   1),
+		CFrame.new(npcX,        floorY + 4,    npcZ), NWHITE)
+	mk("NPC_ArmL",       Vector3.new(1, 2,   1),
+		CFrame.new(npcX - 1.5,  floorY + 4,    npcZ), NWHITE)
+	mk("NPC_ArmR",       Vector3.new(1, 2,   1),
+		CFrame.new(npcX + 1.5,  floorY + 4,    npcZ), NWHITE)
+	mk("NPC_HandL",      Vector3.new(1, 0.8, 1),
+		CFrame.new(npcX - 1.5,  floorY + 2.6,  npcZ), NWHITE)
+	mk("NPC_HandR",      Vector3.new(1, 0.8, 1),
+		CFrame.new(npcX + 1.5,  floorY + 2.6,  npcZ), NWHITE)
+
+	-- Cabeça preta
+	local npcHead = mk("NPC_Head", Vector3.new(2, 2, 2),
+		CFrame.new(npcX, floorY + 6.2, npcZ), NBLACK)
+
+	-- Olhos vermelhos Neon — na face -Z da cabeça (frente do NPC = -Z)
+	mk("NPC_EyeL", Vector3.new(0.5, 0.5, 0.3),
+		CFrame.new(npcX - 0.5, floorY + 6.5, npcZ - 1.05),
+		REDEYE, Enum.Material.Neon, nil, false)
+	mk("NPC_EyeR", Vector3.new(0.5, 0.5, 0.3),
+		CFrame.new(npcX + 0.5, floorY + 6.5, npcZ - 1.05),
+		REDEYE, Enum.Material.Neon, nil, false)
+
+	local auraPart = mk("NPC_Aura", Vector3.new(4, 10, 4),
+		CFrame.new(npcX, floorY + 4.5, npcZ), WALL, nil, 1, false)
+	local fire = Instance.new("Fire")
+	fire.Color          = Color3.fromRGB(10, 0, 20)
+	fire.SecondaryColor = Color3.fromRGB(0, 0, 0)
+	fire.Heat           = 9
+	fire.Size           = 9
+	fire.Parent         = auraPart
+
+	-- ── Silver YouTube buttons nas paredes ────────────────────────────
+	local SS = game:GetService("ServerStorage")
+	local ytBtn = SS:FindFirstChild("silver YouTube button", true)
+	if ytBtn then
+		-- helper: clona o modelo e posiciona via PrimaryPart ou SetPrimaryPartCFrame
+		local function placeBtn(cf: CFrame)
+			local clone = ytBtn:Clone()
+			clone.Parent = folder
+			if clone:IsA("Model") and clone.PrimaryPart then
+				clone:SetPrimaryPartCFrame(cf)
+			elseif clone:IsA("BasePart") then
+				clone.CFrame = cf
+			else
+				-- modelo sem PrimaryPart: usa PivotTo (funciona em qualquer Model)
+				clone:PivotTo(cf)
+			end
+		end
+
+		local btnY   = floorY + 6       -- altura no centro das paredes
+		-- paredes têm 2 studs de espessura; face interna = halfX/halfZ - 1
+		-- inset = 2 garante que o pivot fique 1 stud fora da face interna
+		local inset  = 2
+
+		-- Parede traseira (cz + halfZ): face para -Z (interior) → sem rotação
+		placeBtn(CFrame.new(cx - 10, btnY, cz + halfZ - inset))
+		placeBtn(CFrame.new(cx,      btnY, cz + halfZ - inset))
+		placeBtn(CFrame.new(cx + 10, btnY, cz + halfZ - inset))
+
+		-- Parede esquerda (cx - halfX): face para +X (interior)
+		placeBtn(CFrame.new(cx - halfX + inset, btnY, cz - 8)
+			* CFrame.Angles(0, -math.pi / 2, 0))
+		placeBtn(CFrame.new(cx - halfX + inset, btnY, cz + 8)
+			* CFrame.Angles(0, -math.pi / 2, 0))
+
+		-- Parede direita (cx + halfX): face para -X (interior)
+		placeBtn(CFrame.new(cx + halfX - inset, btnY, cz - 8)
+			* CFrame.Angles(0, math.pi / 2, 0))
+		placeBtn(CFrame.new(cx + halfX - inset, btnY, cz + 8)
+			* CFrame.Angles(0, math.pi / 2, 0))
+	else
+		warn("[MapSystem] 'silver YouTube button' não encontrado no ServerStorage")
+	end
+
+	local trigger = mk("CrackWall", Vector3.new(area.size.X - 4, wallH - 2, 1),
+		CFrame.new(cx, midY, cz + halfZ - 2), WALL, nil, 1, false)
 	CollectionService:AddTag(trigger, "CrackWall")
 
-	print("[MapSystem] Loja construída: Youtuber Jump Shop (tijolo + logos YouTube)")
+	print("[MapSystem] Loja: studs + stall no fundo + YTscreens + silver buttons + NPC sem nametag")
 end
 
 -- ── Teleporte ───────────────────────────────────────────────────────
@@ -336,6 +379,13 @@ function MapSystem.init(cfg: any)
 	teleportRemote = Instance.new("RemoteEvent")
 	teleportRemote.Name = R.TeleportArea
 	teleportRemote.Parent = RS
+
+	-- Limpa folders de runs anteriores para evitar acúmulo de parts
+	for _, child in ws:GetChildren() do
+		if child.Name:sub(1, 5) == "Area_" then
+			child:Destroy()
+		end
+	end
 
 	-- Cria as 3 áreas
 	local areas = cfg.MAP_AREAS
