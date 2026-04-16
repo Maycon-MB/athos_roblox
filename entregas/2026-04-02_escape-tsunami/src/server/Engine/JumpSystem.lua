@@ -221,34 +221,103 @@ function JumpSystem.init(cfg: any)
 		reapplyOnSpawn(pl)
 	end
 
-	-- CrackWall touch → abre loja (Part criado pelo MapSystem)
-	task.spawn(function()
-		task.wait(3) -- aguarda MapSystem criar as áreas
-		local tagged = CollectionService:GetTagged("CrackWall")
-		for _, part in tagged do
-			if not part:IsA("BasePart") then
-				continue
+	-- Utilitário: conecta Touched com cooldown por player
+	local function onTouched(part: BasePart, fn: (pl: Player, char: Model) -> ())
+		local cooldown: { [Player]: boolean } = {}
+		part.Touched:Connect(function(hit)
+			local char = hit.Parent
+			if not char then return end
+			local pl = Players:GetPlayerFromCharacter(char)
+			if not pl or cooldown[pl] then return end
+			cooldown[pl] = true
+			fn(pl, char :: Model)
+			task.delay(2, function() cooldown[pl] = nil end)
+		end)
+	end
+
+	-- ShopEntrance: sensor na rachadura → teleporta para dentro da loja (sem abrir UI)
+	local function setupShopEntrance(part: BasePart)
+		-- Visual: luz neon roxa + partículas para indicar passagem secreta
+		local light = Instance.new("PointLight")
+		light.Color      = Color3.fromRGB(140, 60, 255)
+		light.Brightness = 3
+		light.Range      = 18
+		light.Parent     = part
+
+		local att = Instance.new("Attachment")
+		att.Parent = part
+		local pe = Instance.new("ParticleEmitter")
+		pe.Color        = ColorSequence.new(Color3.fromRGB(160, 80, 255))
+		pe.LightEmission = 0.18
+		pe.Rate          = 6
+		pe.Lifetime      = NumberRange.new(1, 2)
+		pe.Speed         = NumberRange.new(1, 3)
+		pe.SpreadAngle   = Vector2.new(60, 60)
+		pe.Size          = NumberSequence.new(0.2)
+		pe.Parent        = att
+
+		onTouched(part, function(pl, char)
+			if _cfg and _cfg.MAP_AREAS and _cfg.MAP_AREAS.shop then
+				local dest: CFrame = _cfg.MAP_AREAS.shop.teleport_in or _cfg.MAP_AREAS.shop.spawn
+				local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+				if hrp then
+					(hrp :: BasePart).CFrame = dest
+				end
 			end
-			local touched: { [Player]: boolean } = {}
-			(part :: BasePart).Touched:Connect(function(hit)
-				local char = hit.Parent
-				if not char then
-					return
+			-- UI NÃO abre aqui — só abre ao se aproximar do balcão (ShopCounter)
+		end)
+	end
+
+	-- ShopCounter: trigger próximo ao NPC/balcão → abre a JumpShop UI
+	local function setupShopCounter(part: BasePart)
+		onTouched(part, function(pl, _char)
+			showShop:FireClient(pl)
+		end)
+	end
+
+	-- ShopExit: portal invisível na saída da loja → player atravessa, volta ao mapa
+	-- Cooldown de 4s para não disparar logo ao entrar na loja
+	local shopExitCooldown: { [Player]: boolean } = {}
+	local function setupShopExit(part: BasePart)
+		part.Touched:Connect(function(hit)
+			local char = hit.Parent
+			if not char then return end
+			local pl = Players:GetPlayerFromCharacter(char)
+			if not pl or shopExitCooldown[pl] then return end
+			shopExitCooldown[pl] = true
+			if _cfg and _cfg.MAP_AREAS then
+				local returnCF: CFrame = if _cfg.MAP_AREAS.shop and _cfg.MAP_AREAS.shop.teleport_out
+					then _cfg.MAP_AREAS.shop.teleport_out
+					else _cfg.MAP_AREAS.main.spawn
+				local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+				if hrp then
+					(hrp :: BasePart).CFrame = returnCF
 				end
-				local pl = Players:GetPlayerFromCharacter(char)
-				if not pl then
-					return
-				end
-				if touched[pl] then
-					return
-				end
-				touched[pl] = true
-				showShop:FireClient(pl)
-				task.delay(1, function()
-					touched[pl] = nil
-				end)
-			end)
+			end
+			task.delay(4, function() shopExitCooldown[pl] = nil end)
+		end)
+	end
+
+	task.spawn(function()
+		task.wait(3) -- aguarda MapSystem criar as tags
+		for _, part in CollectionService:GetTagged("ShopEntrance") do
+			if part:IsA("BasePart") then setupShopEntrance(part :: BasePart) end
 		end
+		for _, part in CollectionService:GetTagged("ShopExit") do
+			if part:IsA("BasePart") then setupShopExit(part :: BasePart) end
+		end
+		for _, part in CollectionService:GetTagged("ShopCounter") do
+			if part:IsA("BasePart") then setupShopCounter(part :: BasePart) end
+		end
+		CollectionService:GetInstanceAddedSignal("ShopEntrance"):Connect(function(part)
+			if part:IsA("BasePart") then setupShopEntrance(part :: BasePart) end
+		end)
+		CollectionService:GetInstanceAddedSignal("ShopExit"):Connect(function(part)
+			if part:IsA("BasePart") then setupShopExit(part :: BasePart) end
+		end)
+		CollectionService:GetInstanceAddedSignal("ShopCounter"):Connect(function(part)
+			if part:IsA("BasePart") then setupShopCounter(part :: BasePart) end
+		end)
 	end)
 end
 

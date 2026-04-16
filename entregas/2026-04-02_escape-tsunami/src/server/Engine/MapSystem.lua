@@ -18,47 +18,72 @@ local function buildArea(name: string, area: any)
 	folder.Parent = ws
 
 	-- shop constrói chão e paredes próprias em setupShopArea
-	if name ~= "shop" then
-		local floorColor = if name == "base"
-			then Color3.fromRGB(210, 100, 180)
-			else Color3.fromRGB(80, 80, 90)
+	-- main e base usam modelos do ServerStorage (carregados após buildArea)
+	if name ~= "shop" and name ~= "main" and name ~= "base" then
 		local floor = Instance.new("Part")
 		floor.Name = "Floor_" .. name
 		floor.Size = Vector3.new(area.size.X, 2, area.size.Z)
 		floor.CFrame = area.spawn * CFrame.new(0, -2, 0)
 		floor.Anchored = true
 		floor.CanCollide = true
-		floor.Color = floorColor
 		floor.Material = Enum.Material.SmoothPlastic
 		floor.TopSurface = Enum.SurfaceType.Smooth
 		floor.BottomSurface = Enum.SurfaceType.Smooth
 		floor.Parent = folder
-
-		local wallH = area.size.Y
-		local halfX = area.size.X / 2
-		local halfZ = area.size.Z / 2
-		local baseY = area.spawn.Position.Y + wallH / 2
-		local cx = area.spawn.Position.X
-		local cz = area.spawn.Position.Z
-		local walls = {
-			{ CFrame.new(cx, baseY, cz - halfZ), Vector3.new(area.size.X, wallH, 2) },
-			{ CFrame.new(cx, baseY, cz + halfZ), Vector3.new(area.size.X, wallH, 2) },
-			{ CFrame.new(cx - halfX, baseY, cz), Vector3.new(2, wallH, area.size.Z) },
-			{ CFrame.new(cx + halfX, baseY, cz), Vector3.new(2, wallH, area.size.Z) },
-		}
-		for i, w in walls do
-			local wall = Instance.new("Part")
-			wall.Name = "Wall_" .. i
-			wall.Size = w[2] :: Vector3
-			wall.CFrame = w[1] :: CFrame
-			wall.Anchored = true
-			wall.CanCollide = true
-			wall.Transparency = 1
-			wall.Parent = folder
-		end
 	end
 
 	return folder
+end
+
+-- ── Clona "base escape tsunami" dentro da área main, perto do pivot do mapa ──
+local function loadBaseModelsInMain(folder: Instance, mapCF: CFrame)
+	local SS = game:GetService("ServerStorage")
+	local bases: { Instance } = {}
+	for _, child in SS:GetChildren() do
+		if child.Name == "base escape tsunami" then
+			table.insert(bases, child)
+		end
+	end
+	if #bases == 0 then
+		warn("[MapSystem] 'base escape tsunami' não encontrado no ServerStorage")
+		return
+	end
+	-- Posiciona em grade centrada no CFrame recebido (BaseZone ou pivot do mapa)
+	local origin = mapCF
+	local spacing = 10
+	local cols  = math.ceil(math.sqrt(#bases))
+	local nrows = math.ceil(#bases / cols)
+	for i, base in bases do
+		local row = math.floor((i - 1) / cols)
+		local col = (i - 1) % cols
+		local x = origin.Position.X + (col - (cols - 1) / 2) * spacing
+		local z = origin.Position.Z + (row - (nrows - 1) / 2) * spacing
+		local clone = base:Clone()
+		clone.Name = "BasePedestal_" .. i
+		clone.Parent = folder
+		if clone:IsA("Model") then
+			clone:PivotTo(CFrame.new(x, origin.Position.Y, z))
+		elseif clone:IsA("BasePart") then
+			(clone :: BasePart).CFrame = CFrame.new(x, origin.Position.Y, z)
+		end
+	end
+	print(string.format("[MapSystem] %d pedestais posicionados dentro de Area_main", #bases))
+end
+
+-- ── Encontra o Map já existente no Workspace e posiciona os pedestais ──
+-- O Map fica permanentemente no Workspace (visível no Studio).
+-- Spawn e base_origin são configurados em Settings.MAP_AREAS.main
+local function loadMainMap(folder: Instance, area: any)
+	local mapModel = ws:FindFirstChild("Map")
+	if not mapModel then
+		warn("[MapSystem] 'Map' não encontrado no Workspace — arraste a Folder Map do ServerStorage para o Workspace no Studio")
+		return
+	end
+
+	print(string.format(
+		"[MapSystem] Map encontrado no Workspace → spawn (%.1f, %.1f, %.1f)",
+		area.spawn.Position.X, area.spawn.Position.Y, area.spawn.Position.Z
+	))
 end
 
 -- ── Cria objetos interativos na área main ───────────────────────────
@@ -317,9 +342,27 @@ local function setupShopArea(area: any, folder: Instance)
 		warn("[MapSystem] 'silver YouTube button' não encontrado no ServerStorage")
 	end
 
-	local trigger = mk("CrackWall", Vector3.new(area.size.X - 4, wallH - 2, 1),
-		CFrame.new(cx, midY, cz + halfZ - 2), WALL, nil, 1, false)
-	CollectionService:AddTag(trigger, "CrackWall")
+	-- ShopExit: sensor invisível no vão da porta frontal — player atravessa e volta ao mapa
+	local exitPart = mk("ShopExit", Vector3.new(crackW, crackH, 1),
+		CFrame.new(cx, floorY + crackH / 2, frontZ + 1), WALL, nil, 1, false)
+	exitPart.CanCollide = false
+	exitPart.CanTouch   = true
+	CollectionService:AddTag(exitPart, "ShopExit")
+
+	-- ShopCounter: trigger invisível em frente ao balcão — abre a JumpShop UI
+	local counterTrigger = mk("ShopCounter", Vector3.new(10, 6, 4),
+		CFrame.new(cx, floorY + 3, cz), WALL, nil, 1, false)
+	counterTrigger.CanCollide = false
+	counterTrigger.CanTouch   = true
+	CollectionService:AddTag(counterTrigger, "ShopCounter")
+
+	-- teleport_in: player nasce 6 studs dentro da porta, olhando para o balcão (+Z)
+	area.teleport_in = CFrame.new(cx, floorY + 3, frontZ + 6)
+		* CFrame.Angles(0, math.pi, 0)
+
+	-- teleport_out: volta para a parede original no mapa principal
+	area.teleport_out = CFrame.new(-316.26, 10, -257.64)
+		* CFrame.Angles(0, math.pi / 2, 0)
 
 	print("[MapSystem] Loja: studs + stall no fundo + YTscreens + silver buttons + NPC sem nametag")
 end
@@ -394,44 +437,95 @@ function MapSystem.init(cfg: any)
 		return
 	end
 
+	-- ShopAnchor: Model da rachadura colocado pelo usuário no Studio.
+	-- É só decoração visual + ponto de trigger. A loja fica em MAP_AREAS.shop.spawn (longe do mapa).
+	if areas.shop then
+		local shopAnchor = ws:FindFirstChild("ShopAnchor", true)
+		if shopAnchor then
+			local anchorPos: Vector3
+			if shopAnchor:IsA("Model") then
+				anchorPos = (shopAnchor :: Model):GetPivot().Position
+				for _, desc in (shopAnchor :: Model):GetDescendants() do
+					if desc:IsA("BasePart") then
+						(desc :: BasePart).Anchored   = true
+						(desc :: BasePart).CanCollide = false
+					end
+				end
+			elseif shopAnchor:IsA("BasePart") then
+				anchorPos = (shopAnchor :: BasePart).Position
+				;(shopAnchor :: BasePart).Anchored   = true
+				;(shopAnchor :: BasePart).CanCollide = false
+			else
+				anchorPos = areas.shop.spawn.Position
+			end
+
+			-- teleport_out: player volta para 6 studs na frente da rachadura
+			areas.shop.teleport_out = CFrame.new(anchorPos.X, anchorPos.Y, anchorPos.Z - 6)
+
+			-- Sensor invisível com tamanho garantido — cobre a abertura da rachadura
+			local sensor = Instance.new("Part")
+			sensor.Name         = "ShopEntranceSensor"
+			sensor.Size         = Vector3.new(6, 8, 2)
+			sensor.CFrame       = CFrame.new(anchorPos.X, anchorPos.Y + 4, anchorPos.Z)
+			sensor.Anchored     = true
+			sensor.CanCollide   = false
+			sensor.CanTouch     = true
+			sensor.Transparency = 0.5   -- visível temporariamente para debug (verde)
+			sensor.Color        = Color3.fromRGB(0, 200, 0)
+			sensor.Material     = Enum.Material.Neon
+			sensor.Parent       = ws
+			CollectionService:AddTag(sensor, "ShopEntrance")
+
+			print(string.format("[MapSystem] ShopAnchor: sensor em (%.0f, %.0f, %.0f) | loja em (%.0f, %.0f, %.0f)",
+				anchorPos.X, anchorPos.Y, anchorPos.Z,
+				areas.shop.spawn.Position.X, areas.shop.spawn.Position.Y, areas.shop.spawn.Position.Z))
+		else
+			warn("[MapSystem] ShopAnchor não encontrado — coloque o Model da rachadura no Workspace e nomeie 'ShopAnchor'.")
+		end
+	end
+
 	for name, area in areas do
 		local folder = buildArea(name, area)
 		if name == "main" then
 			setupMainArea(area, folder)
+			loadMainMap(folder, area)
 		elseif name == "shop" then
 			setupShopArea(area, folder)
 		end
 	end
 
-	-- SpawnLocation na área main
+	-- SpawnLocation: usa a colocada manualmente no Studio (ou cria fallback)
 	local mainArea = areas.main
 	if mainArea then
-		local sl = Instance.new("SpawnLocation")
-		sl.Size = Vector3.new(6, 1, 6)
-		sl.CFrame = mainArea.spawn
-		sl.Anchored = true
-		sl.Transparency = 1
-		sl.CanCollide = true
-		sl.Neutral = true
-		sl.Parent = ws
-		print(
-			string.format(
-				"[MapSystem] SpawnLocation criada em (%.0f, %.0f, %.0f)",
-				mainArea.spawn.Position.X,
-				mainArea.spawn.Position.Y,
-				mainArea.spawn.Position.Z
-			)
-		)
+		local sl = ws:FindFirstChild("SpawnLocation", true) :: SpawnLocation?
+		if sl then
+			-- Atualiza area.spawn com a posição real → BrainrotSystem/WaveSystem usam bounds corretos
+			mainArea.spawn = (sl :: SpawnLocation).CFrame
+			print(string.format("[MapSystem] SpawnLocation do Studio: (%.0f, %.0f, %.0f)",
+				(sl :: SpawnLocation).CFrame.Position.X,
+				(sl :: SpawnLocation).CFrame.Position.Y,
+				(sl :: SpawnLocation).CFrame.Position.Z))
+		else
+			sl = Instance.new("SpawnLocation") :: SpawnLocation
+			;(sl :: SpawnLocation).Size = Vector3.new(6, 1, 6)
+			;(sl :: SpawnLocation).CFrame = mainArea.spawn
+			;(sl :: SpawnLocation).Anchored = true
+			;(sl :: SpawnLocation).Transparency = 1
+			;(sl :: SpawnLocation).CanCollide = true
+			;(sl :: SpawnLocation).Neutral = true
+			;(sl :: SpawnLocation).Parent = ws
+			warn("[MapSystem] SpawnLocation não encontrada no Workspace — criada em fallback. Adicione uma no Studio.")
+		end
 
 		Players.PlayerAdded:Connect(function(player)
-			player.RespawnLocation = sl
+			player.RespawnLocation = sl :: SpawnLocation
 		end)
 		for _, player in Players:GetPlayers() do
-			player.RespawnLocation = sl
+			player.RespawnLocation = sl :: SpawnLocation
 		end
 	end
 
-	print("[MapSystem] 3 áreas criadas: main, shop, base")
+	print("[MapSystem] Áreas criadas: " .. table.concat((function() local t={} for k in areas do table.insert(t,k) end return t end)(), ", "))
 end
 
 return MapSystem
