@@ -16,4 +16,5 @@ return {
 	TeleportArea = "TeleportArea",
 	GiveJump = "GiveJump",
 	GalaxyBatSwing = "GalaxyBatSwing",
+	ShowFusionPanel = "ShowFusionPanel",
 }

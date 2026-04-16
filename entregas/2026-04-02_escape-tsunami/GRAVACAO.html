@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Athos Escape Tsunami — Guia de Gravação</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0f0e17;
+    color: #e8e6f0;
+    padding: 40px 20px;
+  }
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #18162a;
+    border-radius: 16px;
+    padding: 48px 56px;
+    border: 1px solid #2e2a4a;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid #2e2a4a;
+  }
+  .header .badge {
+    display: inline-block;
+    background: #ff1493;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .header p {
+    color: #8a85a8;
+    font-size: 14px;
+  }
+
+  /* Intro box */
+  .intro {
+    background: #1e1b35;
+    border-left: 4px solid #6c40ff;
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    margin-bottom: 36px;
+    font-size: 14px;
+    color: #b8b4d0;
+    line-height: 1.6;
+  }
+  .intro strong { color: #c8a0ff; }
+
+  /* Section */
+  .section {
+    margin-bottom: 36px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #6c40ff;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #2e2a4a;
+  }
+
+  /* Step cards */
+  .step {
+    background: #1e1b35;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    border: 1px solid #2e2a4a;
+    position: relative;
+  }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .step-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .step-subtitle {
+    font-size: 12px;
+    color: #8a85a8;
+    margin-top: 2px;
+  }
+  .step ol, .step ul {
+    padding-left: 20px;
+    font-size: 13px;
+    color: #c8c4e0;
+    line-height: 1.9;
+  }
+  .step li { margin-bottom: 2px; }
+
+  .shortcut {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #0f0e17;
+    border: 1px solid #3a3560;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: #a0e080;
+    margin-top: 10px;
+    font-family: monospace;
+  }
+  .shortcut::before { content: '⚡'; }
+
+  /* Colors per step */
+  .s1 .step-number { background: #1e4d2a; color: #5cd87a; }
+  .s2 .step-number { background: #2a3a1e; color: #f0c040; }
+  .s3 .step-number { background: #2a1e4d; color: #c080ff; }
+  .s4 .step-number { background: #1e3a4d; color: #40c0f0; }
+  .s5 .step-number { background: #3a1e4d; color: #c040f0; }
+  .s6 .step-number { background: #4d2a1e; color: #f08040; }
+  .s7 .step-number { background: #4d1e2a; color: #ff4080; }
+
+  .s1 { border-color: #2a5a3a; }
+  .s2 { border-color: #4a4020; }
+  .s3 { border-color: #3a2a5a; }
+  .s4 { border-color: #1e3a5a; }
+  .s5 { border-color: #3a1e5a; }
+  .s6 { border-color: #5a3a1e; }
+  .s7 { border-color: #5a1e3a; }
+
+  /* HUD table */
+  .hud-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .hud-item {
+    background: #1e1b35;
+    border: 1px solid #2e2a4a;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .hud-item .hud-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6c40ff;
+    margin-bottom: 4px;
+  }
+  .hud-item .hud-loc {
+    font-size: 12px;
+    color: #8a85a8;
+    margin-bottom: 4px;
+  }
+  .hud-item .hud-desc {
+    font-size: 13px;
+    color: #c8c4e0;
+  }
+
+  /* Tips */
+  .tips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .tip {
+    background: #1e1b35;
+    border: 1px solid #2e2a4a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #c8c4e0;
+    line-height: 1.5;
+  }
+  .tip strong { color: #fff; display: block; margin-bottom: 2px; }
+
+  /* F8 highlight */
+  .key {
+    display: inline-block;
+    background: #2e2a4a;
+    border: 1px solid #4a4570;
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    font-family: monospace;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid #2e2a4a;
+    font-size: 12px;
+    color: #4a4570;
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page {
+      background: #fff;
+      border: none;
+      border-radius: 0;
+      padding: 32px 40px;
+      max-width: 100%;
+      color: #111;
+    }
+    .header h1, .step-title { color: #111; }
+    .section-title { color: #4a00b0; }
+    .intro { background: #f5f0ff; border-color: #7c40ff; color: #333; }
+    .step { background: #f8f8ff; border-color: #ddd; }
+    .hud-item, .tip { background: #f8f8ff; border-color: #ddd; }
+    .shortcut { background: #f0f0f0; border-color: #ccc; color: #1a8000; }
+    .key { background: #eee; border-color: #bbb; color: #111; }
+    .footer { color: #aaa; }
+    body, .step ol, .step ul, .hud-item .hud-desc, .tip { color: #333; }
+    .step-subtitle, .hud-item .hud-loc { color: #666; }
+    .hud-item .hud-label { color: #4a00b0; }
+    .s1 .step-number { background: #d4f0dc; color: #1a6a30; }
+    .s2 .step-number { background: #f5f0d0; color: #6a5000; }
+    .s3 .step-number { background: #ede0ff; color: #5a00b0; }
+    .s4 .step-number { background: #d0eeff; color: #004a80; }
+    .s5 .step-number { background: #ead0ff; color: #6a00b0; }
+    .s6 .step-number { background: #ffe8d0; color: #803000; }
+    .s7 .step-number { background: #ffd0e0; color: #800030; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="badge">Guia de Gravação</div>
+    <h1>Athos Escape Tsunami</h1>
+    <p>Abra o painel de controle com <span class="key">F8</span> a qualquer momento durante a gravação</p>
+  </div>
+
+  <div class="intro">
+    <strong>Como entrar no jogo:</strong> acesse pelo link <a href="https://www.roblox.com/pt/games/114807382215739/Athos-Escape-Tsunami" target="_blank" style="color:#c8a0ff;">Athos Escape Tsunami</a> — não precisa instalar o Studio.<br>
+    <strong>Painel de controle:</strong> pressione <strong>F8</strong> para abrir/fechar. Use ele para acionar tsunamis, dar pulos, dar dinheiro e muito mais.
+  </div>
+
+  <!-- ROTEIRO -->
+  <div class="section">
+    <div class="section-title">Roteiro — os 7 pulos</div>
+
+    <div class="step s1">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <div>
+          <div class="step-title">James — Pulo Grátis</div>
+          <div class="step-subtitle">FREE · Speed 67 · Jump 10</div>
+        </div>
+      </div>
+      <ol>
+        <li>Procure a <strong>parede a direita com brilho levemente visível</strong> no mapa — caminhe por ela para entrar na loja</li>
+        <li>Aproxime-se do balcão → a loja de pulos abre automaticamente</li>
+        <li>O card <strong>James</strong> tem botão verde <em>FREE</em> — clique para comprar</li>
+        <li>O painel direito da tela mostra o card <strong>J</strong> desbloqueado (verde com ✓)</li>
+      </ol>
+      <div class="shortcut">F8 → JUMPS → James</div>
+    </div>
+
+    <div class="step s2">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <div>
+          <div class="step-title">JJ — Pulo dos $5.000</div>
+          <div class="step-subtitle">$5.000 · Speed 250 · Jump 40 · Shield</div>
+        </div>
+      </div>
+      <ol>
+        <li>Colete brainrots pelo mapa (objetos coloridos flutuando)</li>
+        <li>Venda na máquina de venda — acumule $5.000 na barra do canto superior esquerdo</li>
+        <li>Vá à loja → compre JJ (botão verde)</li>
+      </ol>
+      <div class="shortcut">F8 → ECONOMY → +$10K → compre na loja</div>
+    </div>
+
+    <div class="step s3">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <div>
+          <div class="step-title">Mana — Pulo dos $500.000</div>
+          <div class="step-subtitle">$500.000 · Speed 400 · Jump 90 · Corações</div>
+        </div>
+      </div>
+      <ol>
+        <li>Acumule $500.000 vendendo brainrots (ou use admin)</li>
+        <li>Compre Mana na loja — ao comprar, <strong>corações aparecem no personagem</strong></li>
+      </ol>
+      <div class="shortcut">F8 → ECONOMY → +$500K → compre na loja</div>
+    </div>
+
+    <div class="step s4">
+      <div class="step-header">
+        <div class="step-number">4</div>
+        <div>
+          <div class="step-title">Pdoro — Sobreviver 10 Ondas</div>
+          <div class="step-subtitle">10 tsunamis · Speed 600 · Jump 140 · +10.000 tokens</div>
+        </div>
+      </div>
+      <ol>
+        <li>Acione o tsunami: <span class="key">F8</span> → WAVES → <strong>Trigger Wave</strong></li>
+        <li>Suba nas plataformas para sobreviver à onda</li>
+        <li>Após 10 ondas sobrevividas → Pdoro desbloqueia na loja</li>
+      </ol>
+      <div class="shortcut">F8 → JUMPS → Pdoro</div>
+    </div>
+
+    <div class="step s5">
+      <div class="step-header">
+        <div class="step-number">5</div>
+        <div>
+          <div class="step-title">Matheus — Galaxy Bat</div>
+          <div class="step-subtitle">5 kills · Speed 800 · Jump 170 · Taco de Galáxia</div>
+        </div>
+      </div>
+      <ol>
+        <li>Use o admin direto — noobs estão desativados nesta versão</li>
+        <li>Após dar o pulo, o <strong>GalaxyBat</strong> aparece na mochila automaticamente</li>
+        <li>Equipe o taco e use para dar knockback em inimigos</li>
+      </ol>
+      <div class="shortcut">F8 → JUMPS → Matheus</div>
+    </div>
+
+    <div class="step s6">
+      <div class="step-header">
+        <div class="step-number">6</div>
+        <div>
+          <div class="step-title">Caylus — Vender 10 Brainrots</div>
+          <div class="step-subtitle">10 vendas · Speed 2000 · Jump 200</div>
+        </div>
+      </div>
+      <ol>
+        <li><span class="key">F8</span> → BRAINROTS — GIVE → adicione vários brainrots ao inventário</li>
+        <li>Vá até a máquina de venda e venda 10 → pulo desbloqueia</li>
+      </ol>
+      <div class="shortcut">F8 → JUMPS → Caylus</div>
+    </div>
+
+    <div class="step s7">
+      <div class="step-header">
+        <div class="step-number">7</div>
+        <div>
+          <div class="step-title">Athos — Pulo Final (Fusão)</div>
+          <div class="step-subtitle">2 fusões · Speed 2500 · Jump 250 · Chamas + Base cheia</div>
+        </div>
+      </div>
+      <ol>
+        <li><span class="key">F8</span> → BRAINROTS — GIVE → pegue 2 brainrots quaisquer</li>
+        <li>Vá até a <strong>FusionMachine</strong> no mapa → use o ProximityPrompt</li>
+        <li>Selecione 2 brainrots → confirme a fusão</li>
+        <li>Após a fusão → Athos desbloqueia na loja</li>
+        <li>Ao comprar: <strong>chamas aparecem no personagem</strong> + base preenche com brainrots</li>
+      </ol>
+      <div class="shortcut">F8 → JUMPS → Athos</div>
+    </div>
+
+  </div>
+
+  <!-- HUD -->
+  <div class="section">
+    <div class="section-title">O que aparece na tela</div>
+    <div class="hud-grid">
+      <div class="hud-item">
+        <div class="hud-label">StatusBar</div>
+        <div class="hud-loc">Canto superior esquerdo</div>
+        <div class="hud-desc">Dinheiro · Brainrots · Pulo atual · Wave tokens</div>
+      </div>
+      <div class="hud-item">
+        <div class="hud-label">ProgressPanel</div>
+        <div class="hud-loc">Faixa direita da tela</div>
+        <div class="hud-desc">7 cards (J, JJ, M, P, Ma, Ca, At) — verde com ✓ = desbloqueado</div>
+      </div>
+      <div class="hud-item">
+        <div class="hud-label">WaveAlert</div>
+        <div class="hud-loc">Centro da tela</div>
+        <div class="hud-desc">Banner vermelho quando o tsunami começa</div>
+      </div>
+      <div class="hud-item">
+        <div class="hud-label">AreaLabel</div>
+        <div class="hud-loc">Centro superior</div>
+        <div class="hud-desc">Nome da área atual (TSUNAMI ESCAPE / SECRET SHOP)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIPS -->
+  <div class="section">
+    <div class="section-title">Atalhos rápidos</div>
+    <div class="tips">
+      <div class="tip">
+        <strong>God Mode (invencibilidade)</strong>
+        F8 → TOOLS → God Mode
+      </div>
+      <div class="tip">
+        <strong>Abrir loja sem entrar</strong>
+        F8 → TOOLS → Open Shop UI
+      </div>
+      <div class="tip">
+        <strong>Resetar progresso</strong>
+        F8 → ECONOMY → Reset Progress
+      </div>
+      <div class="tip">
+        <strong>Tsunami rápido (cinematográfico)</strong>
+        F8 → WAVES → Fast Wave
+      </div>
+      <div class="tip">
+        <strong>Loja secreta</strong>
+        Parede roxa com brilho no mapa — caminhe por ela
+      </div>
+      <div class="tip">
+        <strong>Sair da loja</strong>
+        Caminhe até o fundo da loja — saída automática
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Athos Escape Tsunami · Versão 2026-04-16 · Produzido por Stark
+  </div>
+
+</div>
+</body>
+</html>

@@ -9,8 +9,28 @@ local BrainrotSystem = {}
 
 local _cfg: any
 local active: { Model } = {}
-local carrying: { [Player]: any } = {}
+local carrying: { [Player]: Model } = {}
 local disabledBrainrots: { [string]: boolean } = {}
+
+-- ── API pública para BaseSystem ──────────────────────────────────────
+function BrainrotSystem.isCarrying(pl: Player): boolean
+	return carrying[pl] ~= nil
+end
+
+function BrainrotSystem.getCarriedId(pl: Player): string?
+	local m = carrying[pl]
+	if not m then return nil end
+	local idVal = m:FindFirstChild("BrainrotId") :: StringValue?
+	return if idVal then idVal.Value else nil
+end
+
+function BrainrotSystem.dropCarried(pl: Player)
+	local m = carrying[pl]
+	if m and m.Parent then
+		m:Destroy()
+	end
+	carrying[pl] = nil :: any
+end
 
 -- Habilita/desabilita spawn de um brainrot específico (chamado pelo AdminSystem)
 function BrainrotSystem.setEnabled(id: string, enabled: boolean)
@@ -88,12 +108,15 @@ local function makeBrainrot(br: any, origin: CFrame): (Model, BasePart)
 	local ws = game:GetService("Workspace")
 	local rar = _cfg.RARITIES[br.rarity] or _cfg.RARITIES[1]
 
-	-- Tenta clonar modelo real de VFXBrainrots (pelo id ou nome do brainrot)
-	local vfxFolder = ws:FindFirstChild("VFXBrainrots")
+	-- Tenta clonar modelo real do ServerStorage (campo model_name > name > id)
+	local SS = game:GetService("ServerStorage")
 	local template: Model? = nil
-	if vfxFolder then
-		template = vfxFolder:FindFirstChild(br.id) :: Model?
-			or vfxFolder:FindFirstChild(br.name) :: Model?
+	local modelName: string = if br.model_name ~= nil
+		then br.model_name :: string
+		else (br.name :: string)
+	template = SS:FindFirstChild(modelName) :: Model?
+	if not template then
+		template = SS:FindFirstChild(br.id) :: Model?
 	end
 
 	local m: Model
@@ -144,12 +167,6 @@ local function makeBrainrot(br: any, origin: CFrame): (Model, BasePart)
 		UDim2.new(1, 0, 0.24, 0),
 		UDim2.new(0, 0, 0.76, 0)
 	)
-
-	local sel = Instance.new("SelectionBox")
-	sel.Adornee = body
-	sel.Color3 = rar.color
-	sel.LineThickness = 0.06
-	sel.Parent = m
 
 	-- Float animation
 	task.spawn(function()
@@ -204,36 +221,74 @@ local function pickBrainrot(): any
 	return pool[1]
 end
 
--- ── Spawn dentro de MAP_AREAS.main ──────────────────────────────────
+-- SPAWN_ZONES: lidas de Settings.SPAWN_ZONES (retângulos XZ explícitos).
+-- Raycast desce para achar o Y real do chão em cada posição escolhida.
+-- Sem análise de geometria — fonte de verdade é o Settings.lua.
+local spawnZonesLogged = false
+
+local function pickSpawnCF(): CFrame?
+	local ws2    = game:GetService("Workspace")
+	local zones  = _cfg.SPAWN_ZONES
+	if not zones or #zones == 0 then return nil end
+
+	-- Escolhe zona aleatória (ponderada pelo tamanho)
+	local totalArea = 0
+	for _, z in zones do totalArea += (z.halfX * 2) * (z.halfZ * 2) end
+	local roll = math.random() * totalArea
+	local chosen: any = zones[1]
+	local acc = 0
+	for _, z in zones do
+		acc += (z.halfX * 2) * (z.halfZ * 2)
+		if roll <= acc then chosen = z; break end
+	end
+
+	-- Posição XZ aleatória dentro da zona
+	local rx = chosen.cx + math.random() * chosen.halfX * 2 - chosen.halfX
+	local rz = chosen.cz + math.random() * chosen.halfZ * 2 - chosen.halfZ
+
+	-- Raycast para encontrar o Y exato do chão nessa posição
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local excl: { Instance } = {}
+	for _, obj in CollectionService:GetTagged("Tsunami") do table.insert(excl, obj) end
+	params.FilterDescendantsInstances = excl
+
+	local startY = (_cfg.MAP_AREAS and _cfg.MAP_AREAS.main and _cfg.MAP_AREAS.main.spawn.Position.Y or 0) + 300
+	local hit    = ws2:Raycast(Vector3.new(rx, startY, rz), Vector3.new(0, -600, 0), params)
+
+	if not spawnZonesLogged then
+		spawnZonesLogged = true
+		print(string.format("[BrainrotSystem] SPAWN_ZONES ativas: %d zona(s)", #zones))
+	end
+
+	if hit and hit.Normal.Y > 0.7 then
+		return CFrame.new(rx, hit.Position.Y + 0.5, rz)
+	end
+	-- Sem hit válido: usa Y do spawn como fallback
+	local groundY = _cfg.MAP_AREAS and _cfg.MAP_AREAS.main and _cfg.MAP_AREAS.main.spawn.Position.Y or 0
+	return CFrame.new(rx, groundY + 0.5, rz)
+end
+
+-- ── Spawn via SPAWN_ZONES do Settings ───────────────────────────────
 local function spawnOne()
 	local br = pickBrainrot()
 
-	-- Bounds da área main
-	local area = _cfg.MAP_AREAS and _cfg.MAP_AREAS.main
-	local spawnCF = if area then area.spawn else CFrame.new(0, 10, 0)
-	local areaSize = if area then area.size else Vector3.new(200, 50, 200)
-
-	local cx = spawnCF.Position.X
-	local cz = spawnCF.Position.Z
-	local halfX = areaSize.X / 2 - 10
-	local halfZ = areaSize.Z / 2 - 10
-
-	local rx = cx + math.random(-math.floor(halfX), math.floor(halfX))
-	local rz = cz + math.random(-math.floor(halfZ), math.floor(halfZ))
-
-	-- Raycast para encontrar o chão
-	local ws = game:GetService("Workspace")
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	local exclude: { Instance } = {}
-	for _, obj in CollectionService:GetTagged("Tsunami") do
-		table.insert(exclude, obj)
+	local cf = pickSpawnCF()
+	if not cf then
+		-- Fallback: sem SPAWN_ZONES — usa brainrot_center/half do Settings
+		local area = _cfg.MAP_AREAS and _cfg.MAP_AREAS.main
+		local c    = if area and area.brainrot_center ~= nil
+			then area.brainrot_center :: CFrame else CFrame.new(0, 0, 0)
+		local bh   = if area and area.brainrot_half ~= nil
+			then area.brainrot_half :: Vector3 else Vector3.new(80, 0, 80)
+		local rx = c.Position.X + (math.random() * bh.X * 2 - bh.X)
+		local rz = c.Position.Z + (math.random() * bh.Z * 2 - bh.Z)
+		cf = CFrame.new(rx, c.Position.Y + 0.5, rz)
+		warn("[BrainrotSystem] SPAWN_ZONES não configuradas — usando brainrot_center")
 	end
-	params.FilterDescendantsInstances = exclude
-	local hit = ws:Raycast(Vector3.new(rx, 500, rz), Vector3.new(0, -2000, 0), params)
-	local spawnY = if hit then hit.Position.Y + 2 else spawnCF.Position.Y + 2
 
-	local cf = CFrame.new(rx, spawnY, rz)
+	print(string.format("[LOG:Spawn] %s → (%.0f, %.0f, %.0f)",
+		br.id, cf.Position.X, cf.Position.Y, cf.Position.Z))
 	local model, touch = makeBrainrot(br, cf)
 	table.insert(active, model)
 
@@ -252,17 +307,18 @@ local function spawnOne()
 	pp.Parent = touch
 
 	pp.Triggered:Connect(function(pl: Player)
+		print(string.format("[LOG:Collect] %s tentou coletar %s", pl.Name, br.id))
 		local PD = require(script.Parent.PlayerData)
 		local d = PD.get(pl)
 		if not d then
+			warn("[LOG:Collect] BLOQUEADO — PlayerData nil para " .. pl.Name)
 			return
 		end
 		if carrying[pl] then
+			print("[LOG:Collect] BLOQUEADO — já está carregando outro brainrot")
 			return
 		end
-		if PD.countBrainrots(pl) >= d.baseSlots then
-			return
-		end
+		-- Limite verificado só no store (pedestal), não aqui.
 		pp:Destroy()
 		for i, m2 in active do
 			if m2 == model then
@@ -270,8 +326,14 @@ local function spawnOne()
 				break
 			end
 		end
+		local char = pl.Character
+		local hrp  = char and char:FindFirstChild("HumanoidRootPart")
+		if not char or not hrp then
+			warn("[LOG:Collect] BLOQUEADO — personagem/HRP não encontrado")
+			return
+		end
 		attachToPlayer(pl, model, touch)
-		print(string.format("[BrainrotSystem] %s coletou %s (%s)", pl.Name, br.name, br.id))
+		print(string.format("[LOG:Collect] OK — %s agora carrega '%s'", pl.Name, br.id))
 	end)
 end
 
@@ -294,6 +356,10 @@ function BrainrotSystem.init(cfg: any)
 	fuseResult = Instance.new("RemoteEvent")
 	fuseResult.Name = R.FuseResult
 	fuseResult.Parent = RS
+
+	local showFusionPanel = Instance.new("RemoteEvent")
+	showFusionPanel.Name = R.ShowFusionPanel
+	showFusionPanel.Parent = RS
 
 	sellRemote.OnServerEvent:Connect(function(pl, id: string)
 		local PD = require(script.Parent.PlayerData)
@@ -344,64 +410,34 @@ function BrainrotSystem.init(cfg: any)
 				d.brainrotsFused += 1
 				PD.sync(pl)
 			end
-			fuseResult:FireClient(pl, true, "Obteve: " .. result.name)
+			fuseResult:FireClient(pl, true, "Got: " .. result.name)
 		else
 			PD.addBrainrot(pl, id1)
-			fuseResult:FireClient(pl, false, "Nenhum resultado disponivel.")
+			fuseResult:FireClient(pl, false, "No result available.")
 		end
 	end)
 
-	-- FusionMachine ProximityPrompt (conecta ao Part criado pelo MapSystem)
+	-- FusionMachine ProximityPrompt — abre a UI de seleção no cliente.
+	-- A fusão em si acontece via fuseRemote (FuseBrainrots) quando o jogador confirma na UI.
+	local function setupFuseMachine(obj: BasePart)
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.ActionText = "Open"
+		prompt.ObjectText = "Fusion Machine"
+		prompt.HoldDuration = 0
+		prompt.MaxActivationDistance = 8
+		prompt.Parent = obj
+		prompt.Triggered:Connect(function(pl: Player)
+			showFusionPanel:FireClient(pl)
+		end)
+	end
+
 	task.delay(3, function()
 		for _, obj in CollectionService:GetTagged("FuseMachine") do
-			if not obj:IsA("BasePart") then
-				continue
-			end
-			local prompt = Instance.new("ProximityPrompt")
-			prompt.ActionText = "Fuse"
-			prompt.ObjectText = "Fusion Machine"
-			prompt.HoldDuration = 1.5
-			prompt.MaxActivationDistance = 8
-			prompt.Parent = obj
-
-			prompt.Triggered:Connect(function(pl: Player)
-				local PD = require(script.Parent.PlayerData)
-				local d = PD.get(pl)
-				if not d or #d.brainrots < 2 then
-					fuseResult:FireClient(pl, false, "Precisa de 2 Brainrots!")
-					return
-				end
-				local id1 = d.brainrots[1].id
-				local id2 = d.brainrots[2].id
-				local r1 = 1
-				for _, br in cfg.BRAINROTS do
-					if br.id == id1 then
-						r1 = br.rarity
-						break
-					end
-				end
-				PD.removeBrainrot(pl, id1)
-				PD.removeBrainrot(pl, id2)
-				local target = math.min(r1 + 1, #cfg.RARITIES)
-				local cands: { any } = {}
-				for _, br in cfg.BRAINROTS do
-					if br.rarity == target then
-						table.insert(cands, br)
-					end
-				end
-				local result = if #cands > 0 then cands[math.random(1, #cands)] else nil
-				if result then
-					PD.addBrainrot(pl, result.id)
-					d.brainrotsFused += 1
-					PD.sync(pl)
-					fuseResult:FireClient(pl, true, "Obteve: " .. result.name)
-				else
-					PD.addBrainrot(pl, id1)
-					PD.sync(pl)
-					fuseResult:FireClient(pl, false, "Nenhum resultado disponivel.")
-				end
-			end)
+			if obj:IsA("BasePart") then setupFuseMachine(obj :: BasePart) end
 		end
+		CollectionService:GetInstanceAddedSignal("FuseMachine"):Connect(function(obj)
+			if obj:IsA("BasePart") then setupFuseMachine(obj :: BasePart) end
+		end)
 	end)
 
 	-- Limpeza: ao sair ou morrer, destrói brainrot carregado
@@ -422,52 +458,8 @@ function BrainrotSystem.init(cfg: any)
 		end)
 	end)
 
-	-- SafeZone delivery: ao tocar SafeZone carregando → credita no inventário
-	task.spawn(function()
-		task.wait(3)
-		local function connectSafeZone(part: Instance)
-			if not part:IsA("BasePart") then
-				return
-			end
-			local inZone: { [Player]: boolean } = {}
-			(part :: BasePart).Touched:Connect(function(hit)
-				local char = hit.Parent
-				if not char then
-					return
-				end
-				local pl = Players:GetPlayerFromCharacter(char)
-				if not pl then
-					return
-				end
-				if inZone[pl] then
-					return
-				end
-				local m = carrying[pl]
-				if not m then
-					return
-				end
-				inZone[pl] = true
-				local idVal = m:FindFirstChild("BrainrotId") :: StringValue?
-				if idVal then
-					local PD = require(script.Parent.PlayerData)
-					local d = PD.get(pl)
-					if d and PD.countBrainrots(pl) < d.baseSlots then
-						PD.addBrainrot(pl, idVal.Value)
-						print(string.format("[BrainrotSystem] %s entregou %s na SafeZone", pl.Name, idVal.Value))
-					end
-				end
-				m:Destroy()
-				carrying[pl] = nil :: any
-				task.delay(1, function()
-					inZone[pl] = nil
-				end)
-			end)
-		end
-		for _, p in CollectionService:GetTagged("SafeZone") do
-			connectSafeZone(p)
-		end
-		CollectionService:GetInstanceAddedSignal("SafeZone"):Connect(connectSafeZone)
-	end)
+	-- Store via pedestal: BaseSystem gerencia ProximityPrompt "Store" em cada pedestal.
+	-- dropCarried() é chamado por BaseSystem quando o jogador armazena no pedestal.
 
 	-- Spawn inicial
 	for _ = 1, 6 do

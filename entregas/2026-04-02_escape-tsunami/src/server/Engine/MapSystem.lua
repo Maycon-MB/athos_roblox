@@ -70,20 +70,77 @@ local function loadBaseModelsInMain(folder: Instance, mapCF: CFrame)
 	print(string.format("[MapSystem] %d pedestais posicionados dentro de Area_main", #bases))
 end
 
--- ── Encontra o Map já existente no Workspace e posiciona os pedestais ──
+-- ── Cria BrainrotSpawn Folder varrendo os BaseParts do modelo Map ──
+-- Encontra partes grandes, planas e no nível do chão real — ignora safe areas em Y diferente.
+local function buildSpawnPointsFolder(area: any)
+	-- Remove folder de runs anteriores
+	local existing = ws:FindFirstChild("BrainrotSpawn")
+	if existing then existing:Destroy() end
+
+	local folder = Instance.new("Folder")
+	folder.Name = "BrainrotSpawn"
+	folder.Parent = ws
+
+	local mapModel = ws:FindFirstChild("Map")
+	if not mapModel then
+		warn("[MapSystem] Map não encontrado — BrainrotSpawn vazio, brainrots não vão spawnar.")
+		return
+	end
+
+	-- groundY = Y do SpawnLocation real (já atualizado antes desta chamada)
+	local groundY = area.spawn.Position.Y
+	-- Janela de ±2 studs em torno do chão real: exclui safe areas recuadas/elevadas
+	local yMin = groundY - 2
+	local yMax = groundY + 2
+
+	local added = 0
+	for _, obj in mapModel:GetDescendants() do
+		if not obj:IsA("BasePart") then continue end
+		local bp = obj :: BasePart
+
+		-- Apenas partes planas (UpVector aponta para cima — descarta paredes e tetos inclinados)
+		if bp.CFrame.UpVector.Y < 0.7 then continue end
+
+		-- Apenas partes grandes o suficiente para ser chão jogável (≥10 studs em X e Z)
+		if bp.Size.X < 10 or bp.Size.Z < 10 then continue end
+
+		-- Não sensores invisíveis
+		if bp.Transparency >= 0.9 then continue end
+
+		-- Top surface da parte deve estar dentro da janela do chão real
+		local topSurfY = bp.Position.Y + bp.Size.Y * 0.5
+		if topSurfY < yMin or topSurfY > yMax then continue end
+
+		local p = Instance.new("Part")
+		p.Name        = "SpawnPt_" .. added
+		-- Limita tamanho do spawn point a 14 studs para não gerar offsets absurdos
+		p.Size        = Vector3.new(math.min(bp.Size.X, 14), 1, math.min(bp.Size.Z, 14))
+		p.CFrame      = CFrame.new(bp.Position.X, topSurfY, bp.Position.Z)
+		p.Anchored    = true
+		p.CanCollide  = false
+		p.Transparency = 1
+		p.Parent      = folder
+		added += 1
+	end
+
+	print(string.format("[MapSystem] BrainrotSpawn: %d floor parts encontradas no Map (janela Y [%.1f, %.1f])",
+		added, yMin, yMax))
+end
+
+-- ── Encontra o Map já existente no Workspace ────────────────────────
 -- O Map fica permanentemente no Workspace (visível no Studio).
 -- Spawn e base_origin são configurados em Settings.MAP_AREAS.main
+-- NOTA: buildSpawnPointsFolder é chamado DEPOIS de ler o SpawnLocation real (groundY correto).
 local function loadMainMap(folder: Instance, area: any)
 	local mapModel = ws:FindFirstChild("Map")
 	if not mapModel then
 		warn("[MapSystem] 'Map' não encontrado no Workspace — arraste a Folder Map do ServerStorage para o Workspace no Studio")
-		return
+	else
+		print(string.format(
+			"[MapSystem] Map encontrado no Workspace → spawn (%.1f, %.1f, %.1f)",
+			area.spawn.Position.X, area.spawn.Position.Y, area.spawn.Position.Z
+		))
 	end
-
-	print(string.format(
-		"[MapSystem] Map encontrado no Workspace → spawn (%.1f, %.1f, %.1f)",
-		area.spawn.Position.X, area.spawn.Position.Y, area.spawn.Position.Z
-	))
 end
 
 -- ── Cria objetos interativos na área main ───────────────────────────
@@ -360,9 +417,11 @@ local function setupShopArea(area: any, folder: Instance)
 	area.teleport_in = CFrame.new(cx, floorY + 3, frontZ + 6)
 		* CFrame.Angles(0, math.pi, 0)
 
-	-- teleport_out: volta para a parede original no mapa principal
-	area.teleport_out = CFrame.new(-316.26, 10, -257.64)
-		* CFrame.Angles(0, math.pi / 2, 0)
+	-- teleport_out: usa ShopReturn se existir, senão spawn principal
+	local shopReturn = workspace:FindFirstChild("ShopReturn")
+	area.teleport_out = if shopReturn and shopReturn:IsA("BasePart")
+		then (shopReturn :: BasePart).CFrame
+		else CFrame.new(-246, 0, -575)
 
 	print("[MapSystem] Loja: studs + stall no fundo + YTscreens + silver buttons + NPC sem nametag")
 end
@@ -523,6 +582,10 @@ function MapSystem.init(cfg: any)
 		for _, player in Players:GetPlayers() do
 			player.RespawnLocation = sl :: SpawnLocation
 		end
+
+		-- Gera spawn points DEPOIS de ler o SpawnLocation real, para groundY correto.
+		-- area.spawn já foi atualizado com a CFrame real do SpawnLocation acima.
+		buildSpawnPointsFolder(mainArea)
 	end
 
 	print("[MapSystem] Áreas criadas: " .. table.concat((function() local t={} for k in areas do table.insert(t,k) end return t end)(), ", "))

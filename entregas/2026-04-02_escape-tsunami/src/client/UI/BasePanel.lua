@@ -19,12 +19,14 @@ local function fmt(n: number): string
 	else return tostring(math.floor(n)) end
 end
 
-local function incomePerSec(brainrots: { [string]: number }): number
+-- brainrots vem do servidor como array { {id:string, qty:number} }[]
+local function incomePerSec(brainrots: { any }): number
 	local total = 0
-	for id, qty in brainrots do
+	for _, entry in brainrots do
+		local e: any = entry
 		for _, br in S.BRAINROTS do
-			if br.id == id then
-				total += br.income * qty
+			if br.id == e.id then
+				total += br.income * (e.qty :: number)
 				break
 			end
 		end
@@ -37,20 +39,21 @@ local function rebuild(data: any)
 		if not c:IsA("UIListLayout") then c:Destroy() end
 	end
 
-	local brainrots: { [string]: number } = data.brainrots or {}
+	local brainrots: { any } = data.brainrots or {}
 	incomeLabel.Text = "$" .. fmt(incomePerSec(brainrots)) .. "/s"
 
 	local sellEvent = RS:FindFirstChild(NAMES.SellBrainrot)
 
 	-- Ordenar por raridade (mais raro primeiro)
 	local list: { { id: string, qty: number, rarity: number } } = {}
-	for id, qty in brainrots do
-		if qty > 0 then
+	for _, entry in brainrots do
+		local e: any = entry
+		if (e.qty :: number) > 0 then
 			local rarity = 1
 			for _, br in S.BRAINROTS do
-				if br.id == id then rarity = br.rarity; break end
+				if br.id == e.id then rarity = br.rarity; break end
 			end
-			table.insert(list, { id = id, qty = qty, rarity = rarity })
+			table.insert(list, { id = e.id :: string, qty = e.qty :: number, rarity = rarity })
 		end
 	end
 	table.sort(list, function(a, b) return a.rarity > b.rarity end)
@@ -132,13 +135,28 @@ function BasePanel.init()
 	local pc = Instance.new("UICorner"); pc.CornerRadius = UDim.new(0, 12); pc.Parent = panel
 
 	local title = Instance.new("TextLabel")
-	title.Size               = UDim2.new(1, 0, 0, 34)
+	title.Size               = UDim2.new(1, -36, 0, 34)
 	title.BackgroundTransparency = 1
 	title.Font               = Enum.Font.GothamBold
 	title.TextScaled         = true
 	title.TextColor3         = Color3.fromRGB(255, 200, 40)
 	title.Text               = "YOUR BASE"
 	title.Parent             = panel
+
+	local closeBtn = Instance.new("TextButton")
+	closeBtn.Size             = UDim2.new(0, 28, 0, 28)
+	closeBtn.Position         = UDim2.new(1, -32, 0, 3)
+	closeBtn.BackgroundColor3 = Color3.fromRGB(180, 45, 45)
+	closeBtn.Font             = Enum.Font.GothamBold
+	closeBtn.TextColor3       = Color3.new(1, 1, 1)
+	closeBtn.TextSize         = 14
+	closeBtn.Text             = "✕"
+	closeBtn.BorderSizePixel  = 0
+	closeBtn.Parent           = panel
+	local cc2 = Instance.new("UICorner"); cc2.CornerRadius = UDim.new(0, 6); cc2.Parent = closeBtn
+	closeBtn.MouseButton1Click:Connect(function()
+		panel.Visible = false
+	end)
 
 	incomeLabel = Instance.new("TextLabel")
 	incomeLabel.Size               = UDim2.new(1, 0, 0, 26)
@@ -165,12 +183,8 @@ function BasePanel.init()
 	layout.Padding    = UDim.new(0, 4)
 	layout.Parent     = listFrame
 
-	-- Só visível na área base
-	panel.Visible = false
-	local teleportRemote = RS:WaitForChild(NAMES.TeleportArea) :: RemoteEvent
-	teleportRemote.OnClientEvent:Connect(function(areaName: string)
-		panel.Visible = (areaName == "base")
-	end)
+	-- Visível sempre (pedestais ficam na área main; painel mostra inventário da base em qualquer área)
+	panel.Visible = true
 
 	local syncData = RS:WaitForChild(NAMES.SyncData) :: RemoteEvent
 	syncData.OnClientEvent:Connect(function(data: any)

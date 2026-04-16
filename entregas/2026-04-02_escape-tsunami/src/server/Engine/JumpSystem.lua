@@ -110,9 +110,10 @@ local function handleBuy(pl: Player, jumpId: string)
 		PD.addBrainrot(pl, cfg.brainrot, cfg.brainrot_qty or 1)
 	end
 	if cfg.fill_base then
-		for _ = 1, d.baseSlots do
-			PD.addBrainrot(pl, "athos_mutacao_fogo")
-		end
+		-- Preenche todos os slots físicos dos pedestais + adiciona ao inventário.
+		-- require dentro da função para evitar ciclo de dependência no init.
+		local BS = require(script.Parent.BaseSystem)
+		BS.fillAll(pl, "athos_mutacao_fogo")
 	end
 	if cfg.wave_tokens then
 		d.waveTokens += cfg.wave_tokens
@@ -123,7 +124,7 @@ local function handleBuy(pl: Player, jumpId: string)
 	if cfg.extra == "galaxy_bat" then
 		local tool = Instance.new("Tool")
 		tool.Name = "GalaxyBat"
-		tool.ToolTip = "Taco de Galáxia"
+		tool.ToolTip = "Galaxy Bat"
 		tool.RequiresHandle = true
 		local handle = Instance.new("Part")
 		handle.Name = "Handle"
@@ -291,12 +292,7 @@ function JumpSystem.init(cfg: any)
 					else _cfg.MAP_AREAS.main.spawn
 				local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
 				if hrp then
-					-- Raycast para baixo: encontra o chão real e pousa o player nele
-					local origin = returnCF.Position + Vector3.new(0, 20, 0)
-					local ray = workspace:Raycast(origin, Vector3.new(0, -60, 0))
-					local safeY = if ray then ray.Position.Y + 3 else returnCF.Position.Y
-					local safeCF = CFrame.new(returnCF.Position.X, safeY, returnCF.Position.Z)
-					(hrp :: BasePart).CFrame = safeCF
+					(hrp :: BasePart).CFrame = returnCF
 				end
 			end
 			task.delay(4, function() shopExitCooldown[pl] = nil end)

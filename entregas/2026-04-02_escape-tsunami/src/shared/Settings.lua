@@ -13,18 +13,18 @@ local S = {}
 S.MAP_AREAS = {
 	main = {
 		label = "TSUNAMI ESCAPE",
-		spawn = CFrame.new(0, 10, 0),
-		size = Vector3.new(200, 50, 200),
+		spawn = CFrame.new(-246, -3, -575),      -- topo do chão inicial + 3 studs
+		base_origin = CFrame.new(-246, -3, 406), -- onde os pedestais aparecem (fim do mapa)
+		size = Vector3.new(250, 80, 1200),        -- cobre o mapa inteiro
+		-- Centro real do mapa para spawn de brainrots (midpoint entre spawn e base_origin)
+		-- spawn.Z=-575, base_origin.Z=406 → center=-85; halfZ=480 cobre toda a extensão jogável
+		brainrot_center = CFrame.new(-246, -3, -85),
+		brainrot_half   = Vector3.new(110, 0, 480),
 	},
 	shop = {
 		label = "SECRET SHOP",
-		spawn = CFrame.new(500, 10, 0),
+		spawn = CFrame.new(5000, 0, 0),  -- longe do mapa principal; nunca sobrepõe
 		size = Vector3.new(60, 30, 60),
-	},
-	base = {
-		label = "YOUR BASE",
-		spawn = CFrame.new(0, 10, 500),
-		size = Vector3.new(80, 30, 80),
 	},
 }
 
@@ -47,7 +47,18 @@ S.RARITIES = {
 	[6] = { name = "Metata", color = Color3.fromRGB(255, 80, 0) },
 	[7] = { name = "Infinity", color = Color3.fromRGB(255, 20, 147) },
 }
-S.SPAWN_WEIGHTS = { 60, 25, 10, 4, 1, 0.1, 0.02 }
+-- Pesos por raridade (índice = rarity). Legendary (5) elevado para Mikey aparecer no mapa.
+S.SPAWN_WEIGHTS = { 60, 20, 8, 4, 6, 0.1, 0.02 }
+
+-- ── ZONAS DE SPAWN DE BRAINROTS ──────────────────────────────────────
+-- Define retângulos XZ onde brainrots podem nascer. Raycast desce para achar Y do chão.
+-- cx/cz = centro do retângulo | halfX/halfZ = metade do tamanho em cada eixo
+-- Ajuste os valores para cobrir o corredor jogável sem incluir paredes ou safe area.
+S.SPAWN_ZONES = {
+	{ cx = -246, halfX = 25, cz = -100, halfZ = 420 },
+	-- cobre X: [-271, -221] (corredor central, sem paredes)
+	-- cobre Z: [-520, +320] (do início do mapa até antes da safe area)
+}
 
 -- ── BRAINROTS ─────────────────────────────────────────────────────────
 S.BRAINROT_ZONE = { MAX = 12, RATE = 3 }
@@ -58,8 +69,9 @@ S.BRAINROTS = {
 		rarity = 1,
 		income = 2,
 		color = Color3.fromRGB(200, 160, 120),
+		model_name = "Noobini Cakenini",
 	},
-	{ id = "mikey", name = "Mikey", rarity = 5, income = 7000, color = Color3.fromRGB(255, 180, 40) },
+	{ id = "mikey", name = "Mikey", rarity = 5, income = 7000, color = Color3.fromRGB(255, 180, 40), model_name = "Mikey" },
 	{
 		id = "glaciero_infernati",
 		name = "Glaciero Infernati",
@@ -73,6 +85,7 @@ S.BRAINROTS = {
 		rarity = 7,
 		income = 999000000,
 		color = Color3.fromRGB(255, 20, 147),
+		model_name = "Athos",
 	},
 	{
 		id = "athos_mutacao_fogo",
@@ -80,6 +93,14 @@ S.BRAINROTS = {
 		rarity = 7,
 		income = 999000000,
 		color = Color3.fromRGB(255, 80, 0),
+	},
+	{
+		id = "infinity_lucky_box",
+		name = "Infinity Lucky Box",
+		rarity = 7,
+		income = 999000000,
+		color = Color3.fromRGB(255, 215, 0),  -- dourado
+		model_name = "InfinityLuckyBox",       -- tenta clonar do SS; fallback = esfera dourada
 	},
 }
 

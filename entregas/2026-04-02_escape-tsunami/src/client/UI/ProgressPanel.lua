@@ -1,137 +1,141 @@
 --!strict
--- ProgressPanel — Animação de progresso dos pulos.
--- Faixa horizontal no topo com 7 cards visuais (sem texto).
--- Fica verde + ✓ ao desbloquear cada pulo.
+-- ProgressPanel — Faixa vertical no lado direito mostrando os 7 pulos.
+-- Check verde ao desbloquear cada um. Fica abaixo do BasePanel.
 local Players = game:GetService("Players")
 local RS      = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 local ProgressPanel = {}
 
 local player = Players.LocalPlayer
 local S      = require(RS.Shared.Settings)
 
--- Emoji representativo de cada pulo (sem texto — só visual)
-local AVATARS: { [string]: string } = {
-	james   = "👟",
-	jj      = "🛡️",
-	mana    = "💜",
-	pdoro   = "🌊",
-	matheus = "🦇",
-	caylus  = "🔔",
-	athos   = "🔥",
+local CARD_W  = 44
+local CARD_H  = 44
+local PAD     = 4
+local BG      = Color3.fromRGB(14, 12, 22)
+local LOCKED  = Color3.fromRGB(50, 46, 64)
+local OWNED   = Color3.fromRGB(24, 90, 36)
+local GOLD    = Color3.fromRGB(255, 210, 50)
+local WHITE   = Color3.new(1, 1, 1)
+
+-- Iniciais visíveis em cada card (sem emoji — clean)
+local INITIALS: { [string]: string } = {
+	james   = "J",
+	jj      = "JJ",
+	mana    = "M",
+	pdoro   = "P",
+	matheus = "Ma",
+	caylus  = "Ca",
+	athos   = "At",
 }
 
 function ProgressPanel.init()
 	local gui = Instance.new("ScreenGui")
 	gui.Name         = "ProgressPanel"
 	gui.ResetOnSpawn = false
+	gui.DisplayOrder = 3
 	gui.Parent       = player:WaitForChild("PlayerGui")
 
-	local CARD_W = 72
-	local CARD_H = 86
-	local PAD    = 6
-	local COUNT  = #S.JUMPS
-	local panelW = COUNT * (CARD_W + PAD) - PAD + 24
-
+	-- Painel vertical
+	local totalH = #S.JUMPS * (CARD_H + PAD) - PAD + 16
 	local panel = Instance.new("Frame")
 	panel.Name                   = "Panel"
-	panel.Size                   = UDim2.new(0, panelW, 0, CARD_H + 18)
-	panel.Position               = UDim2.new(0.5, -panelW / 2, 0, 8)
-	panel.BackgroundColor3       = Color3.fromRGB(16, 14, 24)
-	panel.BackgroundTransparency = 0.12
+	panel.Size                   = UDim2.new(0, CARD_W + 16, 0, totalH)
+	-- posicionado à direita, abaixo do BasePanel (~380px do topo)
+	panel.Position               = UDim2.new(1, -(CARD_W + 24), 0, 390)
+	panel.BackgroundColor3       = BG
+	panel.BackgroundTransparency = 0.15
 	panel.BorderSizePixel        = 0
 	panel.Parent                 = gui
-	local pc = Instance.new("UICorner"); pc.CornerRadius = UDim.new(0, 12); pc.Parent = panel
+	local pc = Instance.new("UICorner"); pc.CornerRadius = UDim.new(0, 10); pc.Parent = panel
 
-	local row = Instance.new("Frame")
-	row.Name                 = "Row"
-	row.Size                 = UDim2.new(1, -12, 0, CARD_H)
-	row.Position             = UDim2.new(0, 6, 0, 9)
-	row.BackgroundTransparency = 1
-	row.Parent               = panel
+	local col = Instance.new("Frame")
+	col.Name                 = "Col"
+	col.Size                 = UDim2.new(1, -8, 1, -8)
+	col.Position             = UDim2.new(0, 4, 0, 4)
+	col.BackgroundTransparency = 1
+	col.Parent               = panel
+
 	local lay = Instance.new("UIListLayout")
-	lay.FillDirection     = Enum.FillDirection.Horizontal
-	lay.VerticalAlignment = Enum.VerticalAlignment.Center
+	lay.FillDirection     = Enum.FillDirection.Vertical
+	lay.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	lay.Padding           = UDim.new(0, PAD)
-	lay.Parent            = row
+	lay.Parent            = col
 
+	-- Constrói os cards
 	for _, j in S.JUMPS do
 		if not j or not j.id then continue end
+		local tierColor: Color3 = j.color or GOLD
+
 		local card = Instance.new("Frame")
 		card.Name             = "Card_" .. j.id
 		card.Size             = UDim2.new(0, CARD_W, 0, CARD_H)
-		card.BackgroundColor3 = Color3.fromRGB(36, 32, 50)
+		card.BackgroundColor3 = LOCKED
 		card.BorderSizePixel  = 0
-		card.Parent           = row
-		local cc = Instance.new("UICorner"); cc.CornerRadius = UDim.new(0, 10); cc.Parent = card
+		card.Parent           = col
+		local cc = Instance.new("UICorner"); cc.CornerRadius = UDim.new(0, 8); cc.Parent = card
 
-		local stroke = Instance.new("UIStroke")
-		stroke.Name      = "Border"
-		stroke.Color     = j.color or Color3.fromRGB(80, 80, 100)
-		stroke.Thickness = 2
-		stroke.Parent    = card
+		local st = Instance.new("UIStroke")
+		st.Name      = "Border"
+		st.Color     = LOCKED
+		st.Thickness = 2
+		st.Parent    = card
 
-		-- Avatar: fundo com cor do tier + emoji centralizado
-		local ava = Instance.new("Frame")
-		ava.Name                 = "Ava"
-		ava.Size                 = UDim2.new(1, -4, 0, CARD_W - 4)
-		ava.Position             = UDim2.new(0, 2, 0, 2)
-		ava.BackgroundColor3     = j.color or Color3.fromRGB(60, 60, 80)
-		ava.BackgroundTransparency = 0.40
-		ava.BorderSizePixel      = 0
-		ava.Parent               = card
-		local ac = Instance.new("UICorner"); ac.CornerRadius = UDim.new(0, 8); ac.Parent = ava
-
-		local ico = Instance.new("TextLabel")
-		ico.Name                   = "Ico"
-		ico.Size                   = UDim2.new(1, 0, 1, 0)
-		ico.BackgroundTransparency = 1
-		ico.Font                   = Enum.Font.GothamBold
-		ico.TextScaled             = true
-		ico.TextColor3             = Color3.new(1, 1, 1)
-		ico.Text                   = AVATARS[j.id] or "👟"
-		ico.Parent                 = ava
-
-		-- Barra de cor sólida no fundo (identificador do tier)
-		local bar = Instance.new("Frame")
-		bar.Size             = UDim2.new(1, -4, 0, 12)
-		bar.Position         = UDim2.new(0, 2, 1, -14)
-		bar.BackgroundColor3 = j.color or Color3.fromRGB(80, 80, 100)
-		bar.BackgroundTransparency = 0.18
-		bar.BorderSizePixel  = 0
-		bar.Parent           = card
-		local bc = Instance.new("UICorner"); bc.CornerRadius = UDim.new(0, 4); bc.Parent = bar
+		local lbl = Instance.new("TextLabel")
+		lbl.Name                   = "Lbl"
+		lbl.Size                   = UDim2.new(1, 0, 1, 0)
+		lbl.BackgroundTransparency = 1
+		lbl.Font                   = Enum.Font.GothamBold
+		lbl.TextScaled             = true
+		lbl.TextColor3             = Color3.fromRGB(100, 90, 120)
+		lbl.Text                   = INITIALS[j.id] or j.id:sub(1,2):upper()
+		lbl.Parent                 = card
 	end
 
-	-- Marca card como desbloqueado: fica verde + ✓
+	-- Marca card como desbloqueado com tween
 	local function markUnlocked(jumpId: string)
-		local card = row:FindFirstChild("Card_" .. jumpId) :: Frame?
+		local card = col:FindFirstChild("Card_" .. jumpId) :: Frame?
 		if not card then return end
-		card.BackgroundColor3 = Color3.fromRGB(24, 80, 32)
+
+		local j: any = nil
+		for _, jj in S.JUMPS do
+			if jj.id == jumpId then j = jj; break end
+		end
+		local tierColor: Color3 = (j and j.color) or GOLD
+
+		TweenService:Create(card,
+			TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{ BackgroundColor3 = OWNED }):Play()
+
 		local border = card:FindFirstChild("Border") :: UIStroke?
 		if border then
-			border.Color     = Color3.fromRGB(80, 220, 80)
-			border.Thickness = 3
+			TweenService:Create(border,
+				TweenInfo.new(0.25, Enum.EasingStyle.Quad),
+				{ Color = tierColor }):Play()
 		end
-		local ava = card:FindFirstChild("Ava") :: Frame?
-		if ava then
-			ava.BackgroundColor3       = Color3.fromRGB(35, 170, 55)
-			ava.BackgroundTransparency = 0.15
-			local ico = ava:FindFirstChild("Ico") :: TextLabel?
-			if ico then ico.Text = "✓" end
+
+		local lbl = card:FindFirstChild("Lbl") :: TextLabel?
+		if lbl then
+			TweenService:Create(lbl,
+				TweenInfo.new(0.15, Enum.EasingStyle.Quad),
+				{ TextColor3 = GOLD }):Play()
+			task.delay(0.1, function()
+				lbl.Text = "✓"
+			end)
 		end
 	end
 
-	local R = require(RS.Shared.Remotes)
-	local sync      = RS:WaitForChild(R.SyncData) :: RemoteEvent
-	local purchased = RS:WaitForChild(R.JumpPurchased) :: RemoteEvent
+	local R       = require(RS.Shared.Remotes)
+	local syncEvt = RS:WaitForChild(R.SyncData)      :: RemoteEvent
+	local purchEvt = RS:WaitForChild(R.JumpPurchased) :: RemoteEvent
 
-	sync.OnClientEvent:Connect(function(d: any)
+	syncEvt.OnClientEvent:Connect(function(d: any)
 		if not d then return end
 		for _, id in (d.unlockedJumps or {}) do
 			markUnlocked(id)
 		end
 	end)
-	purchased.OnClientEvent:Connect(function(id: string)
+	purchEvt.OnClientEvent:Connect(function(id: string)
 		markUnlocked(id)
 	end)
 end
