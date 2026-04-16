@@ -291,7 +291,12 @@ function JumpSystem.init(cfg: any)
 					else _cfg.MAP_AREAS.main.spawn
 				local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
 				if hrp then
-					(hrp :: BasePart).CFrame = returnCF
+					-- Raycast para baixo: encontra o chão real e pousa o player nele
+					local origin = returnCF.Position + Vector3.new(0, 20, 0)
+					local ray = workspace:Raycast(origin, Vector3.new(0, -60, 0))
+					local safeY = if ray then ray.Position.Y + 3 else returnCF.Position.Y
+					local safeCF = CFrame.new(returnCF.Position.X, safeY, returnCF.Position.Z)
+					(hrp :: BasePart).CFrame = safeCF
 				end
 			end
 			task.delay(4, function() shopExitCooldown[pl] = nil end)
