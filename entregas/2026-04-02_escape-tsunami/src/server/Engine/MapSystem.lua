@@ -417,11 +417,11 @@ local function setupShopArea(area: any, folder: Instance)
 	area.teleport_in = CFrame.new(cx, floorY + 3, frontZ + 6)
 		* CFrame.Angles(0, math.pi, 0)
 
-	-- teleport_out: usa ShopReturn se existir, senão spawn principal
+	-- teleport_out: usa ShopReturn se existir; senão deixa nil (JumpSystem cai no main.spawn real)
 	local shopReturn = workspace:FindFirstChild("ShopReturn")
 	area.teleport_out = if shopReturn and shopReturn:IsA("BasePart")
 		then (shopReturn :: BasePart).CFrame
-		else CFrame.new(-246, 0, -575)
+		else nil
 
 	print("[MapSystem] Loja: studs + stall no fundo + YTscreens + silver buttons + NPC sem nametag")
 end
@@ -583,9 +583,10 @@ function MapSystem.init(cfg: any)
 			player.RespawnLocation = sl :: SpawnLocation
 		end
 
-		-- Gera spawn points DEPOIS de ler o SpawnLocation real, para groundY correto.
-		-- area.spawn já foi atualizado com a CFrame real do SpawnLocation acima.
-		buildSpawnPointsFolder(mainArea)
+		-- Auto-discovery desativada: brainrots usam parts taggeadas com "BrainrotSpawn".
+		-- Limpa a folder caso tenha sobrado de runs anteriores.
+		local stale = ws:FindFirstChild("BrainrotSpawn")
+		if stale then stale:Destroy() end
 	end
 
 	print("[MapSystem] Áreas criadas: " .. table.concat((function() local t={} for k in areas do table.insert(t,k) end return t end)(), ", "))

@@ -73,13 +73,6 @@ S.BRAINROTS = {
 	},
 	{ id = "mikey", name = "Mikey", rarity = 5, income = 7000, color = Color3.fromRGB(255, 180, 40), model_name = "Mikey" },
 	{
-		id = "glaciero_infernati",
-		name = "Glaciero Infernati",
-		rarity = 4,
-		income = 50000,
-		color = Color3.fromRGB(80, 180, 255),
-	},
-	{
 		id = "athos_brainrot",
 		name = "O Athos Brainrot",
 		rarity = 7,

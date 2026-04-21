@@ -10,12 +10,28 @@ Freelance PJ para Athos (Roblox content creator). Dois projetos:
 ## Comandos
 ```bash
 rojo serve default.project.json           # live-sync com Studio (rodar em entregas/SLUG/)
-rojo build default.project.json --output game_ready.rbxl
 selene entregas/SLUG/src/                 # lint — zero erros antes de commit
 StyLua src/server/Engine/
 python processor/watch.py                 # PDF → pasta entrega completa
 # Todos via aftman (C:\Users\MayconBruno\.aftman\bin\): rojo · selene · StyLua
 ```
+
+## ⚠️ NUNCA rodar `rojo build`
+Reconstrói o `.rbxl` apenas a partir de `default.project.json` — **destrói mapa + models + assets manuais do ServerStorage**.
+Já causou perda permanente de assets (2026-04-19). Use sempre `rojo serve` + Studio salvar manualmente.
+
+## Arquivo de jogo (escape-tsunami)
+- **`em_manutencao.rbxl`** — place atual com mapa, models, ShopEntrance/ShopExit/BrainrotSpawn tags
+- Único backup dos assets manuais → commitar regularmente após salvar no Studio
+
+## Workflow de publicação no Roblox
+1. Studio: `File → Open` → `em_manutencao.rbxl`
+2. Terminal: `rojo serve` em `entregas/2026-04-02_escape-tsunami/`
+3. Studio: aba Plugins → Rojo → Connect (porta 34872)
+4. Testar com F5 (Play Solo)
+5. **Ctrl+S no Studio** (grava code+assets no `.rbxl`)
+6. Studio: `File → Publish to Roblox` → Athos Preview (placeId `79528061984127`)
+7. Git: `git add em_manutencao.rbxl src/` + commit + push
 
 ## Arquitetura
 ```

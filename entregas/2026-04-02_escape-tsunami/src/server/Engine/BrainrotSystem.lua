@@ -227,7 +227,37 @@ end
 local spawnZonesLogged = false
 
 local function pickSpawnCF(): CFrame?
-	local ws2    = game:GetService("Workspace")
+	local ws2 = game:GetService("Workspace")
+
+	-- Prioridade 1: parts marcadas como "BrainrotSpawn" — via tag CollectionService OU nome
+	local taggedPoints: { BasePart } = {}
+	local seen: { [Instance]: boolean } = {}
+	for _, p in CollectionService:GetTagged("BrainrotSpawn") do
+		if p:IsA("BasePart") and not seen[p] then
+			seen[p] = true
+			table.insert(taggedPoints, p :: BasePart)
+		end
+	end
+	-- Também aceita parts com o NOME "BrainrotSpawn" (fallback para quem renomeou em vez de tag)
+	for _, p in ws2:GetDescendants() do
+		if p:IsA("BasePart") and p.Name == "BrainrotSpawn" and not seen[p] then
+			seen[p] = true
+			table.insert(taggedPoints, p :: BasePart)
+		end
+	end
+	if not spawnZonesLogged then
+		print(string.format("[BrainrotSystem] BrainrotSpawn (tag+nome): %d parts encontradas", #taggedPoints))
+	end
+	if #taggedPoints > 0 then
+		local pt2 = taggedPoints[math.random(1, #taggedPoints)]
+		-- Posição aleatória no topo da part (70% do tamanho pra evitar bordas)
+		local rx = pt2.Position.X + (math.random() - 0.5) * pt2.Size.X * 0.7
+		local rz = pt2.Position.Z + (math.random() - 0.5) * pt2.Size.Z * 0.7
+		local topY = pt2.Position.Y + pt2.Size.Y / 2
+		return CFrame.new(rx, topY, rz)
+	end
+
+	-- Prioridade 2 (fallback): SPAWN_ZONES do Settings
 	local zones  = _cfg.SPAWN_ZONES
 	if not zones or #zones == 0 then return nil end
 

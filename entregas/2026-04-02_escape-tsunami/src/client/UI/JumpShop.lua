@@ -160,7 +160,7 @@ local function buildCard(parent: Instance, j: any, state: string)
 	if state == "owned" then
 		btn.BackgroundColor3 = BTN_OWN
 		btn.TextColor3       = DARK_TXT
-		btn.Text             = "✓  OBTIDO"
+		btn.Text             = "✓  OWNED"
 		btn.Active           = false; btn.AutoButtonColor = false
 	elseif state == "available" then
 		btn.BackgroundColor3 = BTN_FREE

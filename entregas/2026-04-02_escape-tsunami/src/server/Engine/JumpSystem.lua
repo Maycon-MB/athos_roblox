@@ -222,6 +222,10 @@ function JumpSystem.init(cfg: any)
 		reapplyOnSpawn(pl)
 	end
 
+	-- Posição salva ao entrar pela ShopEntrance — usada pelo ShopExit para retornar
+	local shopEntryCFrame: { [Player]: CFrame } = {}
+	Players.PlayerRemoving:Connect(function(pl) shopEntryCFrame[pl] = nil end)
+
 	-- Utilitário: conecta Touched com cooldown por player
 	local function onTouched(part: BasePart, fn: (pl: Player, char: Model) -> ())
 		local cooldown: { [Player]: boolean } = {}
@@ -259,10 +263,13 @@ function JumpSystem.init(cfg: any)
 
 		onTouched(part, function(pl, char)
 			if _cfg and _cfg.MAP_AREAS and _cfg.MAP_AREAS.shop then
-				local dest: CFrame = _cfg.MAP_AREAS.shop.teleport_in or _cfg.MAP_AREAS.shop.spawn
 				local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
 				if hrp then
-					(hrp :: BasePart).CFrame = dest
+					-- Salva posição de entrada para o ShopExit restaurar
+					-- 3 studs atrás do HRP (posição do mapa antes de atravessar a parede)
+					shopEntryCFrame[pl] = (hrp :: BasePart).CFrame * CFrame.new(0, 0, 3)
+					local dest: CFrame = _cfg.MAP_AREAS.shop.teleport_in or _cfg.MAP_AREAS.shop.spawn
+					;(hrp :: BasePart).CFrame = dest
 				end
 			end
 			-- UI NÃO abre aqui — só abre ao se aproximar do balcão (ShopCounter)
@@ -276,7 +283,7 @@ function JumpSystem.init(cfg: any)
 		end)
 	end
 
-	-- ShopExit: portal invisível na saída da loja → player atravessa, volta ao mapa
+	-- ShopExit: portal invisível na saída da loja → player volta para a posição de entrada
 	-- Cooldown de 4s para não disparar logo ao entrar na loja
 	local shopExitCooldown: { [Player]: boolean } = {}
 	local function setupShopExit(part: BasePart)
@@ -286,13 +293,27 @@ function JumpSystem.init(cfg: any)
 			local pl = Players:GetPlayerFromCharacter(char)
 			if not pl or shopExitCooldown[pl] then return end
 			shopExitCooldown[pl] = true
-			if _cfg and _cfg.MAP_AREAS then
-				local returnCF: CFrame = if _cfg.MAP_AREAS.shop and _cfg.MAP_AREAS.shop.teleport_out
-					then _cfg.MAP_AREAS.shop.teleport_out
-					else _cfg.MAP_AREAS.main.spawn
-				local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
-				if hrp then
-					(hrp :: BasePart).CFrame = returnCF
+			local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if hrp then
+				-- Prioridade 1: posição salva ao entrar pela ShopEntrance
+				local saved = shopEntryCFrame[pl]
+				if saved then
+					(hrp :: BasePart).CFrame = saved
+				elseif _cfg and _cfg.MAP_AREAS then
+					-- Fallback: spawn principal + raycast pra achar chão real
+					local returnCF: CFrame = _cfg.MAP_AREAS.main.spawn
+					local ws = game:GetService("Workspace")
+					local rp = RaycastParams.new()
+					rp.FilterType = Enum.RaycastFilterType.Exclude
+					rp.FilterDescendantsInstances = { char }
+					local origin = returnCF.Position + Vector3.new(0, 300, 0)
+					local hitR = ws:Raycast(origin, Vector3.new(0, -800, 0), rp)
+					if hitR and hitR.Normal.Y > 0.5 then
+						(hrp :: BasePart).CFrame = CFrame.new(hitR.Position + Vector3.new(0, 5, 0))
+					else
+						(hrp :: BasePart).CFrame = returnCF + Vector3.new(0, 10, 0)
+						warn("[ShopExit] raycast sem chão — fallback +10Y")
+					end
 				end
 			end
 			task.delay(4, function() shopExitCooldown[pl] = nil end)
