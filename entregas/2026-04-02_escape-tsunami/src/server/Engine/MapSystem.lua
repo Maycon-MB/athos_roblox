@@ -127,15 +127,61 @@ local function buildSpawnPointsFolder(area: any)
 		added, yMin, yMax))
 end
 
+-- ── Aplica Plastic + Studs em todas as BaseParts do Map ────────────
+-- Xadrez apenas em parts com tag "Floor" — cores e paredes não são tocadas.
+local function applyMapTexture(mapModel: Instance)
+	local CS      = game:GetService("CollectionService")
+	local FLOOR_A = Color3.fromRGB(117, 196, 96)   -- verde claro (chão)
+	local FLOOR_B = Color3.fromRGB(74,  143, 61)   -- verde escuro (grid)
+	local TILE    = 8
+
+	local count = 0
+	for _, obj in mapModel:GetDescendants() do
+		if not obj:IsA("BasePart") then continue end
+		local p = obj :: BasePart
+		p.Material      = Enum.Material.Plastic
+		p.TopSurface    = Enum.SurfaceType.Studs
+		p.BottomSurface = Enum.SurfaceType.Studs
+		p.FrontSurface  = Enum.SurfaceType.Studs
+		p.BackSurface   = Enum.SurfaceType.Studs
+		p.LeftSurface   = Enum.SurfaceType.Studs
+		p.RightSurface  = Enum.SurfaceType.Studs
+
+		if CS:HasTag(p, "Base") then
+			p.Color = FLOOR_A
+			for _, ch in p:GetChildren() do
+				if ch:IsA("Texture") and ch.Name == "GridTex" then ch:Destroy() end
+			end
+			local tex = Instance.new("Texture")
+			tex.Name           = "GridTex"
+			tex.Texture        = "rbxassetid://6372755229"  -- checkerboard
+			tex.Color3         = FLOOR_B
+			tex.Transparency   = 0.25
+			tex.StudsPerTileU  = 8
+			tex.StudsPerTileV  = 8
+			tex.Face           = Enum.NormalId.Top
+			tex.Parent         = p
+		elseif CS:HasTag(p, "Floor") then
+			p.Color = FLOOR_A
+		elseif CS:HasTag(p, "Wall") then
+			p.Color = Color3.fromRGB(209, 132, 75)
+		end
+		count += 1
+	end
+	print(string.format("[MapSystem] applyMapTexture: %d parts → Plastic + Studs", count))
+
+	-- Remove tiles de runs anteriores caso existam
+	local existing = ws:FindFirstChild("CheckerBase")
+	if existing then existing:Destroy() end
+end
+
 -- ── Encontra o Map já existente no Workspace ────────────────────────
--- O Map fica permanentemente no Workspace (visível no Studio).
--- Spawn e base_origin são configurados em Settings.MAP_AREAS.main
--- NOTA: buildSpawnPointsFolder é chamado DEPOIS de ler o SpawnLocation real (groundY correto).
 local function loadMainMap(folder: Instance, area: any)
 	local mapModel = ws:FindFirstChild("Map")
 	if not mapModel then
 		warn("[MapSystem] 'Map' não encontrado no Workspace — arraste a Folder Map do ServerStorage para o Workspace no Studio")
 	else
+		applyMapTexture(mapModel)
 		print(string.format(
 			"[MapSystem] Map encontrado no Workspace → spawn (%.1f, %.1f, %.1f)",
 			area.spawn.Position.X, area.spawn.Position.Y, area.spawn.Position.Z
@@ -212,6 +258,16 @@ local function setupShopArea(area: any, folder: Instance)
 		return p
 	end
 
+	-- Aplica Studs em todas as 6 faces (chão + paredes da loja)
+	local function studsAll(p: Part)
+		p.TopSurface    = STUDS
+		p.BottomSurface = STUDS
+		p.FrontSurface  = STUDS
+		p.BackSurface   = STUDS
+		p.LeftSurface   = STUDS
+		p.RightSurface  = STUDS
+	end
+
 	-- Screen YouTube: parte plana, SurfaceGui na face passada
 	local function ytScreen(pos: Vector3, size: Vector3, face: Enum.NormalId)
 		local scr = mk("YTScreen", size, CFrame.new(pos),
@@ -233,33 +289,33 @@ local function setupShopArea(area: any, folder: Instance)
 		pl.TextColor3 = WHITE; pl.Text = "▶"; pl.Parent = yt
 	end
 
-	-- ── Chão com Studs ─────────────────────────────────────────────────
-	mk("ShopFloor", Vector3.new(area.size.X, 1, area.size.Z),
-		CFrame.new(cx, baseY - 1.5, cz), FLOOR, nil, nil, nil, STUDS)
+	-- ── Chão com Studs em todas as faces ──────────────────────────────
+	studsAll(mk("ShopFloor", Vector3.new(area.size.X, 1, area.size.Z),
+		CFrame.new(cx, baseY - 1.5, cz), FLOOR))
 
 	-- ── Teto ────────────────────────────────────────────────────────────
 	mk("ShopCeiling", Vector3.new(area.size.X + 2, 2, area.size.Z + 2),
 		CFrame.new(cx, topY + 1, cz), ROOF)
 
-	-- Paredes com Studs na face interior
-	mk("WallBack", Vector3.new(area.size.X, wallH, 2),
-		CFrame.new(cx, midY, cz + halfZ), WALL).FrontSurface = STUDS
-	mk("WallLeft", Vector3.new(2, wallH, area.size.Z),
-		CFrame.new(cx - halfX, midY, cz), WALL).RightSurface = STUDS
-	mk("WallRight", Vector3.new(2, wallH, area.size.Z),
-		CFrame.new(cx + halfX, midY, cz), WALL).LeftSurface = STUDS
+	-- ── Paredes com Studs em todas as faces ────────────────────────────
+	studsAll(mk("WallBack", Vector3.new(area.size.X, wallH, 2),
+		CFrame.new(cx, midY, cz + halfZ), WALL))
+	studsAll(mk("WallLeft", Vector3.new(2, wallH, area.size.Z),
+		CFrame.new(cx - halfX, midY, cz), WALL))
+	studsAll(mk("WallRight", Vector3.new(2, wallH, area.size.Z),
+		CFrame.new(cx + halfX, midY, cz), WALL))
 
 	local crackW    = 8;   local crackH = 8
 	local sideW     = halfX - crackW / 2
 	local topSecH   = wallH - crackH
 	local topSecMid = floorY + crackH + topSecH / 2
 
-	mk("WallFront_L", Vector3.new(sideW, wallH, 2),
-		CFrame.new(cx - crackW/2 - sideW/2, midY, frontZ), WALL).BackSurface = STUDS
-	mk("WallFront_R", Vector3.new(sideW, wallH, 2),
-		CFrame.new(cx + crackW/2 + sideW/2, midY, frontZ), WALL).BackSurface = STUDS
-	mk("WallFront_Top", Vector3.new(crackW, topSecH, 2),
-		CFrame.new(cx, topSecMid, frontZ), WALL).BackSurface = STUDS
+	studsAll(mk("WallFront_L", Vector3.new(sideW, wallH, 2),
+		CFrame.new(cx - crackW/2 - sideW/2, midY, frontZ), WALL))
+	studsAll(mk("WallFront_R", Vector3.new(sideW, wallH, 2),
+		CFrame.new(cx + crackW/2 + sideW/2, midY, frontZ), WALL))
+	studsAll(mk("WallFront_Top", Vector3.new(crackW, topSecH, 2),
+		CFrame.new(cx, topSecMid, frontZ), WALL))
 
 	-- Roteiro pede loja "com nada escrito" — placas removidas (2026-04-21).
 	-- Apenas YouTube screens nas paredes + stall (pilares + balcão).

@@ -15,8 +15,8 @@
 --         RightArrow
 --     Templates
 --       CardTemplate (com descendants: NameLbl, SubLbl, Face, Shoe, PriceBtn)
-local Players = game:GetService("Players")
-local RS      = game:GetService("ReplicatedStorage")
+local Players      = game:GetService("Players")
+local RS           = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local JumpShop = {}
 
@@ -38,7 +38,7 @@ local COST_ICON: { [string]: string } = {
 	money          = "💰",
 	survive_waves  = "🌊",
 	kill_noobs     = "💀",
-	sell_brainrots = "💱",
+	sell_brainrots = "$",
 	fuse_brainrots = "🔥",
 }
 
@@ -102,43 +102,54 @@ local currentData: any = {}
 local buyRemote:    RemoteEvent
 local isOpen        = false
 
--- ── Aplica o gradiente do estado no PriceBtn ──
-local function setBtnGradient(btn: Instance, top: Color3, bot: Color3)
-	local g = btn:FindFirstChildWhichIsA("UIGradient")
-	if g then
-		g.Color = ColorSequence.new(top, bot)
-		g.Rotation = 90
-	else
-		local ng = Instance.new("UIGradient")
-		ng.Color = ColorSequence.new(top, bot)
-		ng.Rotation = 90
-		ng.Parent = btn
-	end
-end
-
 local function applyState(card: Frame, j: any, state: string)
-	local btn = card:FindFirstChild("PriceBtn") :: TextButton?
-	if not btn then return end
+	local btn = card:FindFirstChild("PriceBtn", true) :: TextButton?
+	if not btn then warn("[JumpShop] PriceBtn não encontrado em", card.Name) return end
+
+	-- Desativa todos os UIGradients do botão para não interferir
+	for _, g in btn:GetDescendants() do
+		if g:IsA("UIGradient") then g.Enabled = false end
+	end
+
+	btn.BackgroundTransparency = 0
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+	local mainColor: Color3
+	local darkColor: Color3
 	if state == "owned" then
-		setBtnGradient(btn, BTN_OWN_TOP, BTN_OWN_BOT)
+		mainColor = Color3.fromRGB(30, 110, 140)
+		darkColor = Color3.fromRGB(15, 65, 90)
 		btn.Text = "✓ OWNED"
 		btn.Active = false
 		btn.AutoButtonColor = false
 	elseif state == "available" then
-		if (j.cost_type :: string) == "free" then
-			setBtnGradient(btn, BTN_GREEN_TOP, BTN_GREEN_BOT)
-		else
-			setBtnGradient(btn, BTN_GOLD_TOP, BTN_GOLD_BOT)
-		end
+		mainColor = Color3.fromRGB(60, 180, 50)
+		darkColor = Color3.fromRGB(30, 110, 20)
 		btn.Text = costText(j)
 		btn.Active = true
-		btn.AutoButtonColor = true
+		btn.AutoButtonColor = false
 	else
-		setBtnGradient(btn, BTN_LOCK_TOP, BTN_LOCK_BOT)
+		mainColor = Color3.fromRGB(100, 100, 100)
+		darkColor = Color3.fromRGB(60, 60, 60)
 		btn.Text = costText(j)
 		btn.Active = false
 		btn.AutoButtonColor = false
 	end
+
+	btn.BackgroundColor3 = mainColor
+
+	-- Barra escura no fundo (efeito 3D)
+	local bar = btn:FindFirstChild("BottomBar") :: Frame?
+	if not bar then
+		bar = Instance.new("Frame")
+		;(bar :: Frame).Name = "BottomBar"
+		;(bar :: Frame).Size = UDim2.new(1, 0, 0, 6)
+		;(bar :: Frame).Position = UDim2.new(0, 0, 1, -6)
+		;(bar :: Frame).BorderSizePixel = 0
+		;(bar :: Frame).ZIndex = btn.ZIndex + 1
+		;(bar :: Frame).Parent = btn
+	end
+	;(bar :: Frame).BackgroundColor3 = darkColor
 end
 
 local function populateCard(card: Frame, j: any, state: string)
@@ -155,18 +166,41 @@ local function populateCard(card: Frame, j: any, state: string)
 	end
 
 	local face = card:FindFirstChild("Face", true) :: TextLabel?
-	if face then
-		face.Text = FACE_EMOJI[j.id] or "👤"
-	end
+	if face then face.Text = "" end
 
 	local shoe = card:FindFirstChild("Shoe", true) :: ImageLabel?
-	if shoe and j.image and j.image ~= "" then
-		shoe.Image = j.image
+	if shoe then
+		shoe.Image = if j.image and j.image ~= "" then j.image else "rbxassetid://89782805653181"
+		if j.user_id then
+			local headImg = Instance.new("ImageLabel")
+			headImg.Name                   = "HeadShot"
+			headImg.Size                   = UDim2.new(0.72, 0, 0.72, 0)
+			headImg.Position               = UDim2.new(0.14, 0, -0.48, 0)
+			headImg.BackgroundTransparency = 1
+			headImg.ZIndex                 = shoe.ZIndex + 1
+			headImg.Parent                 = shoe
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(1, 0)
+			corner.Parent       = headImg
+			local uid = j.user_id :: number
+			task.spawn(function()
+				local ok, url = pcall(function()
+					return Players:GetUserThumbnailAsync(
+						uid,
+						Enum.ThumbnailType.HeadShot,
+						Enum.ThumbnailSize.Size420x420
+					)
+				end)
+				if ok and headImg.Parent then
+					headImg.Image = url
+				end
+			end)
+		end
 	end
 
 	applyState(card, j, state)
 
-	local btn = card:FindFirstChild("PriceBtn") :: TextButton?
+	local btn = card:FindFirstChild("PriceBtn", true) :: TextButton?
 	if btn and state == "available" then
 		btn.MouseButton1Click:Connect(function()
 			buyRemote:FireServer(j.id)
