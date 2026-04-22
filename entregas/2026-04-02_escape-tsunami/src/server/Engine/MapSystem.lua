@@ -261,20 +261,8 @@ local function setupShopArea(area: any, folder: Instance)
 	mk("WallFront_Top", Vector3.new(crackW, topSecH, 2),
 		CFrame.new(cx, topSecMid, frontZ), WALL).BackSurface = STUDS
 
-	-- Helper: cria placa com texto "Youtuber\nJump Shop"
-	local function makeSign(pname: string, size: Vector3, cf: CFrame)
-		local s = mk(pname, size, cf, RED, nil, nil, false)
-		local sg = Instance.new("SurfaceGui"); sg.Face = Enum.NormalId.Front; sg.Parent = s
-		local lb = Instance.new("TextLabel")
-		lb.Size = UDim2.fromScale(1, 1); lb.BackgroundColor3 = RED
-		lb.BackgroundTransparency = 0; lb.Font = Enum.Font.GothamBold
-		lb.TextScaled = true; lb.TextColor3 = WHITE
-		lb.Text = "Youtuber\nJump Shop"; lb.Parent = sg
-	end
-
-	-- Sign exterior (visível de fora, face Front = -Z)
-	makeSign("ShopSignExt", Vector3.new(crackW + 8, 4, 0.4),
-		CFrame.new(cx, floorY + crackH + 2.5, frontZ - 0.2))
+	-- Roteiro pede loja "com nada escrito" — placas removidas (2026-04-21).
+	-- Apenas YouTube screens nas paredes + stall (pilares + balcão).
 
 	-- ── YouTube screens nas paredes (sem rotação, NormalId correto) ────
 	-- Parede traseira — face Front (-Z) aponta para interior ✓
@@ -307,9 +295,6 @@ local function setupShopArea(area: any, folder: Instance)
 		CFrame.new(cx, floorY + 3.6, stallZ), RED)
 	mk("Stall_CounterFront", Vector3.new(12, 3.2, 0.5),
 		CFrame.new(cx, floorY + 1.6, stallZ - 1.25), RED)
-	-- Sign interior sobre o stall (face Front = -Z, visível de quem entra)
-	makeSign("ShopSign", Vector3.new(12, 3.5, 0.4),
-		CFrame.new(cx, floorY + 9.5, stallZ))
 
 	-- ── NPC — R6 branco, cabeça preta, olhos vermelhos Neon ────────────
 	local npcX  = cx
