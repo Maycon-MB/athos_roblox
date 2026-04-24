@@ -36,15 +36,20 @@ local function populateButton(btn: GuiObject, def: any, order: number)
 
 	local label = btn:FindFirstChild("Label", true) :: TextLabel?
 	if label then
-		label.Text = def.label or def.id
+		label.Text      = def.label or def.id
+		label.TextColor3 = if def.novelty
+			then Color3.fromRGB(255, 200, 0)
+			else Color3.fromRGB(255, 255, 255)
 	end
 
-	-- Novidade: ativa inner border amarelo + NEW! badge
 	local inner = btn:FindFirstChild("InnerBorder") :: Frame?
 	if inner then
 		local stk = inner:FindFirstChildWhichIsA("UIStroke")
 		if stk then
-			stk.Transparency = if def.novelty then 0 else 1
+			stk.Color        = if def.novelty
+				then Color3.fromRGB(255, 200, 0)
+				else Color3.fromRGB(180, 180, 180)
+			stk.Transparency = 0
 		end
 	end
 
@@ -62,25 +67,40 @@ function MainMenu.init()
 		return
 	end
 
+	-- Espaçamento e tamanho: rodam sempre, independente de Templates.
+	local cfg: any = S.MAIN_MENU
+
+	-- Busca UIGridLayout em qualquer lugar do ScreenGui (não depende de nomes específicos)
+	local gridLayout = gui:FindFirstChildWhichIsA("UIGridLayout", true)
+	if gridLayout then
+		local pad = cfg.cell_padding or 4
+		gridLayout.CellPadding = UDim2.new(0, pad, 0, pad)
+	end
+
+	-- Tamanho do painel principal (primeiro Frame filho do ScreenGui)
+	if cfg.panel_size then
+		local mfAny = gui:FindFirstChildWhichIsA("Frame") :: Frame?
+		if mfAny then
+			mfAny.Size = cfg.panel_size
+		end
+	end
+
 	local mf = gui:FindFirstChild("MenuFrame") :: Frame?
 	if not mf then return end
 
-	-- Se não tiver pasta Templates, o ScreenGui é a versão hardcoded (edit-mode visível).
-	-- Nesse caso, MainMenu.lua é no-op — o menu já está renderizado diretamente.
+	-- Se não tiver pasta Templates, modo hardcoded: apenas ajustes acima são aplicados.
 	local templates = gui:FindFirstChild("Templates")
 	if not templates then return end
 
-	local btnTmpl = templates:FindFirstChild("ButtonTemplate") :: GuiObject?
+	local btnTmpl  = templates:FindFirstChild("ButtonTemplate") :: GuiObject?
 	local adminTmpl = templates:FindFirstChild("AdminTemplate") :: GuiObject?
 	local adminSlot = mf:FindFirstChild("AdminSlot") :: Frame?
-	local grid = mf:FindFirstChild("Grid") :: Frame?
+	local grid     = mf:FindFirstChild("Grid") :: Frame?
 	if not (btnTmpl and adminTmpl and adminSlot and grid) then return end
 
 	-- Clona fora de Templates antes de remover a pasta
 	local btnMaster = btnTmpl:Clone()
 	local adminMaster = adminTmpl:Clone()
-
-	local cfg: any = S.MAIN_MENU
 
 	-- Admin no topo
 	if cfg.admin and cfg.admin.enabled then

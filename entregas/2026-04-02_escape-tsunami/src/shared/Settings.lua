@@ -225,6 +225,8 @@ S.BASE = { SLOTS_DEFAULT = 4, SLOTS_MAX = 12 }
 -- Lista de botões clonados do ButtonTemplate em runtime. Adicione/remova à vontade.
 -- novelty = true → mostra inner border amarelo + badge "NEW!"
 S.MAIN_MENU = {
+	-- Espaçamento entre botões (px). Ajuste sem abrir Studio.
+	cell_padding = 20,
 	admin = {
 		enabled = true,
 		icon = "rbxassetid://18209589139",
