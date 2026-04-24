@@ -8,13 +8,9 @@ require(ui:WaitForChild("StatusBar")).init()
 require(ui:WaitForChild("WaveAlert")).init()
 require(ui:WaitForChild("JumpShop")).init()
 require(ui:WaitForChild("WaveMachinePanel")).init()
-require(ui:WaitForChild("ProgressPanel")).init()
 require(ui:WaitForChild("AdminPanel")).init()
 require(ui:WaitForChild("AreaLabel")).init()
-require(ui:WaitForChild("HudController")).init()
-require(ui:WaitForChild("BasePanel")).init()
-require(ui:WaitForChild("FusionMachinePanel")).init()
-require(ui:WaitForChild("FakeButtons")).init()
+require(ui:WaitForChild("MainMenu")).init()
 
 -- GalaxyBat: detecta Activated no client e dispara knockback server-side
 local player = Players.LocalPlayer

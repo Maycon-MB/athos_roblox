@@ -107,7 +107,7 @@ S.JUMPS = {
 		label = "James",
 		name = "James",
 		color = Color3.fromRGB(80, 180, 80),
-		image = "",
+		image = "rbxassetid://92876302516404",
 		user_id = 10630798575,
 		jump = 10,
 		speed = 67,
@@ -122,7 +122,7 @@ S.JUMPS = {
 		label = "JJ",
 		name = "JJ",
 		color = Color3.fromRGB(60, 120, 220),
-		image = "",
+		image = "rbxassetid://104594177458534", -- zenichi
 		user_id = 2837432041,
 		jump = 40,
 		speed = 250,
@@ -138,7 +138,7 @@ S.JUMPS = {
 		label = "Mana",
 		name = "Mana",
 		color = Color3.fromRGB(255, 100, 180),
-		image = "",
+		image = "rbxassetid://99028854481677",
 		user_id = 4477141353,
 		jump = 90,
 		speed = 400,
@@ -153,7 +153,7 @@ S.JUMPS = {
 		label = "Pdoro",
 		name = "Pdoro",
 		color = Color3.fromRGB(255, 200, 40),
-		image = "",
+		image = "rbxassetid://80820275716340",
 		user_id = 821426662,
 		jump = 140,
 		speed = 600,
@@ -167,7 +167,7 @@ S.JUMPS = {
 		label = "Matheus",
 		name = "Matheus",
 		color = Color3.fromRGB(160, 60, 220),
-		image = "",
+		image = "rbxassetid://117561125426551",
 		user_id = 5055393579,
 		jump = 170,
 		speed = 800,
@@ -183,7 +183,7 @@ S.JUMPS = {
 		label = "Caylus",
 		name = "Caylus",
 		color = Color3.fromRGB(255, 80, 0),
-		image = "",
+		image = "rbxassetid://137262830122100",
 		user_id = 2657540898,
 		jump = 200,
 		speed = 2000,
@@ -198,7 +198,7 @@ S.JUMPS = {
 		label = "Athos",
 		name = "Athos",
 		color = Color3.fromRGB(255, 20, 147),
-		image = "",
+		image = "rbxassetid://104576040550373",
 		user_id = 4083053143,
 		jump = 250,
 		speed = 2500,
@@ -220,5 +220,24 @@ S.CHALLENGES = {
 
 -- ── BASE ──────────────────────────────────────────────────────────────
 S.BASE = { SLOTS_DEFAULT = 4, SLOTS_MAX = 12 }
+
+-- ── MENU LATERAL (MainMenuOptions) ─────────────────────────────────────
+-- Lista de botões clonados do ButtonTemplate em runtime. Adicione/remova à vontade.
+-- novelty = true → mostra inner border amarelo + badge "NEW!"
+S.MAIN_MENU = {
+	admin = {
+		enabled = true,
+		icon = "rbxassetid://18209589139",
+		label = "ADMIN PANEL",
+	},
+	buttons = {
+		{ id = "store",   label = "Store",      icon = "rbxassetid://15985638648",    novelty = true },
+		{ id = "trade",   label = "Trade",      icon = "rbxassetid://18367658811" },
+		{ id = "index",   label = "Index",      icon = "rbxassetid://125938585603640" },
+		{ id = "vip",     label = "V.I.P",      icon = "rbxassetid://103049239176781" },
+		{ id = "rebirth", label = "Rebirth[0]", icon = "rbxassetid://18367579959" },
+		{ id = "invite",  label = "Invite",     icon = "rbxassetid://83383867459336" },
+	},
+}
 
 return S

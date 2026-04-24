@@ -88,6 +88,9 @@
 					},
 					"FakeButtons": {
 						"$path": "src/client/UI/FakeButtons.lua"
+					},
+					"MainMenu": {
+						"$path": "src/client/UI/MainMenu.lua"
 					}
 				}
 			}

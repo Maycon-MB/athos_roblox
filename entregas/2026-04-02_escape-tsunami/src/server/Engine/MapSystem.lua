@@ -131,8 +131,8 @@ end
 -- Xadrez apenas em parts com tag "Floor" — cores e paredes não são tocadas.
 local function applyMapTexture(mapModel: Instance)
 	local CS      = game:GetService("CollectionService")
-	local FLOOR_A = Color3.fromRGB(117, 196, 96)   -- verde claro (chão)
-	local FLOOR_B = Color3.fromRGB(74,  143, 61)   -- verde escuro (grid)
+	local FLOOR_A = Color3.fromRGB(61, 228, 59)    -- #3DE43B verde canva (chão)
+	local FLOOR_B = Color3.fromRGB(40, 170, 40)    -- variante escura p/ xadrez (derivada)
 	local TILE    = 8
 
 	local count = 0
@@ -164,7 +164,7 @@ local function applyMapTexture(mapModel: Instance)
 		elseif CS:HasTag(p, "Floor") then
 			p.Color = FLOOR_A
 		elseif CS:HasTag(p, "Wall") then
-			p.Color = Color3.fromRGB(209, 132, 75)
+			p.Color = Color3.fromRGB(98, 82, 54)  -- #625236 marrom acinzentado
 		end
 		count += 1
 	end

@@ -165,37 +165,11 @@ local function populateCard(card: Frame, j: any, state: string)
 		subLbl.Text = j.rewards or ""
 	end
 
-	local face = card:FindFirstChild("Face", true) :: TextLabel?
-	if face then face.Text = "" end
-
-	local shoe = card:FindFirstChild("Shoe", true) :: ImageLabel?
-	if shoe then
-		shoe.Image = if j.image and j.image ~= "" then j.image else "rbxassetid://89782805653181"
-		if j.user_id then
-			local headImg = Instance.new("ImageLabel")
-			headImg.Name                   = "HeadShot"
-			headImg.Size                   = UDim2.new(0.72, 0, 0.72, 0)
-			headImg.Position               = UDim2.new(0.14, 0, -0.48, 0)
-			headImg.BackgroundTransparency = 1
-			headImg.ZIndex                 = shoe.ZIndex + 1
-			headImg.Parent                 = shoe
-			local corner = Instance.new("UICorner")
-			corner.CornerRadius = UDim.new(1, 0)
-			corner.Parent       = headImg
-			local uid = j.user_id :: number
-			task.spawn(function()
-				local ok, url = pcall(function()
-					return Players:GetUserThumbnailAsync(
-						uid,
-						Enum.ThumbnailType.HeadShot,
-						Enum.ThumbnailSize.Size420x420
-					)
-				end)
-				if ok and headImg.Parent then
-					headImg.Image = url
-				end
-			end)
-		end
+	-- Icon: ImageLabel dentro do ImgArea do template. Script só troca .Image.
+	-- Imagens ficam em Settings.JUMPS[i].image (rbxassetid://...)
+	local icon = card:FindFirstChild("Icon", true) :: ImageLabel?
+	if icon and j.image and j.image ~= "" then
+		icon.Image = j.image
 	end
 
 	applyState(card, j, state)
