@@ -67,28 +67,45 @@ function MainMenu.init()
 		return
 	end
 
-	-- Espaçamento e tamanho: rodam sempre, independente de Templates.
 	local cfg: any = S.MAIN_MENU
 
-	-- Busca UIGridLayout em qualquer lugar do ScreenGui (não depende de nomes específicos)
+	-- Espaçamento via UIGridLayout
 	local gridLayout = gui:FindFirstChildWhichIsA("UIGridLayout", true)
 	if gridLayout then
-		local pad = cfg.cell_padding or 4
-		gridLayout.CellPadding = UDim2.new(0, pad, 0, pad)
+		gridLayout.CellPadding = UDim2.new(0, cfg.cell_padding or 4, 0, cfg.cell_padding or 4)
 	end
 
-	-- Tamanho do painel principal (primeiro Frame filho do ScreenGui)
-	if cfg.panel_size then
-		local mfAny = gui:FindFirstChildWhichIsA("Frame") :: Frame?
-		if mfAny then
-			mfAny.Size = cfg.panel_size
+	-- Estilização dos botões hardcoded (Label + InnerBorder)
+	-- AdminButton tem RainbowAnim → não toca no InnerBorder dele
+	-- StoreButton tem NewBadge → novelty (amarelo); demais → branco/cinza
+	local YELLOW = Color3.fromRGB(255, 200, 0)
+	local WHITE  = Color3.fromRGB(255, 255, 255)
+	local GRAY   = Color3.fromRGB(180, 180, 180)
+
+	for _, btn in gui:GetDescendants() do
+		if btn:IsA("TextButton") then
+			local isNovelty = btn:FindFirstChild("NewBadge", true) ~= nil
+
+			local lbl = btn:FindFirstChild("Label") :: TextLabel?
+			if lbl then
+				lbl.TextColor3 = if isNovelty then YELLOW else WHITE
+			end
+
+			local ib = btn:FindFirstChild("InnerBorder") :: Frame?
+			if ib and not ib:FindFirstChild("RainbowAnim") then
+				local stk = ib:FindFirstChildWhichIsA("UIStroke")
+				if stk then
+					stk.Color        = if isNovelty then YELLOW else GRAY
+					stk.Transparency = 0
+				end
+			end
 		end
 	end
 
 	local mf = gui:FindFirstChild("MenuFrame") :: Frame?
 	if not mf then return end
 
-	-- Se não tiver pasta Templates, modo hardcoded: apenas ajustes acima são aplicados.
+	-- Modo hardcoded sem Templates: estilização aplicada, clonagem não ocorre.
 	local templates = gui:FindFirstChild("Templates")
 	if not templates then return end
 
