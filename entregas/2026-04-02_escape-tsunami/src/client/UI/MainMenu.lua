@@ -69,12 +69,6 @@ function MainMenu.init()
 
 	local cfg: any = S.MAIN_MENU
 
-	-- Espaçamento via UIGridLayout
-	local gridLayout = gui:FindFirstChildWhichIsA("UIGridLayout", true)
-	if gridLayout then
-		gridLayout.CellPadding = UDim2.new(0, cfg.cell_padding or 4, 0, cfg.cell_padding or 4)
-	end
-
 	-- Estilização dos botões hardcoded (Label + InnerBorder)
 	-- AdminButton tem RainbowAnim → não toca no InnerBorder dele
 	-- StoreButton tem NewBadge → novelty (amarelo); demais → branco/cinza

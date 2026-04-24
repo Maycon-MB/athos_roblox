@@ -89,6 +89,9 @@
 					"FakeButtons": {
 						"$path": "src/client/UI/FakeButtons.lua"
 					},
+					"CurrencyHud": {
+						"$path": "src/client/UI/CurrencyHud.lua"
+					},
 					"MainMenu": {
 						"$path": "src/client/UI/MainMenu.lua"
 					}

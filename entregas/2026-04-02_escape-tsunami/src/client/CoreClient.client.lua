@@ -6,8 +6,6 @@ local ui = script.Parent:WaitForChild("UI")
 
 require(ui:WaitForChild("StatusBar")).init()
 require(ui:WaitForChild("CurrencyHud")).init()
-require(ui:WaitForChild("HudController")).init()
-require(ui:WaitForChild("FakeButtons")).init()
 require(ui:WaitForChild("WaveAlert")).init()
 require(ui:WaitForChild("JumpShop")).init()
 require(ui:WaitForChild("WaveMachinePanel")).init()

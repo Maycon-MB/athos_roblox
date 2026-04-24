@@ -31,7 +31,27 @@
       "Bash(StyLua src/server/)",
       "Bash(rojo build:*)",
       "Bash(selene entregas/2026-04-02_escape-tsunami/src/)",
-      "WebFetch(domain:roblox.fandom.com)"
+      "WebFetch(domain:roblox.fandom.com)",
+      "Bash(powershell -Command \"Compress-Archive -Force -Path 'game_ready.rbxl','INSTRUCOES.html' -DestinationPath '../../ATHOS_EscapeTsunami_PRONTO.zip'\")",
+      "Bash(ls -lh \"c:/Users/MayconBruno/Documents/Github/athos_roblox/entregas/2026-04-02_escape-tsunami/\"*.rbxm)",
+      "Bash(ls -lh \"c:/Users/MayconBruno/Documents/Github/athos_roblox/entregas/2026-04-02_escape-tsunami/\"*.rbxl)",
+      "Bash(powershell -Command \"Compress-Archive -Path 'entregas/2026-04-02_escape-tsunami/game_ready.rbxl','entregas/2026-04-02_escape-tsunami/INSTRUCOES.html' -DestinationPath 'ATHOS_EscapeTsunami_PRONTO.zip' -Force\")",
+      "Bash(powershell -Command \"Compress-Archive -Force -Path 'game_ready.rbxl','INSTRUCOES.html' -DestinationPath 'entrega_escape-tsunami.zip'\")",
+      "Bash(selene entregas/2026-04-02_escape-tsunami/src/server/Engine/MapSystem.lua)",
+      "Bash(selene src/)",
+      "Bash(selene src/server/Engine/MapSystem.lua)",
+      "Bash(ls -lh \"c:\\\\Users\\\\MayconBruno\\\\Documents\\\\Github\\\\athos_roblox\\\\entregas\\\\2026-04-02_escape-tsunami\\\\game_ready\"*.rbxl)",
+      "Bash(cp \"c:\\\\Users\\\\MayconBruno\\\\Documents\\\\Github\\\\athos_roblox\\\\entregas\\\\2026-04-02_escape-tsunami\\\\game_ready2.rbxl\" \"c:\\\\Users\\\\MayconBruno\\\\Documents\\\\Github\\\\athos_roblox\\\\entregas\\\\2026-04-02_escape-tsunami\\\\game_ready.rbxl\")",
+      "Bash(rm \"c:\\\\Users\\\\MayconBruno\\\\Documents\\\\Github\\\\athos_roblox\\\\entregas\\\\2026-04-02_escape-tsunami\\\\game_ready2.rbxl\")",
+      "Bash(powershell -Command 'Add-Type -AssemblyName PresentationCore; $doc = [System.Windows.Xps.Packaging.XpsDocument]::new\\('\\\\''test'\\\\''\\)')",
+      "Bash(python -c \"import pdfplumber; pdf = pdfplumber.open\\(r'c:\\\\Users\\\\MayconBruno\\\\Documents\\\\Github\\\\athos_roblox\\\\entregas\\\\2026-04-02_escape-tsunami\\\\roteiros_originais\\\\[AT-RB-L1352-260325] ROTEIRO - Escape do Tsunami Mas Posso Comprar PULO de YOUTUBERS! \\(1\\).pdf'\\); [print\\(p.extract_text\\(\\)\\) for p in pdf.pages[:6]]\")",
+      "Bash(python -c ' *)",
+      "Bash(python3 -c ' *)",
+      "Bash(tasklist /FI \"IMAGENAME eq rojo.exe\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":34872\")",
+      "Bash(tasklist)",
+      "Bash(findstr -i rojo)"
     ],
     "additionalDirectories": [
       "c:\\Users\\MayconBruno\\Documents\\Github\\athos_roblox\\.claude"
