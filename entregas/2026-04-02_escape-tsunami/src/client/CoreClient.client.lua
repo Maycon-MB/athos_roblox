@@ -4,14 +4,15 @@ local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local ui = script.Parent:WaitForChild("UI")
 
-require(ui:WaitForChild("StatusBar")).init()
-require(ui:WaitForChild("CurrencyHud")).init()
+-- StatusBar e CurrencyHud removidos: foram unificados em HUD (StarterGui.HUD.MainHUD).
+require(ui:WaitForChild("HUD")).init()
 require(ui:WaitForChild("WaveAlert")).init()
 require(ui:WaitForChild("JumpShop")).init()
 require(ui:WaitForChild("WaveMachinePanel")).init()
 require(ui:WaitForChild("AdminPanel")).init()
 require(ui:WaitForChild("AreaLabel")).init()
 require(ui:WaitForChild("MainMenu")).init()
+require(ui:WaitForChild("CinematicVFX")).init()
 
 -- GalaxyBat: detecta Activated no client e dispara knockback server-side
 local player = Players.LocalPlayer

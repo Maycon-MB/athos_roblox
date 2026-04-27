@@ -8,8 +8,14 @@ local _cfg: any
 local buyRemote: RemoteEvent
 local purchased: RemoteEvent
 local showShop: RemoteEvent
+local jumpEquipped: RemoteEvent
 
-local function applyStats(pl: Player, jump: number, speed: number)
+-- Cap físico de WalkSpeed. Acima disso o character atravessa paredes finas
+-- e quebra raycasts. Settings.JUMPS.speed é o valor "fake" exibido na UI;
+-- aplicamos min(speed, CAP) ao Humanoid e enviamos o fake ao cliente para HUD/VFX.
+local WALKSPEED_CAP = 200
+
+local function applyStats(pl: Player, jump: number, speed: number, jumpId: string?)
 	local char = pl.Character
 	if not char then
 		return
@@ -19,7 +25,50 @@ local function applyStats(pl: Player, jump: number, speed: number)
 		return
 	end
 	h.JumpPower = jump
-	h.WalkSpeed = speed
+	h.WalkSpeed = math.min(speed, WALKSPEED_CAP)
+	if jumpEquipped and jumpId then
+		jumpEquipped:FireClient(pl, jumpId, speed) -- speed = fake (display + VFX trigger)
+	end
+end
+
+-- ForceField nativo estilizado para o Wave Shield (visual de ostentação)
+local function applyWaveShield(pl: Player)
+	local char = pl.Character
+	if not char then return end
+	for _, c in char:GetChildren() do
+		if c:IsA("ForceField") and c.Name == "WaveShield" then
+			c:Destroy()
+		end
+	end
+	local ff = Instance.new("ForceField")
+	ff.Name = "WaveShield"
+	ff.Visible = true
+	ff.Parent = char
+end
+
+-- Cria a Tool GalaxyBat (mesma estrutura usada na compra e no StarterGear)
+local function buildGalaxyBat(): Tool
+	local tool = Instance.new("Tool")
+	tool.Name = "GalaxyBat"
+	tool.ToolTip = "Galaxy Bat"
+	tool.RequiresHandle = true
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = Vector3.new(0.35, 2.4, 0.35)
+	handle.BrickColor = BrickColor.new("Bright violet")
+	handle.Material = Enum.Material.Neon
+	handle.Parent = tool
+	local head = Instance.new("Part")
+	head.Name = "Head"
+	head.Size = Vector3.new(1.4, 0.5, 0.5)
+	head.BrickColor = BrickColor.new("Bright yellow")
+	head.Material = Enum.Material.SmoothPlastic
+	head.CanCollide = false
+	head.Parent = tool
+	local hw = Instance.new("WeldConstraint")
+	hw.Part0 = handle; hw.Part1 = head; hw.Parent = tool
+	head.CFrame = handle.CFrame * CFrame.new(0.9, 1.1, 0)
+	return tool
 end
 
 local function applyParticles(pl: Player, kind: string)
@@ -120,36 +169,22 @@ local function handleBuy(pl: Player, jumpId: string)
 	end
 	if cfg.extra == "wave_shield" then
 		d.hasShield = true
+		applyWaveShield(pl)
 	end
 	if cfg.extra == "galaxy_bat" then
-		local tool = Instance.new("Tool")
-		tool.Name = "GalaxyBat"
-		tool.ToolTip = "Galaxy Bat"
-		tool.RequiresHandle = true
-		local handle = Instance.new("Part")
-		handle.Name = "Handle"
-		handle.Size = Vector3.new(0.35, 2.4, 0.35)
-		handle.BrickColor = BrickColor.new("Bright violet")
-		handle.Material = Enum.Material.Neon
-		handle.Parent = tool
-		local head = Instance.new("Part")
-		head.Name = "Head"
-		head.Size = Vector3.new(1.4, 0.5, 0.5)
-		head.BrickColor = BrickColor.new("Bright yellow")
-		head.Material = Enum.Material.SmoothPlastic
-		head.CanCollide = false
-		head.Parent = tool
-		local hw = Instance.new("WeldConstraint")
-		hw.Part0 = handle; hw.Part1 = head; hw.Parent = tool
-		head.CFrame = handle.CFrame * CFrame.new(0.9, 1.1, 0)
-		tool.Parent = pl.Backpack
+		buildGalaxyBat().Parent = pl.Backpack
+		-- StarterGear: Tool persiste entre respawns durante a gravação
+		local sg = pl:FindFirstChild("StarterGear")
+		if sg then
+			buildGalaxyBat().Parent = sg
+		end
 	end
 	if cfg.base_upgrade then
 		d.baseSlots = _cfg.BASE.SLOTS_MAX
 	end
 	PD.sync(pl)
 
-	applyStats(pl, cfg.jump, cfg.speed)
+	applyStats(pl, cfg.jump, cfg.speed, jumpId)
 	if cfg.particles then
 		applyParticles(pl, cfg.particles)
 	end
@@ -161,12 +196,18 @@ local function reapplyOnSpawn(pl: Player)
 		task.wait(0.15)
 		local PD = require(script.Parent.PlayerData)
 		local d = PD.get(pl)
-		if not d or d.currentJump == "none" then
+		if not d then
+			return
+		end
+		if d.hasShield then
+			applyWaveShield(pl)
+		end
+		if d.currentJump == "none" then
 			return
 		end
 		for _, j in _cfg.JUMPS do
 			if j.id == d.currentJump then
-				applyStats(pl, j.jump, j.speed)
+				applyStats(pl, j.jump, j.speed, j.id)
 				if (j :: any).particles then
 					applyParticles(pl, (j :: any).particles)
 				end
@@ -192,6 +233,10 @@ function JumpSystem.init(cfg: any)
 	showShop = Instance.new("RemoteEvent")
 	showShop.Name = R.ShowShop
 	showShop.Parent = RS
+
+	jumpEquipped = Instance.new("RemoteEvent")
+	jumpEquipped.Name = R.JumpEquipped
+	jumpEquipped.Parent = RS
 
 	-- GalaxyBat knockback (client dispara via GalaxyBatSwing)
 	local galaxyBatSwing = Instance.new("RemoteEvent")

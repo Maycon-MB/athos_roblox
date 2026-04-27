@@ -6,6 +6,11 @@ local RS      = game:GetService("ReplicatedStorage")
 local AdminPanel = {}
 
 local player = Players.LocalPlayer
+local _gui: ScreenGui? = nil
+
+function AdminPanel.toggle()
+	if _gui then _gui.Enabled = not _gui.Enabled end
+end
 
 -- ── Paleta ────────────────────────────────────────────────────────────
 local BG       = Color3.fromRGB(10, 8, 18)
@@ -108,6 +113,7 @@ function AdminPanel.init()
 	gui.Enabled      = false
 	gui.DisplayOrder = 20
 	gui.Parent       = player:WaitForChild("PlayerGui")
+	_gui             = gui
 
 	local panel = Instance.new("Frame")
 	panel.Size             = UDim2.new(0, 300, 0, 580)

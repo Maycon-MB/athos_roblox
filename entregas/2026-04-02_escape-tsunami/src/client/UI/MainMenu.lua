@@ -99,6 +99,16 @@ function MainMenu.init()
 	local mf = gui:FindFirstChild("MenuFrame") :: Frame?
 	if not mf then return end
 
+	-- AdminButton já existe direto em MenuFrame neste place (não via Templates clone).
+	-- Conecta o click → toggle do AdminPanel (substitui o atalho F8).
+	local existingAdmin = mf:FindFirstChild("AdminButton")
+	if existingAdmin and existingAdmin:IsA("GuiButton") then
+		local AdminPanel = require(script.Parent:WaitForChild("AdminPanel"))
+		;(existingAdmin :: GuiButton).MouseButton1Click:Connect(function()
+			AdminPanel.toggle()
+		end)
+	end
+
 	-- Modo hardcoded sem Templates: estilização aplicada, clonagem não ocorre.
 	local templates = gui:FindFirstChild("Templates")
 	if not templates then return end
@@ -123,6 +133,18 @@ function MainMenu.init()
 		local lb = clone:FindFirstChild("Label", true) :: TextLabel?
 		if lb then lb.Text = cfg.admin.label or "ADMIN" end
 		clone.Parent = adminSlot
+
+		-- Conecta click → toggle do AdminPanel (substitui o atalho F8)
+		local AdminPanel = require(script.Parent:WaitForChild("AdminPanel"))
+		local clickTarget = clone:IsA("GuiButton") and clone
+			or clone:FindFirstChildWhichIsA("GuiButton", true)
+		if clickTarget then
+			(clickTarget :: GuiButton).MouseButton1Click:Connect(function()
+				AdminPanel.toggle()
+			end)
+		else
+			warn("[MainMenu] AdminTemplate sem GuiButton clicável")
+		end
 	end
 
 	-- Grid de botões

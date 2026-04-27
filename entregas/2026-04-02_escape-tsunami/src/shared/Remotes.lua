@@ -17,4 +17,5 @@ return {
 	GiveJump = "GiveJump",
 	GalaxyBatSwing = "GalaxyBatSwing",
 	ShowFusionPanel = "ShowFusionPanel",
+	JumpEquipped = "JumpEquipped",
 }

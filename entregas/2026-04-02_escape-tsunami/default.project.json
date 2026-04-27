@@ -94,6 +94,9 @@
 					},
 					"MainMenu": {
 						"$path": "src/client/UI/MainMenu.lua"
+					},
+					"HUD": {
+						"$path": "src/client/UI/HUD.lua"
 					}
 				}
 			}
