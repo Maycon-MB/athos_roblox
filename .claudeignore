@@ -1,6 +1,7 @@
 *.rbxl
 *.rbxm
 *.pdf
+node_modules/
 .git/
 rojo.exe
 **/roteiros_originais/

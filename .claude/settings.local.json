@@ -51,10 +51,18 @@
       "Bash(netstat -ano)",
       "Bash(findstr \":34872\")",
       "Bash(tasklist)",
-      "Bash(findstr -i rojo)"
+      "Bash(findstr -i rojo)",
+      "mcp__Roblox_Studio__execute_luau",
+      "mcp__Roblox_Studio__script_grep",
+      "mcp__Roblox_Studio__subagent",
+      "mcp__Roblox_Studio__multi_edit",
+      "mcp__Roblox_Studio__script_read"
     ],
     "additionalDirectories": [
       "c:\\Users\\MayconBruno\\Documents\\Github\\athos_roblox\\.claude"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "Roblox_Studio"
+  ]
 }
