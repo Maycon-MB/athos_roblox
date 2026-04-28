@@ -1,60 +1,102 @@
-# ideia.md - Especificação Técnica: Escape do Tsunami (Mod de YouTubers)
-
-## 1. Visão Geral da Arquitetura: Injeção e Spoofing
-[cite_start]O jogo base ("Escape Waves For Brainmodz") deve permanecer intacto[cite: 1, 38]. Todas as modificações serão injetadas através de sistemas paralelos. O objetivo é "enganar" a perceção visual do jogador e dos espectadores (Spoofing de UI e Física), sem quebrar o loop principal do jogo ou os sistemas de colisão nativos do Roblox.
-
-### 1.1. Spoofing de Interface (UI Fantasma)
-* **Não alterar o `ScreenGui` original.**
-* [cite_start]Criar um `Custom_ScreenGui` que se sobrepõe ao original[cite: 54]. 
-* Os botões e os contadores (ex: "Brainrots", "Infinity Lucky Box") devem ser alimentados por um `CustomEconomyService` a correr no servidor, totalmente isolado dos `leaderstats` normais de sobrevivência do Tsunami.
-
-### 1.2. Isolamento de Mapas (Instanciamento Seguro)
-* [cite_start]**Loja Secreta e Base Secreta:** Estes não devem existir no mapa principal por defeito[cite: 52, 89]. 
-* Devem ser instanciados no `Workspace` via `ServerStorage` ou posicionados em coordenadas muito distantes (ex: `Vector3(0, 10000, 0)`). 
-* [cite_start]A interação com a "parede falsa" no mapa do Tsunami atua apenas como um gatilho de teletransporte (`CFrame`) para o ator (Athos), movendo-o para a Loja ou Base Secreta[cite: 124, 125].
-
-### 1.3. Movimentação Híbrida (Prevenção de Clipping)
-* [cite_start]O guião exige velocidades extremas (até 2500 de WalkSpeed)[cite: 87, 120]. O motor de colisão do Roblox falha com valores tão altos em paredes finas.
-* [cite_start]**Solução de Spoofing:** O `CustomEconomyService` deve atualizar a UI para exibir "Velocidade: 2500"[cite: 32]. No entanto, o `Humanoid.WalkSpeed` real deve ser limitado a um máximo seguro (aprox. 200). 
-* **Efeito Visual:** Para compensar e vender a ilusão de velocidade no vídeo, aplique um `Tween` no `Camera.FieldOfView` (110-120), ative Motion Blur na iluminação e adicione um `ParticleEmitter` (Speed Lines) ao Character sempre que as velocidades dos pulos finais forem equipadas.
+# IDEIA — Roteiro de Implementação: Escape do Tsunami (YouTuber Jump Shop)
 
 ---
 
-## 2. Eventos Cronológicos e Lógica de Gatilhos (Pulo 1 ao 7)
+## CHECKLIST DE MODIFICAÇÕES
 
-O seu `InventoryService` e o gestor de estado da UI devem ser programados para seguir esta progressão exata, processando transações que misturam moedas virtuais, itens físicos e ações:
+### MAPA PRINCIPAL (Escape Waves For Brainmodz)
 
-### Pulo 1: Pulo do James
-* [cite_start]**Custo:** Grátis[cite: 80].
-* [cite_start]**Ação/Gatilho:** O jogador clica no botão "FREE" da UI da loja fantasma[cite: 76, 138].
-* **Recompensa:** `Humanoid.JumpPower = 10` | `Fake_WalkSpeed = 67`. [cite_start]Recebe no inventário o item físico "Jamezini cakenini" (Model: Skin do James com bolo na cabeça)[cite: 79, 139].
+- [ ] Ocultar AdminPanel toggle button por padrão; expor via comando `:showadmin` / `:hideadmin`
+- [ ] Adicionar `Part` invisível (trigger) na parede mid-track → teleport para **Loja de pulos de youtubers**
+- [ ] Adicionar `Part` invisível (trigger) na parede mid-track → teleport para **Base separada**
+- [ ] Injetar `ProgressTracker_Frame` no StarterGui replicando os 7 ícones de pulo (top-right)
+- [ ] Adicionar `WaveShieldService` no ServerScriptService
+- [ ] Adicionar `WaveMachineService` no ServerScriptService (consome tokens, spawna ondas por player)
+- [ ] Adicionar Galaxy Bat como `Tool` no ReplicatedStorage com hitbox que lança alvo
+- [ ] Registrar 3 brainrots customizados em `BrainrotConfig` (Jamezini, Mikey, Athos)
+- [ ] Adicionar floating BillboardGui acima de cada brainrot model (nome + rarity + $/s)
 
-### Pulo 2: Pulo do JJ
-* [cite_start]**Custo:** 5.000 Cash customizado[cite: 81].
-* [cite_start]**Ação/Gatilho:** Servidor valida se o saldo >= 5k após o "farm" na base secreta[cite: 22].
-* **Recompensa:** `Humanoid.JumpPower = 40` | `Fake_WalkSpeed = 250`. [cite_start]Recebe o item lendário "Brainrot Mikey" (7k/s na base) e o item equipável "Wave shield" (Escudo contra ondas)[cite: 22, 81, 97].
+### MAPA: Loja de pulos de youtubers
 
-### Pulo 3: Pulo da Mana
-* [cite_start]**Custo:** 500.000 Cash customizado[cite: 82].
-* **Ação/Gatilho:** Servidor valida o saldo após farm melhorado.
-* **Recompensa:** `Humanoid.JumpPower = 90` | `Fake_WalkSpeed = 400`. [cite_start]Desbloqueia a "Flag" de Upgrade máximo na base secreta[cite: 24, 82].
+- [ ] Criar mapa com fachada/paredes decoradas com logos do YouTube (Decals)
+- [ ] Replicar HUD completo do mapa original (Gems, Coins, JumpLevel, SpeedLevel, Money) — valores editáveis via admin
+- [ ] Inserir `JumpShop_Frame` com 7 cards (ver `jump_shop_items` no blueprint)
+- [ ] Cards exibem: ícone do pulo, stats por símbolos (🦵=jump, ⚡=speed), custo, sem texto descritivo longo
+- [ ] Card bloqueado: overlay escuro `#00000080`. Card desbloqueado: fundo verde `#27AE60` + checkmark
+- [ ] `ProgressTracker_Frame` sincronizado com estado de compra do player
 
-### Pulo 4: Pulo do Pdoro
-* [cite_start]**Custo:** Pular 10 ondas sem sofrer dano[cite: 83].
-* **Ação/Gatilho:** Necessário criar um sistema de tracking na arena. O servidor incrementa um contador sempre que o evento de colisão da onda no mapa ocorre sem atingir o `Humanoid` do jogador.
-* **Recompensa:** `Humanoid.JumpPower = 140` | `Fake_WalkSpeed = 600`. [cite_start]Concede 10.000 tokens de onda para a máquina de controlo[cite: 26, 83].
+### MAPA: Base separada
 
-### Pulo 5: Pulo do Matheus
-* [cite_start]**Custo:** Matar 5 jogadores (Noobs) com a máquina de ondas[cite: 28, 84].
-* **Ação/Gatilho:** O script da máquina de ondas deve emitir um evento quando uma onda ativada pelo jogador resultar na morte de outro Character no mapa.
-* **Recompensa:** `Humanoid.JumpPower = 170` | `Fake_WalkSpeed = 800`. [cite_start]Recebe 3x "Glaciero Infernati" (brainrots) e a arma "Taco de Galáxia"[cite: 28, 84].
+- [ ] Criar área fechada com muros no estilo do jogo original
+- [ ] Única base slot (igual ao original)
+- [ ] Suporta placement dos 3 brainrots customizados
+- [ ] Income ticker: a cada 1s → `AddMoney(player, brainrot.income_per_second)` por slot ocupado
+- [ ] Replicar HUD completo do mapa original — valores editáveis via admin
 
-### Pulo 6: Pulo do Caylus (Início do End-Game)
-* [cite_start]**Custo:** Vender 10 brainrots no sistema de Trade da UI[cite: 30, 85].
-* [cite_start]**Ação/Gatilho:** O `CustomEconomyService` deve suportar uma interface simulada de "Trade" onde a transação é cancelada para os outros jogadores, mas processada como "Venda" para o ator principal[cite: 30].
-* **Recompensa:** `Humanoid.JumpPower = 200` | [cite_start]`Fake_WalkSpeed = 2000` (Ativar limitador físico + VFX Extremo)[cite: 31, 85]. [cite_start]Concede 3 "Infinity Lucky Boxes" que devem abrir com animação visual chamativa (UI Unboxing de itens Overpower)[cite: 31, 85].
+---
 
-### Pulo 7: Pulo do Athos (Tier Máximo)
-* [cite_start]**Custo:** 1x item "Fusão Brainrot"[cite: 32, 87].
-* **Ação/Gatilho:** O jogador interage com o *Asset* "Máquina de Fusão". O servidor remove 2 Brainrots comuns do inventário e entrega 1 "Fusão Brainrot". [cite_start]A loja deteta este item no inventário e liberta a compra[cite: 32, 87].
-* **Recompensa Final:** `Humanoid.JumpPower = 250` | `Fake_WalkSpeed = 2500` (Manter limitador físico + Efeito Flash/Speed Lines). [cite_start]Preenche automaticamente a base secreta do jogador com "Athos Brainrots com mutação de fogo" (999M/s) gerando um mar de recursos[cite: 32, 87, 98].
+## ARQUITETURA DE SCRIPTS
+
+```
+ServerScriptService/
+├── AdminService.lua           -- Comandos :hideadmin :showadmin :setjump :setspeed :setmoney :givetokens :giveitem :givebrainrot
+├── JumpShopService.lua        -- Lógica de compra dos 7 pulos; valida custo_type; concede rewards
+├── WaveShieldService.lua      -- Intercepta colisão wave/player quando shield ativo; decrementa carga
+├── WaveMachineService.lua     -- Consome wave tokens; spawna ondas direcionadas por player target
+├── BaseIncomeService.lua      -- Ticker 1s por slot ocupado; dispara RemoteEvent AddMoney
+├── TeleportService_Handler.lua -- Detecta touch nos trigger Parts; chama TeleportService
+└── BrainrotConfig.lua         -- Definições estáticas dos 3 brainrots (id, rarity, income, skin, aura)
+
+ReplicatedStorage/
+├── RemoteEvents/
+│   ├── AddMoney
+│   ├── ProgressUnlock
+│   ├── ShieldActivated
+│   └── WaveTokenUpdate
+├── Tools/
+│   └── GalaxyBat.rbxm
+└── Models/
+    ├── Jamezini_Cakenini.rbxm
+    ├── Mikey.rbxm
+    └── Athos_Brainrot.rbxm    -- Inclui ParticleEmitter de fogo
+
+StarterGui/
+├── HUD/
+│   ├── HUD_Gems (TextLabel)
+│   ├── HUD_Coins (TextLabel)
+│   ├── HUD_JumpLevel (TextLabel)
+│   ├── HUD_SpeedLevel (TextLabel)
+│   └── HUD_Money (TextLabel)
+├── AdminPanel/
+│   ├── AdminPanel_Frame (Frame, Visible=false)
+│   └── AdminPanel_ToggleButton (TextButton, Visible=false por padrão)
+├── JumpShop/
+│   ├── JumpShop_Frame (Frame, Visible=false)
+│   ├── JumpShop_Title
+│   ├── JumpShop_CloseButton
+│   └── JumpCard x7 (Frame com template)
+└── ProgressTracker/
+    └── ProgressTracker_Frame (7 slots, top-right)
+
+StarterPlayerScripts/
+├── HUDController.lua          -- Atualiza TextLabels do HUD via RemoteEvents
+├── JumpShopController.lua     -- Abre/fecha JumpShop_Frame; envia pedido de compra ao server
+└── ProgressTrackerController.lua -- Recebe ProgressUnlock; aplica verde + checkmark no card correto
+```
+
+---
+
+## RESSALVAS / CONFLITOS
+
+| # | Conflito | Detalhe |
+|---|----------|---------|
+| 1 | **TeleportService em lugar único** | O mapa base usa `TeleportService` para teleporte entre os 3 mapas. Se o jogo for single-place (não Universe), teleporte não funciona. **Requisito:** Publicar os 3 mapas como Places separados dentro do mesmo Universe no Roblox Studio. |
+| 2 | **AdminPanel do mapa original vs. novo** | O mapa Escape Waves For Brainmodz já tem um AdminPanel próprio com botões (Loja, Trocar, Índice, VIP, Renascimento, Convidar). Os comandos `:hideadmin`/`:showadmin` precisam controlar **esse** painel existente, não criar um novo — verificar se ele usa `LocalScript` ou `Script` antes de sobrescrever. |
+| 3 | **HUD replicado nos mapas auxiliares** | O HUD dos mapas auxiliares precisa ter seus valores sincronizados com o `PlayerData` persistido (via `DataStoreService` ou passado via `TeleportData`). Se `DATASTORE_ENABLED = false`, os valores resetam ao trocar de mapa — usar `TeleportService:ReserveServer` + `TeleportData` para passar estado. |
+| 4 | **Custo `kill_players_with_waves` (Matheus)** | "Matar 5 players com ondas" requer que a onda identifique o atacante (Athos). A `WaveMachineService` precisa taggear a onda com `owner = player` antes do hit para atribuir o kill corretamente. Ondas do mapa original não têm esse tag — não sobrescrever lógica original de dano. |
+| 5 | **Custo `waves_survived` (Pdoro)** | O contador de ondas sobrevividas precisa ser por streak (10 consecutivas sem morrer), não total. Resetar contador ao morrer. Confirmar se o mapa original já expõe esse evento ou se é necessário criar listener próprio. |
+| 6 | **`sell_brainrots` session counter (Caylus)** | O contador de brainrots vendidos é de sessão. Se o player trocar de mapa e voltar, o contador reseta via `TeleportData`. Decidir se deve ser persistido em DataStore ou mantido apenas em sessão. |
+| 7 | **Galaxy Bat hitbox vs. Wave colisão** | O Galaxy Bat usa `Tool.Handle.Touched` para detectar hit. Se o player atingido já estiver em zona de onda no mesmo frame, pode dobrar o dano ou triggerar dois kills. Adicionar debounce de 0.5s por target. |
+| 8 | **Brainrot Athos (Infinity / 999M/s)** | Income de 999M/s em tick de 1s pode causar overflow em `IntValue` do Roblox (max ~2^53). Usar `NumberValue` ou string-formatted money (ex: `$1.11T`) no HUD e armazenar como `double` no DataStore. |
+| 9 | **ProgressTracker nos 3 mapas** | O `ProgressTracker_Frame` precisa mostrar o mesmo estado nos 3 mapas. Passar estado atual via `TeleportData` ao trocar de mapa e re-aplicar no `ProgressTrackerController` no `PlayerAdded`/`LocalScript init`. |
+| 10 | **Cards sem texto vs. UI do roteiro** | O roteiro pede cards "sem escrita, preço nem nada — só o pulo" na **animação de progresso** (ProgressTracker). A **JumpShop** pode mostrar stats por símbolos. São dois componentes distintos — não unificar. |

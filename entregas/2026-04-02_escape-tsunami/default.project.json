@@ -1,105 +1,773 @@
 {
-	"name": "AthosEscapeTsunami",
-	"tree": {
-		"$className": "DataModel",
-		"Workspace": {
-			"$className": "Workspace"
-		},
-		"ReplicatedStorage": {
-			"$className": "ReplicatedStorage",
-			"Shared": {
-				"$className": "Folder",
-				"Settings": {
-					"$path": "src/shared/Settings.lua"
-				},
-				"Remotes": {
-					"$path": "src/shared/Remotes.lua"
-				}
-			}
-		},
-		"ServerScriptService": {
-			"$className": "ServerScriptService",
-			"CoreEngine": {
-				"$path": "src/server/CoreEngine.server.lua"
-			},
-			"Engine": {
-				"$className": "Folder",
-				"MapSystem": {
-					"$path": "src/server/Engine/MapSystem.lua"
-				},
-				"PlayerData": {
-					"$path": "src/server/Engine/PlayerData.lua"
-				},
-				"WaveSystem": {
-					"$path": "src/server/Engine/WaveSystem.lua"
-				},
-				"BrainrotSystem": {
-					"$path": "src/server/Engine/BrainrotSystem.lua"
-				},
-				"JumpSystem": {
-					"$path": "src/server/Engine/JumpSystem.lua"
-				},
-				"AdminSystem": {
-					"$path": "src/server/Engine/AdminSystem.lua"
-				},
-				"MobSystem": {
-					"$path": "src/server/Engine/MobSystem.lua"
-				},
-				"BaseSystem": {
-					"$path": "src/server/Engine/BaseSystem.lua"
-				}
-			}
-		},
-		"StarterPlayer": {
-			"$className": "StarterPlayer",
-			"StarterPlayerScripts": {
-				"$className": "StarterPlayerScripts",
-				"CoreClient": {
-					"$path": "src/client/CoreClient.client.lua"
-				},
-				"UI": {
-					"$className": "Folder",
-					"StatusBar": {
-						"$path": "src/client/UI/StatusBar.lua"
-					},
-					"JumpShop": {
-						"$path": "src/client/UI/JumpShop.lua"
-					},
-					"WaveAlert": {
-						"$path": "src/client/UI/WaveAlert.lua"
-					},
-					"WaveMachinePanel": {
-						"$path": "src/client/UI/WaveMachinePanel.lua"
-					},
-					"ProgressPanel": {
-						"$path": "src/client/UI/ProgressPanel.lua"
-					},
-					"AdminPanel": {
-						"$path": "src/client/UI/AdminPanel.lua"
-					},
-					"AreaLabel": {
-						"$path": "src/client/UI/AreaLabel.lua"
-					},
-					"HudController": {
-						"$path": "src/client/UI/HudController.lua"
-					},
-					"BasePanel": {
-						"$path": "src/client/UI/BasePanel.lua"
-					},
-					"FakeButtons": {
-						"$path": "src/client/UI/FakeButtons.lua"
-					},
-					"CurrencyHud": {
-						"$path": "src/client/UI/CurrencyHud.lua"
-					},
-					"MainMenu": {
-						"$path": "src/client/UI/MainMenu.lua"
-					},
-					"HUD": {
-						"$path": "src/client/UI/HUD.lua"
-					}
-				}
-			}
-		}
-	}
+  "metadata": {
+    "map_name": "Escape do Tsunami Mas Posso Comprar PULO de YOUTUBERS!",
+    "theme": "Escape Waves / Brainrot",
+    "base_map": "Escape Waves For Brainmodz",
+    "aux_maps": ["Loja de pulos de youtubers", "Base separada"]
+  },
+
+  "ui_specifications": [
+    {
+      "name": "HUD_Gems",
+      "class": "TextLabel",
+      "anchor": "BottomLeft",
+      "scale_pos": [0.01, 0.78],
+      "scale_size": [0.12, 0.04],
+      "hex": "#9B59B6",
+      "icon": "orb_purple",
+      "properties": {
+        "Text": "999999",
+        "Font": "GothamBold",
+        "TextColor3": "#FFFFFF",
+        "Visible": true
+      }
+    },
+    {
+      "name": "HUD_Coins",
+      "class": "TextLabel",
+      "anchor": "BottomLeft",
+      "scale_pos": [0.01, 0.83],
+      "scale_size": [0.18, 0.05],
+      "hex": "#F39C12",
+      "icon": "orb_gold",
+      "properties": {
+        "Text": "9999999999",
+        "Font": "GothamBlack",
+        "TextColor3": "#F9E400",
+        "TextSize": 22,
+        "Visible": true
+      }
+    },
+    {
+      "name": "HUD_JumpLevel",
+      "class": "TextLabel",
+      "anchor": "BottomLeft",
+      "scale_pos": [0.01, 0.88],
+      "scale_size": [0.10, 0.04],
+      "hex": "#E74C3C",
+      "icon": "sneaker_red",
+      "properties": {
+        "Text": "55",
+        "Font": "GothamBold",
+        "TextColor3": "#FFFFFF",
+        "Visible": true
+      }
+    },
+    {
+      "name": "HUD_SpeedLevel",
+      "class": "TextLabel",
+      "anchor": "BottomLeft",
+      "scale_pos": [0.08, 0.88],
+      "scale_size": [0.07, 0.04],
+      "hex": "#27AE60",
+      "icon": "sneaker_green_arrow",
+      "properties": {
+        "Text": "1",
+        "Font": "GothamBold",
+        "TextColor3": "#FFFFFF",
+        "Visible": true
+      }
+    },
+    {
+      "name": "HUD_Money",
+      "class": "TextLabel",
+      "anchor": "BottomLeft",
+      "scale_pos": [0.01, 0.93],
+      "scale_size": [0.12, 0.05],
+      "hex": "#2ECC71",
+      "properties": {
+        "Text": "$1.11T",
+        "Font": "GothamBlack",
+        "TextColor3": "#00FF44",
+        "TextSize": 24,
+        "Visible": true
+      }
+    },
+    {
+      "name": "HUD_SearchButton",
+      "class": "ImageButton",
+      "anchor": "BottomLeft",
+      "scale_pos": [0.155, 0.78],
+      "scale_size": [0.03, 0.04],
+      "hex": "#2C3E50",
+      "properties": {
+        "Image": "rbxassetid://search_icon",
+        "Visible": true
+      }
+    },
+    {
+      "name": "HUD_ExpandButton_Top",
+      "class": "ImageButton",
+      "anchor": "BottomLeft",
+      "scale_pos": [0.155, 0.83],
+      "scale_size": [0.03, 0.04],
+      "hex": "#2C3E50",
+      "properties": {
+        "Image": "rbxassetid://plus_icon",
+        "Visible": true
+      }
+    },
+    {
+      "name": "HUD_ExpandButton_Bottom",
+      "class": "ImageButton",
+      "anchor": "BottomLeft",
+      "scale_pos": [0.155, 0.88],
+      "scale_size": [0.03, 0.04],
+      "hex": "#2C3E50",
+      "properties": {
+        "Image": "rbxassetid://plus_icon",
+        "Visible": true
+      }
+    },
+    {
+      "name": "AdminPanel_Frame",
+      "class": "Frame",
+      "anchor": "TopLeft",
+      "scale_pos": [0.01, 0.05],
+      "scale_size": [0.14, 0.35],
+      "hex": "#1A2332",
+      "properties": {
+        "Visible": false,
+        "BackgroundTransparency": 0.1
+      }
+    },
+    {
+      "name": "AdminPanel_Title",
+      "class": "TextLabel",
+      "anchor": "TopLeft",
+      "scale_pos": [0.01, 0.05],
+      "scale_size": [0.14, 0.05],
+      "hex": "#F1C40F",
+      "properties": {
+        "Text": "PAINEL DE ADMINISTRADOR",
+        "Font": "GothamBlack",
+        "TextColor3": "#FFFFFF",
+        "TextSize": 13,
+        "BorderColor3": "#F1C40F",
+        "BorderSizePixel": 2,
+        "Visible": false
+      }
+    },
+    {
+      "name": "AdminBtn_Loja",
+      "class": "TextButton",
+      "anchor": "TopLeft",
+      "scale_pos": [0.01, 0.11],
+      "scale_size": [0.065, 0.055],
+      "hex": "#1A2332",
+      "properties": {
+        "Text": "Loja",
+        "Font": "GothamBold",
+        "TextColor3": "#F9E400",
+        "Image": "rbxassetid://toolbox_red_icon",
+        "Badge": "NOVO!",
+        "BadgeColor": "#E74C3C",
+        "Visible": false
+      }
+    },
+    {
+      "name": "AdminBtn_Trocar",
+      "class": "TextButton",
+      "anchor": "TopLeft",
+      "scale_pos": [0.077, 0.11],
+      "scale_size": [0.065, 0.055],
+      "hex": "#1A2332",
+      "properties": {
+        "Text": "Trocar",
+        "Font": "GothamBold",
+        "TextColor3": "#FFFFFF",
+        "Image": "rbxassetid://trade_icon",
+        "Visible": false
+      }
+    },
+    {
+      "name": "AdminBtn_Indice",
+      "class": "TextButton",
+      "anchor": "TopLeft",
+      "scale_pos": [0.01, 0.17],
+      "scale_size": [0.065, 0.055],
+      "hex": "#1A2332",
+      "properties": {
+        "Text": "Índice",
+        "Font": "GothamBold",
+        "TextColor3": "#FFFFFF",
+        "Image": "rbxassetid://book_green_icon",
+        "Visible": false
+      }
+    },
+    {
+      "name": "AdminBtn_VIP",
+      "class": "TextButton",
+      "anchor": "TopLeft",
+      "scale_pos": [0.077, 0.17],
+      "scale_size": [0.065, 0.055],
+      "hex": "#1A2332",
+      "properties": {
+        "Text": "V.I.P",
+        "Font": "GothamBold",
+        "TextColor3": "#FFFFFF",
+        "Image": "rbxassetid://crown_icon",
+        "Visible": false
+      }
+    },
+    {
+      "name": "AdminBtn_Renascimento",
+      "class": "TextButton",
+      "anchor": "TopLeft",
+      "scale_pos": [0.01, 0.23],
+      "scale_size": [0.065, 0.055],
+      "hex": "#1A2332",
+      "properties": {
+        "Text": "Renascimento [0]",
+        "Font": "GothamSemibold",
+        "TextColor3": "#FFFFFF",
+        "Image": "rbxassetid://rebirth_icon",
+        "Visible": false
+      }
+    },
+    {
+      "name": "AdminBtn_Convidar",
+      "class": "TextButton",
+      "anchor": "TopLeft",
+      "scale_pos": [0.077, 0.23],
+      "scale_size": [0.065, 0.055],
+      "hex": "#1A2332",
+      "properties": {
+        "Text": "Convidar",
+        "Font": "GothamBold",
+        "TextColor3": "#FFFFFF",
+        "Image": "rbxassetid://emoji_faces_icon",
+        "SubText": "+0%",
+        "SubTextColor": "#2ECC71",
+        "Visible": false
+      }
+    },
+    {
+      "name": "AdminPanel_ToggleButton",
+      "class": "TextButton",
+      "anchor": "TopLeft",
+      "scale_pos": [0.01, 0.05],
+      "scale_size": [0.04, 0.04],
+      "hex": "#1A2332",
+      "properties": {
+        "Text": "🔨",
+        "Font": "GothamBold",
+        "Visible": true,
+        "Note": "Toggles AdminPanel visibility. Must be hideable via admin command for recording."
+      }
+    },
+    {
+      "name": "TopHUD_WaveInfo",
+      "class": "TextLabel",
+      "anchor": "TopCenter",
+      "scale_pos": [0.45, 0.02],
+      "scale_size": [0.10, 0.03],
+      "hex": "#FFFFFF",
+      "properties": {
+        "Text": "99%/s",
+        "Font": "GothamBold",
+        "TextColor3": "#FFFFFF",
+        "Visible": true
+      }
+    },
+    {
+      "name": "TopHUD_StatsPanel",
+      "class": "Frame",
+      "anchor": "TopRight",
+      "scale_pos": [0.82, 0.01],
+      "scale_size": [0.17, 0.12],
+      "hex": "#1A1A2E",
+      "properties": {
+        "Visible": true,
+        "BackgroundTransparency": 0.2
+      }
+    },
+    {
+      "name": "Inventory_Frame",
+      "class": "Frame",
+      "anchor": "BottomCenter",
+      "scale_pos": [0.30, 0.88],
+      "scale_size": [0.40, 0.10],
+      "hex": "#1A2332",
+      "properties": {
+        "Visible": true,
+        "BackgroundTransparency": 0.15,
+        "Note": "Shows equipped brainrots. Slots: 1=bat_baseball, 2=Electric Don Magmito Nv84, 3=Gold Pipi Kiwi Nv7"
+      }
+    },
+    {
+      "name": "Inventory_Slot",
+      "class": "Frame",
+      "anchor": "Relative",
+      "scale_pos": [0.0, 0.0],
+      "scale_size": [0.12, 0.10],
+      "hex": "#2C3E50",
+      "properties": {
+        "Font": "GothamSemibold",
+        "TextColor3": "#FFFFFF",
+        "TextSize": 10,
+        "LabelFormat": "{index}\n{brainrot_name}\nNível {level}",
+        "Visible": true
+      }
+    },
+    {
+      "name": "JumpShop_Frame",
+      "class": "Frame",
+      "anchor": "Center",
+      "scale_pos": [0.15, 0.10],
+      "scale_size": [0.70, 0.80],
+      "hex": "#1A2332",
+      "properties": {
+        "Visible": false,
+        "BackgroundTransparency": 0.05
+      }
+    },
+    {
+      "name": "JumpShop_Title",
+      "class": "TextLabel",
+      "anchor": "TopCenter",
+      "scale_pos": [0.20, 0.10],
+      "scale_size": [0.60, 0.06],
+      "hex": "#F1C40F",
+      "properties": {
+        "Text": "Jump Boost Shop",
+        "Font": "GothamBlack",
+        "TextColor3": "#FFFFFF",
+        "TextSize": 28,
+        "Visible": false
+      }
+    },
+    {
+      "name": "JumpShop_CloseButton",
+      "class": "TextButton",
+      "anchor": "TopRight",
+      "scale_pos": [0.84, 0.10],
+      "scale_size": [0.03, 0.05],
+      "hex": "#E74C3C",
+      "properties": {
+        "Text": "X",
+        "Font": "GothamBlack",
+        "TextColor3": "#FFFFFF",
+        "Visible": false
+      }
+    },
+    {
+      "name": "JumpCard_Template",
+      "class": "Frame",
+      "anchor": "GridLayout",
+      "scale_pos": [0.0, 0.0],
+      "scale_size": [0.20, 0.60],
+      "hex": "#243447",
+      "properties": {
+        "Layout": "UIGridLayout",
+        "CellSize": "UDim2.new(0.18, 0, 0.55, 0)",
+        "CellPadding": "UDim2.new(0.01, 0, 0.01, 0)",
+        "Visible": false
+      }
+    },
+    {
+      "name": "ProgressTracker_Frame",
+      "class": "Frame",
+      "anchor": "TopRight",
+      "scale_pos": [0.75, 0.05],
+      "scale_size": [0.22, 0.90],
+      "hex": "#1A2332",
+      "properties": {
+        "Visible": true,
+        "BackgroundTransparency": 0.1,
+        "Note": "Shows all 7 jumps. Unlocked = green background + checkmark overlay."
+      }
+    },
+    {
+      "name": "WaveEventLabel",
+      "class": "TextLabel",
+      "anchor": "BottomCenter",
+      "scale_pos": [0.35, 0.70],
+      "scale_size": [0.30, 0.05],
+      "hex": "#2980B9",
+      "properties": {
+        "Text": "CELESTIAL\nO evento d...",
+        "Font": "GothamBold",
+        "TextColor3": "#FFFFFF",
+        "TextSize": 14,
+        "Visible": true
+      }
+    },
+    {
+      "name": "RightHUD_Players",
+      "class": "Frame",
+      "anchor": "TopRight",
+      "scale_pos": [0.88, 0.20],
+      "scale_size": [0.12, 0.30],
+      "hex": "#1A2332",
+      "properties": {
+        "Visible": true,
+        "Note": "Shows player avatars with username labels on the right side."
+      }
+    },
+    {
+      "name": "Map_VotosBotaoEsquerdo",
+      "class": "TextButton",
+      "anchor": "ScreenLeft",
+      "scale_pos": [0.0, 0.35],
+      "scale_size": [0.12, 0.10],
+      "hex": "#CC2200",
+      "properties": {
+        "Text": "Votos",
+        "Font": "Creepster",
+        "TextColor3": "#CC0000",
+        "Note": "Vote button - left side. Handwritten style font."
+      }
+    },
+    {
+      "name": "Map_VotosDireitaLabel",
+      "class": "TextLabel",
+      "anchor": "ScreenLeft",
+      "scale_pos": [0.0, 0.46],
+      "scale_size": [0.12, 0.08],
+      "hex": "#CC2200",
+      "properties": {
+        "Text": "Direita",
+        "Font": "Creepster",
+        "TextColor3": "#CC0000"
+      }
+    },
+    {
+      "name": "Map_OndaCard",
+      "class": "Frame",
+      "anchor": "CenterRight",
+      "scale_pos": [0.60, 0.20],
+      "scale_size": [0.18, 0.18],
+      "hex": "#1A6EAF",
+      "properties": {
+        "Text": "ONDA",
+        "Font": "GothamBlack",
+        "TextColor3": "#FFFFFF",
+        "Image": "wave_icon"
+      }
+    },
+    {
+      "name": "Map_MaquinaCard",
+      "class": "Frame",
+      "anchor": "CenterRight",
+      "scale_pos": [0.60, 0.40],
+      "scale_size": [0.18, 0.10],
+      "hex": "#1A6EAF",
+      "properties": {
+        "Text": "MÁQUINA",
+        "Font": "GothamBlack",
+        "TextColor3": "#FFFFFF"
+      }
+    },
+    {
+      "name": "Map_MisterioCard",
+      "class": "Frame",
+      "anchor": "CenterRight",
+      "scale_pos": [0.60, 0.52],
+      "scale_size": [0.18, 0.22],
+      "hex": "#8E44AD",
+      "properties": {
+        "Text": "MISTÉRIO\ncomerciante",
+        "Font": "GothamBlack",
+        "TextColor3": "#FFFFFF",
+        "Image": "merchant_cart_icon"
+      }
+    }
+  ],
+
+  "jump_shop_items": [
+    {
+      "id": "jump_james",
+      "name": "Pulo do James",
+      "jump_power": 10,
+      "speed": 67,
+      "brainrot_reward": "Jamezini cakenini",
+      "item_reward": null,
+      "extra_reward": null,
+      "cost_type": "free",
+      "cost_value": 0,
+      "card_color_hex": "#2980B9"
+    },
+    {
+      "id": "jump_jj",
+      "name": "Pulo do JJ",
+      "jump_power": 40,
+      "speed": 250,
+      "brainrot_reward": "Mikey",
+      "item_reward": "Wave Shield",
+      "extra_reward": null,
+      "cost_type": "money",
+      "cost_value": 5000,
+      "card_color_hex": "#8E44AD"
+    },
+    {
+      "id": "jump_mana",
+      "name": "Pulo da Mana",
+      "jump_power": 90,
+      "speed": 400,
+      "brainrot_reward": null,
+      "item_reward": null,
+      "extra_reward": "Upgrade máximo na base",
+      "cost_type": "money",
+      "cost_value": 500000,
+      "card_color_hex": "#16A085"
+    },
+    {
+      "id": "jump_pdoro",
+      "name": "Pulo do Pdoro",
+      "jump_power": 140,
+      "speed": 600,
+      "brainrot_reward": null,
+      "item_reward": null,
+      "extra_reward": "10000 wave tokens",
+      "cost_type": "waves_survived",
+      "cost_value": 10,
+      "card_color_hex": "#E67E22"
+    },
+    {
+      "id": "jump_matheus",
+      "name": "Pulo do Matheus",
+      "jump_power": 170,
+      "speed": 800,
+      "brainrot_reward": "3x Glaciero Infernati",
+      "item_reward": "Galaxy Bat",
+      "extra_reward": null,
+      "cost_type": "kill_players_with_waves",
+      "cost_value": 5,
+      "card_color_hex": "#2C3E50"
+    },
+    {
+      "id": "jump_caylus",
+      "name": "Pulo do Caylus",
+      "jump_power": 200,
+      "speed": 2000,
+      "brainrot_reward": "3x Infinity Lucky Box",
+      "item_reward": null,
+      "extra_reward": null,
+      "cost_type": "sell_brainrots",
+      "cost_value": 10,
+      "card_color_hex": "#D4AC0D"
+    },
+    {
+      "id": "jump_athos",
+      "name": "Pulo do Athos",
+      "jump_power": 250,
+      "speed": 2500,
+      "brainrot_reward": "Athos Brainrot (base full)",
+      "item_reward": null,
+      "extra_reward": null,
+      "cost_type": "fuse_brainrots",
+      "cost_value": 2,
+      "card_color_hex": "#E74C3C"
+    }
+  ],
+
+  "brainrot_definitions": [
+    {
+      "id": "jamezini_cakenini",
+      "display_name": "Jamezini cakenini",
+      "rarity": "Common",
+      "income_per_second": 2,
+      "head_accessory": "cake",
+      "base_skin": "James_Roblox",
+      "fire_aura": false
+    },
+    {
+      "id": "mikey",
+      "display_name": "Mikey",
+      "rarity": "Legendary",
+      "income_per_second": 7000,
+      "head_accessory": null,
+      "base_skin": "Mikey_Maizen",
+      "fire_aura": false
+    },
+    {
+      "id": "athos_brainrot",
+      "display_name": "Athos Brainrot",
+      "rarity": "Infinity",
+      "income_per_second": 999000000,
+      "head_accessory": null,
+      "base_skin": "Athos_Roblox",
+      "fire_aura": true
+    }
+  ],
+
+  "gameplay_logic": [
+    {
+      "trigger": "Player touches SecretPassage_Part_JumpShop",
+      "action": "TeleportService:TeleportToPlaceInstance(player, JUMPSHOP_MAP_ID)",
+      "target_object": "SecretPassage_JumpShop",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "Player touches SecretPassage_Part_Base",
+      "action": "TeleportService:TeleportToPlaceInstance(player, BASE_MAP_ID)",
+      "target_object": "SecretPassage_Base",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "Player clicks JumpCard with cost_type=free",
+      "action": "Grant jump_power, speed, brainrot_reward; mark card green; fire ProgressTracker unlock",
+      "target_object": "JumpCard_James",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "Player clicks JumpCard with cost_type=money AND player.Money >= cost_value",
+      "action": "Deduct money; grant jump_power, speed, rewards; mark card green",
+      "target_object": "JumpCard_JJ | JumpCard_Mana",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "Player.WavesSurvivedStreak >= 10",
+      "action": "Unlock JumpCard_Pdoro purchase; grant 10000 wave tokens on buy",
+      "target_object": "JumpCard_Pdoro",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "Player.WaveKills >= 5",
+      "action": "Unlock JumpCard_Matheus purchase; grant Galaxy Bat + 3x Glaciero Infernati on buy",
+      "target_object": "JumpCard_Matheus",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "Player.BrainrotsSoldSession >= 10",
+      "action": "Unlock JumpCard_Caylus purchase; grant 3x Infinity Lucky Box on buy",
+      "target_object": "JumpCard_Caylus",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "Player.BrainrotsFusedSession >= 2",
+      "action": "Unlock JumpCard_Athos purchase; fill base with Athos Brainrots on buy",
+      "target_object": "JumpCard_Athos",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "AdminCommand :hideadmin {player}",
+      "action": "Set AdminPanel_Frame.Visible = false; Set AdminPanel_ToggleButton.Visible = false",
+      "target_object": "AdminPanel_Frame",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "AdminCommand :showadmin {player}",
+      "action": "Set AdminPanel_Frame.Visible = true; Set AdminPanel_ToggleButton.Visible = true",
+      "target_object": "AdminPanel_Frame",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "AdminCommand :setjump {player} {value}",
+      "action": "player.Character.Humanoid.JumpPower = value",
+      "target_object": "Humanoid",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "AdminCommand :setspeed {player} {value}",
+      "action": "player.Character.Humanoid.WalkSpeed = value",
+      "target_object": "Humanoid",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "AdminCommand :setmoney {player} {value}",
+      "action": "PlayerDataService:SetMoney(player, value)",
+      "target_object": "PlayerDataService",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "AdminCommand :givetokens {player} {value}",
+      "action": "PlayerDataService:AddWaveTokens(player, value)",
+      "target_object": "PlayerDataService",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "AdminCommand :giveitem {player} {itemId}",
+      "action": "PlayerDataService:AddItem(player, itemId)",
+      "target_object": "PlayerDataService",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "AdminCommand :givebrainrot {player} {brainrotId} {qty}",
+      "action": "PlayerDataService:AddBrainrot(player, brainrotId, qty)",
+      "target_object": "PlayerDataService",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "Brainrot placed on Base slot",
+      "action": "Start income ticker: every 1s fire RemoteEvent('AddMoney', player, brainrot.income_per_second)",
+      "target_object": "BaseIncomeService",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "Brainrot removed from Base slot",
+      "action": "Stop income ticker for that slot",
+      "target_object": "BaseIncomeService",
+      "logic_type": "Server"
+    },
+    {
+      "trigger": "JumpCard unlocked (any)",
+      "action": "Fire RemoteEvent('ProgressUnlock', player, jump_id); ProgressTracker card turns green + checkmark",
+      "target_object": "ProgressTracker_Frame",
+      "logic_type": "Client"
+    },
+    {
+      "trigger": "Wave Shield item active AND player touches WavePart",
+      "action": "Cancel wave kill; play shield VFX; decrement shield durability",
+      "target_object": "WaveShieldService",
+      "logic_type": "Server"
+    }
+  ],
+
+  "required_modifications": [
+    {
+      "original_feature": "AdminPanel button always visible",
+      "new_requirement": "AdminPanel toggle button must be hideable via :hideadmin and :showadmin commands for off-screen admin use during recording"
+    },
+    {
+      "original_feature": "Single map (Escape Waves For Brainmodz)",
+      "new_requirement": "Add two auxiliary maps: 'Loja de pulos de youtubers' and 'Base separada', each replicating HUD from original map (HUD_Gems, HUD_Coins, HUD_JumpLevel, HUD_SpeedLevel, HUD_Money) with editable resource values"
+    },
+    {
+      "original_feature": "No jump shop",
+      "new_requirement": "Add JumpShop UI with 7 cards (James, JJ, Mana, Pdoro, Matheus, Caylus, Athos) showing icon, stats via symbols, cost. Cards unlock sequentially and turn green when purchased."
+    },
+    {
+      "original_feature": "No progress tracker",
+      "new_requirement": "Add ProgressTracker_Frame on TopRight showing all 7 jump icons. Unlocked state = green background + checkmark. No text/price shown, icons only."
+    },
+    {
+      "original_feature": "No custom brainrots",
+      "new_requirement": "Add 3 custom brainrots: Jamezini cakenini (Common, $2/s), Mikey (Legendary, $7k/s), Athos Brainrot (Infinity, $999M/s). Each has floating info label above head."
+    },
+    {
+      "original_feature": "No secret passage",
+      "new_requirement": "Add invisible trigger Parts in the main map that teleport player to JumpShop map and Base map respectively when touched. Position: mid-track wall area."
+    },
+    {
+      "original_feature": "Base area open/shared",
+      "new_requirement": "Base separada map must be enclosed with walls matching original game style, single base slot, supports custom brainrot placement and per-second income identical to original."
+    },
+    {
+      "original_feature": "No Wave Machine tokens",
+      "new_requirement": "Add wave token currency. WaveMachineService consumes tokens to spawn waves targeting specific players. Pdoro jump grants 10k tokens on purchase."
+    },
+    {
+      "original_feature": "No Galaxy Bat",
+      "new_requirement": "Add Galaxy Bat melee item: on hit launches target player toward active wave zone. Granted by Pulo do Matheus."
+    },
+    {
+      "original_feature": "No Wave Shield",
+      "new_requirement": "Add Wave Shield item: blocks one wave hit per charge. Visual VFX on activation. Granted by Pulo do JJ."
+    }
+  ],
+
+  "physical_properties": {
+    "jump_power_default": 7.2,
+    "walkspeed_default": 16,
+    "jump_levels": [10, 40, 90, 140, 170, 200, 250],
+    "speed_levels": [67, 250, 400, 600, 800, 2000, 2500],
+    "wave_token_grant_pdoro": 10000,
+    "wave_token_cost_per_spawn": "variable",
+    "base_income_tick_interval_seconds": 1,
+    "progress_unlock_checkmark_color_hex": "#2ECC71",
+    "card_locked_overlay_hex": "#00000080",
+    "card_unlocked_bg_hex": "#27AE60"
+  }
 }

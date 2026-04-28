@@ -56,7 +56,12 @@
       "mcp__Roblox_Studio__script_grep",
       "mcp__Roblox_Studio__subagent",
       "mcp__Roblox_Studio__multi_edit",
-      "mcp__Roblox_Studio__script_read"
+      "mcp__Roblox_Studio__script_read",
+      "Bash(git push *)",
+      "mcp__Roblox_Studio__list_roblox_studios",
+      "mcp__Roblox_Studio__script_search",
+      "mcp__Roblox_Studio__start_stop_play",
+      "Bash(git commit -m ' *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\MayconBruno\\Documents\\Github\\athos_roblox\\.claude"
