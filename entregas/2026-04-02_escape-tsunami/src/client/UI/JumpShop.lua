@@ -143,26 +143,30 @@ local function applyState(card: Frame, j: any, state: string)
 		btn.ClipsDescendants = false
 		local hasLabel = j.price_label and j.price_label ~= ""
 		if not priceImg then
-			priceImg = Instance.new("ImageLabel")
-			;(priceImg :: ImageLabel).Name = "PriceImage"
-			;(priceImg :: ImageLabel).BackgroundTransparency = 1
-			;(priceImg :: ImageLabel).ScaleType = Enum.ScaleType.Fit
-			;(priceImg :: ImageLabel).ZIndex = btn.ZIndex + 5
-			;(priceImg :: ImageLabel).Parent = btn
+			local newImg = Instance.new("ImageLabel")
+			newImg.Name = "PriceImage"
+			newImg.BackgroundTransparency = 1
+			newImg.ScaleType = Enum.ScaleType.Fit
+			newImg.ZIndex = btn.ZIndex + 5
+			newImg.Parent = btn
+			priceImg = newImg
 		end
-		;(priceImg :: ImageLabel).Image = j.price_image
-		;(priceImg :: ImageLabel).Position = UDim2.new(0, 0, 0, 0)
+		local img = priceImg :: ImageLabel
+		img.Image = j.price_image
+		img.Position = UDim2.new(0, 0, 0, 0)
 		if hasLabel then
-			-- imagem 80% (dobro), texto alinhado à direita como os outros preços
-			;(priceImg :: ImageLabel).Size = UDim2.new(0.8, 0, 1, 0)
+			img.Size = UDim2.new(0.45, 0, 0.85, 0)
+			img.Position = UDim2.new(j.price_img_x or 0, j.price_img_x and 0 or 4, 0.075, 0)
 			btn.Text = j.price_label
 			btn.TextXAlignment = Enum.TextXAlignment.Right
+			local pad = btn:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding", btn)
+			pad.PaddingRight = UDim.new(j.price_padding_right or 0.08, 0)
 		else
-			;(priceImg :: ImageLabel).Size = UDim2.new(1, 0, 1, 0)
+			img.Size = UDim2.new(1, 0, 1, 0)
 			btn.Text = ""
 			btn.TextXAlignment = Enum.TextXAlignment.Center
 		end
-		;(priceImg :: ImageLabel).Visible = true
+		img.Visible = true
 		if priceLbl then priceLbl.Visible = false end
 	elseif priceImg then
 		priceImg.Visible = false
@@ -194,7 +198,64 @@ local function populateCard(card: Frame, j: any, state: string)
 
 	local subLbl = card:FindFirstChild("SubLbl", true) :: TextLabel?
 	if subLbl then
-		subLbl.Text = j.rewards or ""
+		if type(j.rewards) == "table" then
+			subLbl.Text = ""
+			local banner = subLbl.Parent
+			local row = banner:FindFirstChild("RewardsRow")
+			if row then row:Destroy() end
+			row = Instance.new("Frame")
+			row.Name           = "RewardsRow"
+			row.Size           = UDim2.new(subLbl.Size.X.Scale, subLbl.Size.X.Offset, subLbl.Size.Y.Scale, subLbl.Size.Y.Offset)
+			row.Position       = subLbl.Position
+			row.BackgroundTransparency = 1
+			row.ClipsDescendants = false
+			row.Parent         = banner
+			local lay = Instance.new("UIListLayout", row)
+			lay.FillDirection       = Enum.FillDirection.Horizontal
+			lay.VerticalAlignment   = Enum.VerticalAlignment.Center
+			lay.HorizontalAlignment = Enum.HorizontalAlignment.Center
+			lay.Padding             = UDim.new(0, 3)
+			lay.SortOrder           = Enum.SortOrder.LayoutOrder
+			local order = 0
+			for _, item in (j.rewards :: any) do
+				order += 1
+				local img = Instance.new("ImageLabel", row)
+				img.LayoutOrder         = order
+				local sz = (item.s or 24) :: number
+				img.Size                = UDim2.new(0, sz, 0, sz)
+				img.BackgroundTransparency = 1
+				img.ScaleType           = Enum.ScaleType.Fit
+				img.Image               = "rbxassetid://" .. item.i
+				if item.v then
+					order += 1
+					local lbl = Instance.new("TextLabel", row)
+					lbl.LayoutOrder       = order
+					lbl.Size              = UDim2.new(0, 26, 0, 24)
+					lbl.BackgroundTransparency = 1
+					lbl.Font              = Enum.Font.GothamBold
+					lbl.TextScaled        = true
+					lbl.TextColor3        = Color3.fromRGB(220, 220, 220)
+					lbl.TextXAlignment    = Enum.TextXAlignment.Left
+					lbl.Text              = item.v :: string
+					local stroke = Instance.new("UIStroke", lbl)
+					stroke.Color           = Color3.new(0, 0, 0)
+					stroke.Thickness       = 1.5
+					stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+				end
+			end
+			-- Escala proporcionalmente se o conteúdo passar da largura do row
+			task.defer(function()
+				if not row or not row.Parent then return end
+				local contentW = lay.AbsoluteContentSize.X
+				local rowW     = row.AbsoluteSize.X
+				if contentW > 0 and rowW > 0 and contentW > rowW then
+					local us = Instance.new("UIScale", row)
+					us.Scale = rowW / contentW
+				end
+			end)
+		else
+			subLbl.Text = j.rewards or ""
+		end
 	end
 
 	-- Icon: ImageLabel dentro do ImgArea do template. Script só troca .Image.
@@ -259,6 +320,8 @@ local function close()
 	isOpen = false
 	gui.Enabled = false
 end
+
+function JumpShop.open() open() end
 
 function JumpShop.init()
 	local R = require(RS.Shared.Remotes)
