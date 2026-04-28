@@ -161,6 +161,8 @@ S.JUMPS = {
 		cost_type = "survive_waves",
 		cost_value = 10,
 		wave_tokens = 10000,
+		price_image = "rbxassetid://108225536815904",
+		price_label = "x10",
 	},
 	{
 		id = "matheus",
@@ -192,6 +194,7 @@ S.JUMPS = {
 		cost_value = 10,
 		brainrot = "infinity_lucky_box",
 		brainrot_qty = 3,
+		price_image = "rbxassetid://137837626508439",
 	},
 	{
 		id = "athos",
@@ -207,6 +210,7 @@ S.JUMPS = {
 		cost_value = 2,
 		fill_base = true,
 		particles = "fire",
+		price_image = "rbxassetid://89343154348628",
 	},
 }
 

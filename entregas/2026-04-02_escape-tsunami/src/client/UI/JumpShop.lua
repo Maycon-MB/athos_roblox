@@ -35,11 +35,11 @@ local FACE_EMOJI: { [string]: string } = {
 }
 
 local COST_ICON: { [string]: string } = {
-	money          = "💰",
-	survive_waves  = "🌊",
+	money          = "",
+	survive_waves  = "",
 	kill_noobs     = "💀",
-	sell_brainrots = "$",
-	fuse_brainrots = "🔥",
+	sell_brainrots = "",
+	fuse_brainrots = "",
 }
 
 -- ── Gradientes dos estados do PriceBtn (substituem o UIGradient do template) ──
@@ -61,11 +61,8 @@ end
 local function costText(j: any): string
 	local ct = j.cost_type :: string
 	if ct == "free" then return "FREE" end
-	local icon = COST_ICON[ct] or ""
-	if ct == "money" then
-		return icon .. " $" .. fmtMoney(j.cost_value :: number)
-	end
-	return icon .. " ×" .. tostring(j.cost_value)
+	if ct == "money" then return "$" .. fmtMoney(j.cost_value :: number) end
+	return "×" .. tostring(j.cost_value)
 end
 
 local function cardState(j: any, d: any): string
@@ -137,6 +134,41 @@ local function applyState(card: Frame, j: any, state: string)
 	end
 
 	btn.BackgroundColor3 = mainColor
+
+	-- Imagem de preço customizada (sobrescreve texto)
+	local priceImg = btn:FindFirstChild("PriceImage") :: ImageLabel?
+	local priceLbl = btn:FindFirstChild("PriceLabel") :: TextLabel?
+	if j.price_image and j.price_image ~= "" and state ~= "owned" then
+		btn.Text = ""
+		btn.ClipsDescendants = false
+		local hasLabel = j.price_label and j.price_label ~= ""
+		if not priceImg then
+			priceImg = Instance.new("ImageLabel")
+			;(priceImg :: ImageLabel).Name = "PriceImage"
+			;(priceImg :: ImageLabel).BackgroundTransparency = 1
+			;(priceImg :: ImageLabel).ScaleType = Enum.ScaleType.Fit
+			;(priceImg :: ImageLabel).ZIndex = btn.ZIndex + 5
+			;(priceImg :: ImageLabel).Parent = btn
+		end
+		;(priceImg :: ImageLabel).Image = j.price_image
+		;(priceImg :: ImageLabel).Position = UDim2.new(0, 0, 0, 0)
+		if hasLabel then
+			-- imagem 80% (dobro), texto alinhado à direita como os outros preços
+			;(priceImg :: ImageLabel).Size = UDim2.new(0.8, 0, 1, 0)
+			btn.Text = j.price_label
+			btn.TextXAlignment = Enum.TextXAlignment.Right
+		else
+			;(priceImg :: ImageLabel).Size = UDim2.new(1, 0, 1, 0)
+			btn.Text = ""
+			btn.TextXAlignment = Enum.TextXAlignment.Center
+		end
+		;(priceImg :: ImageLabel).Visible = true
+		if priceLbl then priceLbl.Visible = false end
+	elseif priceImg then
+		priceImg.Visible = false
+		if priceLbl then priceLbl.Visible = false end
+		btn.TextXAlignment = Enum.TextXAlignment.Center
+	end
 
 	-- Barra escura no fundo (efeito 3D)
 	local bar = btn:FindFirstChild("BottomBar") :: Frame?

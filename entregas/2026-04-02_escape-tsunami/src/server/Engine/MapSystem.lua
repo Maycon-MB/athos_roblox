@@ -339,18 +339,19 @@ local function setupShopArea(area: any, folder: Instance)
 	ytScreen(Vector3.new(cx - halfX + 0.16, floorY + 8, cz + 6),
 		Vector3.new(0.3, 4, 5), Enum.NormalId.Right)
 
-	-- ── Stall "Youtuber Jump Shop" (pilares azuis + balcão + sign) ─────
-	local stallZ = cz + 10         -- 10 studs além do centro, na metade traseira
-	-- Pilares
-	mk("Stall_PillarL", Vector3.new(2, 8, 2),
-		CFrame.new(cx - 5, floorY + 4,   stallZ), STBLUE)
-	mk("Stall_PillarR", Vector3.new(2, 8, 2),
-		CFrame.new(cx + 5, floorY + 4,   stallZ), STBLUE)
-	-- Balcão
-	mk("Stall_CounterTop", Vector3.new(12, 0.8, 2.5),
-		CFrame.new(cx, floorY + 3.6, stallZ), RED)
-	mk("Stall_CounterFront", Vector3.new(12, 3.2, 0.5),
-		CFrame.new(cx, floorY + 1.6, stallZ - 1.25), RED)
+	local stallZ = cz + 10
+	-- Reposiciona o Balcao do Workspace na posição certa da loja
+	local balcaoWS = ws:FindFirstChild("Balcao")
+	if balcaoWS then
+		balcaoWS:PivotTo(CFrame.new(cx, 5, cz + 5) * CFrame.Angles(-math.pi/2, math.pi/2 + math.pi, 0))
+		for _, p in balcaoWS:GetDescendants() do
+			if p:IsA("BasePart") then (p :: BasePart).Anchored = true end
+			if p:IsA("Script") then p.Enabled = false end
+		end
+		print("[MapSystem] Balcao reposicionado na loja")
+	else
+		warn("[MapSystem] Balcao nao encontrado no Workspace")
+	end
 
 	-- ── NPC — R6 branco, cabeça preta, olhos vermelhos Neon ────────────
 	local npcX  = cx
