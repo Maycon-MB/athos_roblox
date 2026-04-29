@@ -61,7 +61,10 @@
       "mcp__Roblox_Studio__list_roblox_studios",
       "mcp__Roblox_Studio__script_search",
       "mcp__Roblox_Studio__start_stop_play",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "mcp__Roblox_Studio__set_active_studio",
+      "mcp__Roblox_Studio__inspect_instance",
+      "mcp__Roblox_Studio__search_game_tree"
     ],
     "additionalDirectories": [
       "c:\\Users\\MayconBruno\\Documents\\Github\\athos_roblox\\.claude"

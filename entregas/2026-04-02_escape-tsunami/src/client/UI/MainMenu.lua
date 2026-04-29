@@ -157,68 +157,54 @@ function MainMenu.init()
 	-- Remove a pasta Templates do PlayerGui (clones já saíram)
 	templates:Destroy()
 
-	-- ── Botão Slow Mode — abaixo do grid, sempre visível ─────────────
+	-- ── Botão Slow Mode — usa SlowModeButton existente no MenuFrame ────
 	local slowOn = false
-	local slowBtn = Instance.new("TextButton")
-	slowBtn.Name                   = "SlowModeBtn"
-	slowBtn.Size                   = UDim2.new(1, 0, 0, 36)
-	slowBtn.LayoutOrder            = 999
-	slowBtn.BackgroundColor3       = Color3.fromRGB(255, 255, 255) -- base p/ gradiente
-	slowBtn.BorderSizePixel        = 0
-	slowBtn.Font                   = Enum.Font.GothamBold
-	slowBtn.TextScaled             = true
-	slowBtn.AutoButtonColor        = false
-	slowBtn.Parent                 = mf
+	local sbRaw = mf:FindFirstChild("SlowModeButton")
+	if sbRaw and sbRaw:IsA("TextButton") then
+		local sb = sbRaw :: TextButton
+		local grad = sb:FindFirstChildOfClass("UIGradient") or (function()
+			local g = Instance.new("UIGradient")
+			g.Rotation = 270
+			g.Parent = sb
+			return g
+		end)()
 
-	local sc = Instance.new("UICorner")
-	sc.CornerRadius = UDim.new(0, 6)
-	sc.Parent = slowBtn
-
-	local stroke = Instance.new("UIStroke")
-	stroke.Color     = Color3.fromRGB(25, 25, 25)
-	stroke.Thickness = 2
-	stroke.Parent    = slowBtn
-
-	-- Gradiente vertical: Rotation 270 = topo (offset 0) → base (offset 1)
-	local grad = Instance.new("UIGradient")
-	grad.Rotation = 270
-	grad.Parent   = slowBtn
-
-	local function updateSlowBtn()
-		if slowOn then
-			slowBtn.Text                   = "[T] Slow: ON"
-			slowBtn.TextColor3             = Color3.fromRGB(255, 255, 255)
-			slowBtn.TextStrokeColor3       = Color3.fromRGB(0, 0, 0)
-			slowBtn.TextStrokeTransparency = 0
-			grad.Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(185, 235, 45)),  -- verde limão topo
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(52, 128, 18)),   -- verde grama base
-			})
-		else
-			slowBtn.Text                   = "Slow Mode: OFF"
-			slowBtn.TextColor3             = Color3.fromRGB(28, 28, 28)
-			slowBtn.TextStrokeTransparency = 1
-			grad.Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(215, 215, 215)),  -- cinza prata topo
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(82, 82, 82)),     -- cinza escuro base
-			})
+		local function updateSlowBtn()
+			if slowOn then
+				sb.Text                   = "[T] Slow: ON"
+				sb.TextColor3             = Color3.fromRGB(255, 255, 255)
+				sb.TextStrokeColor3       = Color3.fromRGB(0, 0, 0)
+				sb.TextStrokeTransparency = 0
+				grad.Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, Color3.fromRGB(185, 235, 45)),
+					ColorSequenceKeypoint.new(1, Color3.fromRGB(52, 128, 18)),
+				})
+			else
+				sb.Text                   = "Slow Mode: OFF"
+				sb.TextColor3             = Color3.fromRGB(28, 28, 28)
+				sb.TextStrokeTransparency = 1
+				grad.Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, Color3.fromRGB(215, 215, 215)),
+					ColorSequenceKeypoint.new(1, Color3.fromRGB(82, 82, 82)),
+				})
+			end
 		end
+		updateSlowBtn()
+
+		local R2 = require(RS.Shared.Remotes)
+		local cmdRem  = RS:WaitForChild(R2.AdminCmd)  :: RemoteEvent
+		local respRem = RS:WaitForChild(R2.AdminResp) :: RemoteEvent
+
+		sb.MouseButton1Click:Connect(function()
+			cmdRem:FireServer("slow_motion", "")
+		end)
+		respRem.OnClientEvent:Connect(function(kind: string, msg: string?)
+			if kind == "slow_state" then
+				slowOn = (msg == "ON")
+				updateSlowBtn()
+			end
+		end)
 	end
-	updateSlowBtn() -- aplica estado inicial (OFF)
-
-	local R2 = require(RS.Shared.Remotes)
-	local cmdRem  = RS:WaitForChild(R2.AdminCmd)  :: RemoteEvent
-	local respRem = RS:WaitForChild(R2.AdminResp) :: RemoteEvent
-
-	slowBtn.MouseButton1Click:Connect(function()
-		cmdRem:FireServer("slow_motion", "")
-	end)
-	respRem.OnClientEvent:Connect(function(kind: string, msg: string?)
-		if kind == "slow_state" then
-			slowOn = (msg == "ON")
-			updateSlowBtn()
-		end
-	end)
 end
 
 return MainMenu
