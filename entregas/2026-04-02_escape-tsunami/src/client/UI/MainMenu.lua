@@ -158,28 +158,53 @@ function MainMenu.init()
 	templates:Destroy()
 
 	-- ── Botão Slow Mode — abaixo do grid, sempre visível ─────────────
-	local SLOW_GREEN = Color3.fromRGB(87, 200, 80)
-	local SLOW_RED   = Color3.fromRGB(190, 55, 55)
-
 	local slowOn = false
 	local slowBtn = Instance.new("TextButton")
-	slowBtn.Name             = "SlowModeBtn"
-	slowBtn.Size             = UDim2.new(1, 0, 0, 36)
-	slowBtn.LayoutOrder      = 999
-	slowBtn.BackgroundColor3 = SLOW_GREEN
-	slowBtn.BorderSizePixel  = 0
-	slowBtn.Font             = Enum.Font.GothamBold
-	slowBtn.TextScaled       = true
-	slowBtn.TextColor3       = Color3.fromRGB(255, 255, 255)
-	slowBtn.Text             = "Slow Mode: OFF"
-	slowBtn.AutoButtonColor  = true
-	slowBtn.Parent           = mf
-	local sc = Instance.new("UICorner"); sc.CornerRadius = UDim.new(0, 6); sc.Parent = slowBtn
+	slowBtn.Name                   = "SlowModeBtn"
+	slowBtn.Size                   = UDim2.new(1, 0, 0, 36)
+	slowBtn.LayoutOrder            = 999
+	slowBtn.BackgroundColor3       = Color3.fromRGB(255, 255, 255) -- base p/ gradiente
+	slowBtn.BorderSizePixel        = 0
+	slowBtn.Font                   = Enum.Font.GothamBold
+	slowBtn.TextScaled             = true
+	slowBtn.AutoButtonColor        = false
+	slowBtn.Parent                 = mf
+
+	local sc = Instance.new("UICorner")
+	sc.CornerRadius = UDim.new(0, 6)
+	sc.Parent = slowBtn
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color     = Color3.fromRGB(25, 25, 25)
+	stroke.Thickness = 2
+	stroke.Parent    = slowBtn
+
+	-- Gradiente vertical: Rotation 270 = topo (offset 0) → base (offset 1)
+	local grad = Instance.new("UIGradient")
+	grad.Rotation = 270
+	grad.Parent   = slowBtn
 
 	local function updateSlowBtn()
-		slowBtn.Text             = if slowOn then "Slow Mode: ON" else "Slow Mode: OFF"
-		slowBtn.BackgroundColor3 = if slowOn then SLOW_GREEN else SLOW_RED
+		if slowOn then
+			slowBtn.Text                   = "[T] Slow: ON"
+			slowBtn.TextColor3             = Color3.fromRGB(255, 255, 255)
+			slowBtn.TextStrokeColor3       = Color3.fromRGB(0, 0, 0)
+			slowBtn.TextStrokeTransparency = 0
+			grad.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(185, 235, 45)),  -- verde limão topo
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(52, 128, 18)),   -- verde grama base
+			})
+		else
+			slowBtn.Text                   = "Slow Mode: OFF"
+			slowBtn.TextColor3             = Color3.fromRGB(28, 28, 28)
+			slowBtn.TextStrokeTransparency = 1
+			grad.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(215, 215, 215)),  -- cinza prata topo
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(82, 82, 82)),     -- cinza escuro base
+			})
+		end
 	end
+	updateSlowBtn() -- aplica estado inicial (OFF)
 
 	local R2 = require(RS.Shared.Remotes)
 	local cmdRem  = RS:WaitForChild(R2.AdminCmd)  :: RemoteEvent
