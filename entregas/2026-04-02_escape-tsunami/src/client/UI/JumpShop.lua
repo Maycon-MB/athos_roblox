@@ -116,7 +116,7 @@ local function applyState(card: Frame, j: any, state: string)
 	if state == "owned" then
 		mainColor = Color3.fromRGB(30, 110, 140)
 		darkColor = Color3.fromRGB(15, 65, 90)
-		btn.Text = "✓ OWNED"
+		btn.Text = "OWNED"
 		btn.Active = false
 		btn.AutoButtonColor = false
 	elseif state == "available" then

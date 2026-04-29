@@ -156,6 +156,44 @@ function MainMenu.init()
 
 	-- Remove a pasta Templates do PlayerGui (clones já saíram)
 	templates:Destroy()
+
+	-- ── Botão Slow Mode — abaixo do grid, sempre visível ─────────────
+	local SLOW_GREEN = Color3.fromRGB(87, 200, 80)
+	local SLOW_RED   = Color3.fromRGB(190, 55, 55)
+
+	local slowOn = false
+	local slowBtn = Instance.new("TextButton")
+	slowBtn.Name             = "SlowModeBtn"
+	slowBtn.Size             = UDim2.new(1, 0, 0, 36)
+	slowBtn.LayoutOrder      = 999
+	slowBtn.BackgroundColor3 = SLOW_GREEN
+	slowBtn.BorderSizePixel  = 0
+	slowBtn.Font             = Enum.Font.GothamBold
+	slowBtn.TextScaled       = true
+	slowBtn.TextColor3       = Color3.fromRGB(255, 255, 255)
+	slowBtn.Text             = "Slow Mode: OFF"
+	slowBtn.AutoButtonColor  = true
+	slowBtn.Parent           = mf
+	local sc = Instance.new("UICorner"); sc.CornerRadius = UDim.new(0, 6); sc.Parent = slowBtn
+
+	local function updateSlowBtn()
+		slowBtn.Text             = if slowOn then "Slow Mode: ON" else "Slow Mode: OFF"
+		slowBtn.BackgroundColor3 = if slowOn then SLOW_GREEN else SLOW_RED
+	end
+
+	local R2 = require(RS.Shared.Remotes)
+	local cmdRem  = RS:WaitForChild(R2.AdminCmd)  :: RemoteEvent
+	local respRem = RS:WaitForChild(R2.AdminResp) :: RemoteEvent
+
+	slowBtn.MouseButton1Click:Connect(function()
+		cmdRem:FireServer("slow_motion", "")
+	end)
+	respRem.OnClientEvent:Connect(function(kind: string, msg: string?)
+		if kind == "slow_state" then
+			slowOn = (msg == "ON")
+			updateSlowBtn()
+		end
+	end)
 end
 
 return MainMenu

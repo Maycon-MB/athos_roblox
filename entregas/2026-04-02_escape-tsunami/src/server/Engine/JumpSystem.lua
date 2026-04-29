@@ -144,11 +144,10 @@ local function handleBuy(pl: Player, jumpId: string)
 		if d.noobsKilled < cfg.cost_value then
 			return
 		end
-	elseif ct == "sell_brainrots" or ct == "fuse_brainrots" then
-		-- Transacional: verifica E consome N brainrots do inventário agora.
-		if not PD.consumeAnyBrainrots(pl, cfg.cost_value) then
-			return
-		end
+	elseif ct == "sell_brainrots" then
+		if d.brainrotsSold < cfg.cost_value then return end
+	elseif ct == "fuse_brainrots" then
+		if d.brainrotsFused < cfg.cost_value then return end
 	else
 		return
 	end

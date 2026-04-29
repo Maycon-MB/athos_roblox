@@ -183,7 +183,7 @@ function AdminPanel.init()
 
 	-- ── ScrollingFrame do conteúdo ────────────────────────────────────
 	local scroll = Instance.new("ScrollingFrame")
-	scroll.Size                = UDim2.new(1, -12, 1, -122)  -- encolhido p/ botão Slow
+	scroll.Size                = UDim2.new(1, -12, 1, -82)
 	scroll.Position            = UDim2.new(0, 6, 0, 48)
 	scroll.BackgroundTransparency = 1
 	scroll.BorderSizePixel     = 0
@@ -201,34 +201,12 @@ function AdminPanel.init()
 	local pad = Instance.new("UIPadding")
 	pad.PaddingBottom = UDim.new(0, 6); pad.Parent = scroll
 
-	-- ── Botão Slow Motion (fixo, abaixo do scroll) ───────────────────
-	local slowOn = false
-	local slowBtn = Instance.new("TextButton")
-	slowBtn.Size             = UDim2.new(1, -12, 0, 34)
-	slowBtn.Position         = UDim2.new(0, 6, 1, -70)
-	slowBtn.BackgroundColor3 = GREEN
-	slowBtn.BorderSizePixel  = 0
-	slowBtn.Font             = Enum.Font.GothamBold
-	slowBtn.TextScaled       = true
-	slowBtn.TextColor3       = WHITE
-	slowBtn.Text             = "[T] Slow: OFF"
-	slowBtn.AutoButtonColor  = true
-	slowBtn.Parent           = panel
-	corner(slowBtn, 7)
-
-	local function updateSlowBtn()
-		slowBtn.Text             = if slowOn then "[T] Slow: ON" else "[T] Slow: OFF"
-		slowBtn.BackgroundColor3 = if slowOn then GREEN else RED
-	end
-
 	local cmdRemote = RS:WaitForChild(R.AdminCmd)  :: RemoteEvent
 	local respRemote = RS:WaitForChild(R.AdminResp) :: RemoteEvent
 
 	local function cmd(action: string, arg: string)
 		cmdRemote:FireServer(action, arg)
 	end
-
-	slowBtn.MouseButton1Click:Connect(function() cmd("slow_motion", "") end)
 
 	-- ── AREAS ─────────────────────────────────────────────────────────
 	makeSection(scroll, "AREAS")
@@ -309,9 +287,6 @@ function AdminPanel.init()
 	respRemote.OnClientEvent:Connect(function(kind: string, msg: string?)
 		if kind == "toggle" then
 			gui.Enabled = not gui.Enabled
-		elseif kind == "slow_state" then
-			slowOn = (msg == "ON")
-			updateSlowBtn()
 		elseif kind == "ok" or kind == "list" then
 			log.Text = msg or "OK"
 			task.delay(5, function()

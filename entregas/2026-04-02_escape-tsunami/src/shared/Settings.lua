@@ -55,9 +55,9 @@ S.SPAWN_WEIGHTS = { 60, 20, 8, 4, 6, 0.1, 0.02 }
 -- cx/cz = centro do retângulo | halfX/halfZ = metade do tamanho em cada eixo
 -- Ajuste os valores para cobrir o corredor jogável sem incluir paredes ou safe area.
 S.SPAWN_ZONES = {
-	{ cx = -246, halfX = 25, cz = -100, halfZ = 420 },
-	-- cobre X: [-271, -221] (corredor central, sem paredes)
-	-- cobre Z: [-520, +320] (do início do mapa até antes da safe area)
+	{ cx = -246, halfX = 30, cz = 370, halfZ = 50 },
+	-- cobre X: [-276, -216] | cobre Z: [320, 420]
+	-- brainrots nascem junto à base (base_origin Z=406) para coleta imediata
 }
 
 -- ── BRAINROTS ─────────────────────────────────────────────────────────
