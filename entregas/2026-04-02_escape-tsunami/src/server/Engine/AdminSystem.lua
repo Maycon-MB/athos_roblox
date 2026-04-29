@@ -10,7 +10,10 @@ local adminCmd: RemoteEvent
 local adminResp: RemoteEvent
 
 local godModePlayers: { [Player]: boolean } = {}
-local brainrotSpawnEnabled: { [string]: boolean } = {} -- nil = enabled by default
+local brainrotSpawnEnabled: { [string]: boolean } = {}
+local slowActive = false
+local originalGravity = 196.2
+local originalSpeeds: { [Player]: { walk: number, jump: number } } = {}
 
 local function handle(pl: Player, cmd: string, arg: string?)
 	local WS = require(script.Parent.WaveSystem)
@@ -133,6 +136,40 @@ local function handle(pl: Player, cmd: string, arg: string?)
 		BS.setEnabled(brainrotId, newState)
 		local stateText = if newState then "ON" else "OFF"
 		adminResp:FireClient(pl, "ok", "Spawn " .. brainrotId .. ": " .. stateText)
+	elseif cmd == "slow_motion" then
+		slowActive = not slowActive
+		local ws = game:GetService("Workspace")
+		if slowActive then
+			originalGravity = ws.Gravity
+			ws.Gravity = originalGravity * 0.35
+			for _, p in Players:GetPlayers() do
+				local char = p.Character
+				if char then
+					local h = char:FindFirstChildOfClass("Humanoid")
+					if h then
+						originalSpeeds[p] = { walk = h.WalkSpeed, jump = h.JumpPower }
+						h.WalkSpeed = math.max(h.WalkSpeed * 0.35, 4)
+						h.JumpPower = math.max(h.JumpPower * 0.35, 20)
+					end
+				end
+			end
+		else
+			ws.Gravity = originalGravity
+			for _, p in Players:GetPlayers() do
+				local char = p.Character
+				if char then
+					local h = char:FindFirstChildOfClass("Humanoid")
+					if h and originalSpeeds[p] then
+						h.WalkSpeed = originalSpeeds[p].walk
+						h.JumpPower = originalSpeeds[p].jump
+					end
+				end
+			end
+			originalSpeeds = {}
+		end
+		local state = if slowActive then "ON" else "OFF"
+		adminResp:FireClient(pl, "slow_state", state)
+		adminResp:FireClient(pl, "ok", "Slow Motion: " .. state)
 	elseif cmd == "reset" then
 		local d = PD.get(pl)
 		if d then
