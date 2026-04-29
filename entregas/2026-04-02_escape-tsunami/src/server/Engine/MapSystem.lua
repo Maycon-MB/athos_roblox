@@ -164,7 +164,7 @@ local function applyMapTexture(mapModel: Instance)
 		elseif CS:HasTag(p, "Floor") then
 			p.Color = FLOOR_A
 		elseif CS:HasTag(p, "Wall") then
-			p.Color = Color3.fromRGB(98, 82, 54)  -- #625236 marrom acinzentado
+			p.Color = Color3.fromRGB(255, 136, 76)  -- Laranja
 		end
 		count += 1
 	end
